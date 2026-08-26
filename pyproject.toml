@@ -1,7 +1,7 @@
 [project]
 name = "oocd-etl"
 version = "1.0.0"
-description = "ETL for the out of court disposals dashboard"
+description = "ETL for the out of court resolutions dashboard"
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.32",

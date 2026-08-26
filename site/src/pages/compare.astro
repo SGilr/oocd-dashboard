@@ -118,7 +118,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
 
 <Layout
   title="Compare forces"
-  description="A sortable, filterable table of out of court disposal measures for all 44 forces, with the measure, financial year, count basis, fraud treatment and disposal subset under your control."
+  description="A sortable, filterable table of out of court resolution measures for all 44 forces, with the measure, financial year, count basis, fraud treatment and resolution subset under your control."
   wide
 >
   <TexturePatterns />
@@ -184,7 +184,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
 
     <div class="control" style="grid-column: 1 / -1">
       <fieldset>
-        <legend>Disposal types counted</legend>
+        <legend>Resolution types counted</legend>
         <div class="checks">
           {DISPOSAL_SERIES.map((series) => (
             <label>
@@ -203,7 +203,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
   <p class="no-js-note" id="controls-note">
     With JavaScript turned off the controls do nothing and the table below shows the
     default view: {measureMeta.label.toLowerCase()}, {latestYear},
-    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six disposal types. The
+    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six resolution types. The
     <a href="/data">data page</a> has the same figures as CSV.
   </p>
 
@@ -226,7 +226,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           <th scope="col">Notes</th>
           <th scope="col" class="numeric" id="measure-heading">{measureMeta.short}</th>
           <th scope="col">Trend</th>
-          <th scope="col" class="numeric">Out of court disposals</th>
+          <th scope="col" class="numeric">Out of court resolutions</th>
           <th scope="col" class="numeric" id="denominator-heading">Positive outcomes</th>
         </tr>
       </thead>
@@ -316,7 +316,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           short: "Share of positive outcomes",
           label: "Share of positive outcomes",
           question:
-            "Of the cases where somebody was held to account, by a charge or by an out of court disposal, how many were dealt with outside court?",
+            "Of the cases where somebody was held to account, by a charge or by an out of court resolution, how many were dealt with outside court?",
           unit: "percentage",
           needsDenominator: false,
         },
@@ -332,14 +332,14 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           short: "Per 1,000 recorded crimes",
           label: "Rate per 1,000 recorded crimes",
           question:
-            "How many out of court disposals does the force issue for every thousand crimes it records?",
+            "How many out of court resolutions does the force issue for every thousand crimes it records?",
           unit: "rate",
           needsDenominator: true,
         },
         volume: {
           short: "Volume",
           label: "Absolute volume",
-          question: "How many out of court disposals did the force issue?",
+          question: "How many out of court resolutions did the force issue?",
           unit: "count",
           needsDenominator: false,
         },
@@ -486,7 +486,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           const subset =
             types.length === 6
               ? ""
-              : ` Counting ${types.length} of the six disposal types.`;
+              : ` Counting ${types.length} of the six resolution types.`;
           summary.textContent = `${meta.label}, ${year}. ${meta.question}${subset}${excluded}`;
         }
 

@@ -92,10 +92,49 @@ that a rebuild produced the same bytes.
 
 ## Definitions
 
+### A note on the term
+
+This dashboard says **out of court resolutions**. The same thing was until
+recently called **out of court disposals**, and that is still the term in the
+National Police Chiefs' Council gravity matrix and in most of the published
+literature and evaluation. The change is Ministry of Justice statistical usage,
+followed by the Crown Prosecution Service and the College of Policing.
+
+Neither phrase is the language of the statute. Part 6 of the Police, Crime,
+Sentencing and Courts Act 2022 (c. 32) is headed Cautions, and what it
+legislates for is cautions of two kinds, the diversionary caution and the
+community caution. Both "disposals" and "resolutions" are administrative
+umbrella terms sitting above that.
+
+That framework is not in force, and the tense matters here. Chapter 1 of Part 6
+was prospective at Royal Assent, see section 208(1), and sections 98 to 115 and
+117 to 121 remain so. Section 118, which would abolish the simple caution, the
+conditional caution under Part 3 of the Criminal Justice Act 2003 and the
+penalty notice for disorder, is among them. Section
+116 alone has been commenced, on 24 May 2023 by SI 2023/573, and it does no more
+than create the duty to prepare a code of practice. The draft Diversionary and
+Community Cautions Code of Practice was consulted on in 2023, drew no government
+response, and has never been brought into force.
+
+Forces therefore continue to work with the menu they have had for a decade: the
+simple caution, the conditional caution under Part 3 of the Criminal Justice Act
+2003, the penalty notice for disorder, the community resolution, the cannabis or
+khat warning, and locally designed deferred prosecution schemes recorded under
+Outcome 22.
+
+So the change of word needed no change in law, and no change to what is counted.
+
+The outcome types below are the same six either way, and they are the law as it
+stands rather than a legacy awaiting replacement. Anyone arriving here searching
+for out of court disposals is in the right place. Where a publication is cited
+by its title, the title is left as published: the Neyroud review and the West Yorkshire Police and
+Crime Commissioner report both say disposals, and restating them would be a
+misquotation.
+
 ### Outcome types
 
 The published tables carry an outcome type code from 1 to 22. Six of them are
-out of court disposals.
+out of court resolutions.
 
 <!-- INJECT:OUTCOME-TYPES -->
 
@@ -124,7 +163,7 @@ drops them and records the number dropped in `coverage.json`. They are not a
 split between simple and conditional cautions, which the published tables do not
 support at all.
 
-Outcome type 4, taken into consideration, is not an out of court disposal. It
+Outcome type 4, taken into consideration, is not an out of court resolution. It
 records an offence the person admitted and asked the court to take into account
 alongside the offences being prosecuted, so it accompanies a prosecution rather
 than replacing one. It is excluded throughout. Sweeping it in would inflate every
@@ -150,7 +189,7 @@ groups, which is independent confirmation that excluding outcome type 4 from the
 out of court set is the right reading and not a judgement of ours.
 
 Note that the Home Office reports outcome 22 separately from both out of court
-groups, whereas this dashboard counts it as the sixth out of court disposal
+groups, whereas this dashboard counts it as the sixth out of court resolution
 type. That is a deliberate difference, and it is why a published out of court
 figure will be smaller than the figure here unless outcome 22 is added to it.
 The reconciliation targets name the outcome types they cover so the two can be
@@ -202,21 +241,21 @@ them.
 Three denominators are defensible and they answer different questions, so all
 three are offered.
 
-**Share of positive outcomes.** Out of court disposals divided by charge or
+**Share of positive outcomes.** Out of court resolutions divided by charge or
 summons plus all six out of court types. Of the cases where somebody was held to
 account, how many were dealt with outside court. This is the default, because it
 comes closest to the decision under examination.
 
-**Share of all assigned outcomes.** Out of court disposals divided by every
+**Share of all assigned outcomes.** Out of court resolutions divided by every
 assigned outcome. How much of everything the force closes runs out of court.
 This number is lower and moves with the proportion of cases closed with no
 suspect identified, which is largely a function of offence mix.
 
-**Rate per 1,000 recorded crimes.** Out of court disposals divided by recorded
+**Rate per 1,000 recorded crimes.** Out of court resolutions divided by recorded
 crime in the force area, multiplied by a thousand. Volume normalised for force
 size.
 
-When a subset of the six disposal types is selected, the numerator narrows and
+When a subset of the six resolution types is selected, the numerator narrows and
 the denominator does not. The share for each type therefore adds up to the share
 for all six together. Narrowing the denominator with the numerator would make
 every subset look larger than it is.
@@ -273,7 +312,7 @@ and in full here. The numbering is stable across the site.
 This section is the point of the dashboard as much as the charts are.
 
 **Nothing about conditions.** There is no national record of what condition was
-attached to a disposal. A conditional caution with a rehabilitative requirement
+attached to a resolution. A conditional caution with a rehabilitative requirement
 and one with no requirement at all are the same row in this data.
 
 **Nothing about engagement or completion.** There is no national record of
@@ -287,15 +326,15 @@ code, nothing about the person's history, and nothing about the reasoning behind
 the decision. Two forces with the same share may be making very different
 decisions on very similar cases, and this data cannot separate those.
 
-**Not every disposal reaches the Police National Computer.** Recording practice
-varies, and informal disposals in particular are not reliably held on the Police
-National Computer. A disposal counted here may leave no trace in the record that
+**Not every resolution reaches the Police National Computer.** Recording practice
+varies, and informal resolutions in particular are not reliably held on the Police
+National Computer. A resolution counted here may leave no trace in the record that
 a later decision maker sees.
 
 **No published outcome measure per force.** Ministry of Justice proven
 reoffending statistics are built from court disposals and cautions, and exclude
-the out of court disposals that are not cautions. There is therefore no published
-reoffending measure that covers the disposals shown here, and no way to attach an
+the out of court resolutions that are not cautions. There is therefore no published
+reoffending measure that covers the resolutions shown here, and no way to attach an
 effectiveness figure to a force from published data.
 
 **Recorded crime is not crime.** The denominator for the rate measure is
@@ -305,7 +344,7 @@ happening in the world.
 
 **Comparison across the series is comparison across changing definitions.**
 Offence codes are added and retired. Outcome 22 changed from voluntary to
-compulsory recording. Some forces have withdrawn disposal types by policy. Each
+compulsory recording. Some forces have withdrawn resolution types by policy. Each
 of these is noted above, and each of them means a line on a chart can move for
 reasons that have nothing to do with decision making.
 

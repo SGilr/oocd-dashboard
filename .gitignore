@@ -26,3 +26,9 @@ data/real/
 
 # Local Python environment
 .venv/
+
+# The flattened weekly bulletin, written on every prison figures run so a row
+# label that has moved can be corrected from it. Regenerated each week and
+# uploaded as a workflow artifact, so committing it would add noise to a data
+# history that is meant to be readable.
+data/_sheet-dump.json

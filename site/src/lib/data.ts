@@ -16,7 +16,7 @@ function load<T>(name: string): T {
 export type Basis = "closed" | "recorded";
 export type FraudVariant = "all" | "ex_fraud";
 
-/** The six out of court disposal types, in the order they are drawn. */
+/** The six out of court resolution types, in the order they are drawn. */
 export const OOCD_TYPES = [8, 22, 3, 2, 6, 7] as const;
 export type OocdType = (typeof OOCD_TYPES)[number];
 
@@ -113,7 +113,7 @@ export function value(row: CountRow, basis: Basis, variant: FraudVariant, name: 
   return (row[column(basis, variant, name)] as number) ?? 0;
 }
 
-/** Sum the selected disposal types, so the disposal subset control works. */
+/** Sum the selected resolution types, so the resolution subset control works. */
 export function oocdSum(
   row: CountRow,
   basis: Basis,

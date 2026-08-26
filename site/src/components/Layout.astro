@@ -15,6 +15,7 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const nav = [
   { href: "/", label: "Overview" },
   { href: "/compare", label: "Compare forces" },
+  { href: "/capacity", label: "Prison capacity" },
   { href: "/methodology", label: "Methodology" },
   { href: "/data", label: "Data" },
 ];
@@ -29,7 +30,7 @@ function current(href: string) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} | Out of Court Disposals Dashboard</title>
+    <title>{title} | Out of Court Resolutions Dashboard</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(path, Astro.site).href} />
     <meta name="robots" content="index, follow" />
@@ -49,7 +50,7 @@ function current(href: string) {
         <div class="masthead">
           <p class="masthead__title">
             <span class="masthead__org">Oxon Advisory</span>
-            <a href="/">Out of Court Disposals Dashboard</a>
+            <a href="/">Out of Court Resolutions Dashboard</a>
           </p>
           <nav class="site-nav" aria-label="Sections">
             <ul>
@@ -94,7 +95,7 @@ function current(href: string) {
           <div>
             <h2>Produced by</h2>
             <p>
-              Oxon Advisory, for a symposium on out of court disposals convened with
+              Oxon Advisory, for a symposium on out of court resolutions convened with
               De Montfort University and the East Midlands Policing Academic
               Collaboration.
             </p>

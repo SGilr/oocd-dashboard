@@ -187,14 +187,16 @@ annotations:
     scope: national
     financial_years: all
     measures: all
-    label: The disposal framework is due to change
+    label: The out of court resolution framework has been legislated for but
+      not brought into force
     text: >-
-      The Police, Crime, Sentencing and Courts Act 2023 provides for a two tier
-      framework of out of court resolutions for people aged 18 and over: a
-      Diversionary Caution as the upper tier and a Community Caution as the
-      lower tier, replacing the present mix. If those provisions come into
-      force, penalty notices for disorder and cannabis or khat warnings may be
-      discontinued, and the outcomes framework will have to change with them.
+      Part 6 of the Police, Crime, Sentencing and Courts Act 2022 (c. 32)
+      provides for a two tier framework of cautions for people aged 18 and
+      over: a Diversionary Caution as the upper tier and a Community Caution as
+      the lower tier, replacing the present mix. That framework is not in force.
+      If those provisions come into force, penalty notices for disorder and
+      cannabis or khat warnings may be discontinued, and the outcomes framework
+      will have to change with them.
       The Act made no provision for community resolutions. Series shown here end
       before that change, so they describe the framework as it has been rather
       than as it will be.
@@ -264,7 +266,7 @@ annotations:
       2020. Unlike the 2014/15 gaps, those quarters are not marked as not
       provided in the outcomes tables, they simply carry little or nothing, so
       nothing in the data itself signals the problem. The force's out of court
-      disposals fall from 8,376 in 2018/19 to 2,107 in 2019/20 and recover to
+      resolutions fall from 8,376 in 2018/19 to 2,107 in 2019/20 and recover to
       7,435 in 2020/21. That fall is missing data, not a change in practice.
       The Home Office bulletin excludes the force from several of its own tables
       for the same period.

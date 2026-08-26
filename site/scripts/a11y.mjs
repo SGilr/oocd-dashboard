@@ -12,7 +12,7 @@ import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 import { serveDist } from "./serve-dist.mjs";
 
-const PAGES = ["/", "/compare", "/force/west-yorkshire", "/methodology", "/data"];
+const PAGES = ["/", "/compare", "/capacity", "/force/west-yorkshire", "/methodology", "/data"];
 const THEMES = ["light", "dark"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 

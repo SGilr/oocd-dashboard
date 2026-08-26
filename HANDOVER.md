@@ -5,7 +5,7 @@ next, including its author in six months.
 
 ## What this is
 
-A public dashboard of out of court disposals by police force in England and
+A public dashboard of out of court resolutions by police force in England and
 Wales, live at https://oocd.howpreventionworks.com, built for a symposium
 convened with De Montfort University and the East Midlands Policing Academic
 Collaboration.
@@ -102,7 +102,7 @@ share of positive outcomes, share of all assigned outcomes, and rate per 1,000
 recorded crimes. All three are offered. The default is share of positive
 outcomes, which comes closest to the decision under examination.
 
-**The outcome types.** Out of court disposals are types 2, 3, 6, 7, 8 and 22.
+**The outcome types.** Out of court resolutions are types 2, 3, 6, 7, 8 and 22.
 Outcome 4, taken into consideration, is excluded: it accompanies a prosecution
 rather than replacing one. The Home Office's own outcome group column agrees,
 grouping type 4 separately from both out of court groups. That agreement is
@@ -140,7 +140,7 @@ and year is named in the validation report and on the force's own page.
 
 **Greater Manchester 2019/20 is missing data with no marker.** The force could
 not supply data from July 2019 after a records system change, and those
-quarters simply carry almost nothing. Disposals fall from 8,376 to 2,107 and
+quarters simply carry almost nothing. Resolutions fall from 8,376 to 2,107 and
 recover to 7,435. Nothing in the file signals it. It has its own annotation
 because anyone reading that chart without one concludes the opposite of the
 truth.

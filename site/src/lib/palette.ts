@@ -1,5 +1,5 @@
 /**
- * The categorical palette for the six disposal types, and the textures that
+ * The categorical palette for the six resolution types, and the textures that
  * carry the same identity when colour is not available.
  *
  * The hues were validated for colour vision deficiency separation, chroma and
@@ -10,7 +10,7 @@
  *
  * Greyscale is handled by texture, not by lightness. Six hues cannot be spread
  * across six distinguishable greys and still stay inside the lightness band the
- * palette needs, so each disposal type carries a distinct SVG pattern as well
+ * palette needs, so each resolution type carries a distinct SVG pattern as well
  * as a hue. Printed in greyscale, or read by anyone who cannot separate the
  * hues, the pattern is what tells the series apart.
  */

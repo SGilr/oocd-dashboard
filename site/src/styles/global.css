@@ -1,5 +1,5 @@
 /*
- * Out of court disposals dashboard.
+ * Out of court resolutions dashboard.
  *
  * Restrained, typographic, and built for reading rather than for scrolling
  * past. No third party fonts, no trackers, nothing loaded from another origin,
@@ -43,7 +43,7 @@
   --scroll-shadow: rgba(20, 19, 15, 0.16);
   --band-fill: rgba(31, 78, 121, 0.16);
 
-  /* Categorical palette for the six disposal types, plus the charge
+  /* Categorical palette for the six resolution types, plus the charge
      comparator. Validated for colour vision deficiency separation, chroma and
      lightness band against this surface. Texture carries the same identity in
      greyscale, see TexturePatterns.astro. */
@@ -55,6 +55,25 @@
   --series-7: #008300;
   --series-1: #52514e;
   --series-national: #45433c;
+
+  /* Epistemic colour for the capacity page.
+     Ink means measured: every figure in --ink-1 traces to a published source
+     named in the notes. Rust means modelled: every figure in --modelled is
+     produced by the calculator from parameters the reader set. Nothing else on
+     the site may use --modelled for decoration, heading or emphasis, because
+     the warning is carried by the colour and travels with the number when it
+     is screenshotted away from its caveat. */
+  --modelled: #b4441b;
+  --modelled-text: #b4441b;
+  --modelled-wash: rgba(180, 68, 27, 0.08);
+  --modelled-rule: rgba(180, 68, 27, 0.32);
+
+  /* The two routes through the system, for the demand cascade. These are
+     deliberately not drawn from the resolution type palette above: --series-8 is
+     community resolution, so reusing it for the prosecution route would make
+     one hue mean diversion on four pages and prosecution on a fifth. */
+  --route-oocd: #12906a;
+  --route-court: #1f4e79;
 
   --font-text: Iowan Old Style, Palatino Linotype, Palatino, Georgia, "Times New Roman", serif;
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -109,6 +128,14 @@
     --series-7: #008300;
     --series-1: #c3c2b7;
     --series-national: #c3c2b7;
+
+    --modelled: #e0693a;
+    --modelled-text: #f08a5e;
+    --modelled-wash: rgba(224, 105, 58, 0.1);
+    --modelled-rule: rgba(224, 105, 58, 0.36);
+
+    --route-oocd: #199e70;
+    --route-court: #7fb2e0;
   }
 }
 
@@ -154,6 +181,14 @@
   --series-7: #008300;
   --series-1: #c3c2b7;
   --series-national: #c3c2b7;
+
+  --modelled: #e0693a;
+  --modelled-text: #f08a5e;
+  --modelled-wash: rgba(224, 105, 58, 0.1);
+  --modelled-rule: rgba(224, 105, 58, 0.36);
+
+  --route-oocd: #199e70;
+  --route-court: #7fb2e0;
 }
 
 *,

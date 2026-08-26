@@ -2,7 +2,7 @@
   "name": "oocd-dashboard-site",
   "version": "1.0.0",
   "scripts": {
-    "prebuild": "node scripts/check-theme-tokens.mjs && node scripts/stage-data.mjs",
+    "prebuild": "node scripts/check-theme-tokens.mjs && node scripts/check-capacity-palette.mjs && node scripts/stage-data.mjs",
     "build": "astro build",
     "dev": "node scripts/stage-data.mjs && astro dev",
     "preview": "astro preview",

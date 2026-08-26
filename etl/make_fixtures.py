@@ -137,7 +137,7 @@ def generate_outcomes(year_start: int, rng: random.Random) -> list[list[object]]
                 if group == "Fraud offences" and force == "British Transport Police":
                     continue
                 for outcome_type in outcome_types_for(year_start):
-                    # West Yorkshire operates a restricted disposal set, so the
+                    # West Yorkshire operates a restricted resolution set, so the
                     # fixture reproduces that pattern and the annotation has
                     # something to sit against.
                     if force == "West Yorkshire" and outcome_type in (2, 3, 6, 7):

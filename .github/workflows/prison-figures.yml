@@ -1,0 +1,109 @@
+name: Weekly prison figures
+
+# Reads the Ministry of Justice weekly prison estate bulletin and updates the
+# two published figures the capacity panel on /capacity shows.
+#
+# This is a sibling of etl-refresh.yml rather than a step inside it because the
+# schedules are genuinely different: the quarterly refresh runs four times a
+# year against 460 MB of Home Office spreadsheets, and this reads one small
+# file every week.
+#
+# It differs from the quarterly refresh in one other way, deliberately. The
+# quarterly refresh opens a pull request, because a quarterly release can
+# change a definition as easily as a number and that needs reading. This
+# commits directly, because the page promises a current figure and a pull
+# request nobody merges leaves it silently stale. The safety here is in the
+# parser instead: the figures are matched by row label, checked against a
+# plausible range for the national estate, and on any failure the previous
+# verified record is kept and the run goes red.
+
+on:
+  schedule:
+    # 07:15 UTC on Tuesdays. The bulletin publishes on Mondays, so this allows
+    # a day for a late publication. The day of the week is the requirement,
+    # not the hour.
+    - cron: "15 7 * * 2"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Read and report only, committing nothing"
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prison-figures
+  cancel-in-progress: false
+
+jobs:
+  figures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the ETL
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run the unit tests
+        run: pytest etl/tests/test_prison_capacity.py -q
+
+      - name: Read the bulletin
+        id: read
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python etl/prison_capacity.py --dry-run
+          else
+            python etl/prison_capacity.py
+          fi
+
+      # Always uploaded, and on a failed parse it is the whole point of the
+      # run: the flattened sheets are what the row labels get corrected from.
+      - name: Upload the sheet dump
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prison-bulletin-sheet-dump
+          path: data/_sheet-dump.json
+          if-no-files-found: warn
+
+      - name: Commit the figures
+        if: success() && inputs.dry_run != true
+        run: |
+          # git status, not git diff. On the first real run the file does not
+          # exist yet, and git diff reports no change for a path git has never
+          # tracked, so a diff check would decide the first week's figures were
+          # unchanged and commit nothing.
+          if [ -z "$(git status --porcelain data/processed/prison-capacity.json)" ]; then
+            echo "The figures are unchanged. Nothing committed."
+            exit 0
+          fi
+          git config user.name "prison figures ingest"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/processed/prison-capacity.json
+          git commit -m "Update the prison estate figures from the weekly bulletin"
+          git push
+
+      - name: Say what a failure means
+        if: failure()
+        run: |
+          echo "The bulletin was reached but the two figures were not read, or"
+          echo "they failed the sanity check on the size of the national estate."
+          echo
+          echo "The page is not wrong as a result. The previous verified record"
+          echo "is retained and the panel says the ingest needs review."
+          echo
+          echo "Download the prison-bulletin-sheet-dump artifact from this run,"
+          echo "find the rows holding the population and the useable operational"
+          echo "capacity, and add their labels to LABELS in"
+          echo "etl/prison_capacity.py."
