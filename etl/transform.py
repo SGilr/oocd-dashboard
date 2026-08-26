@@ -258,6 +258,8 @@ class Aggregator:
         self.negative_counts = 0
         self.duplicate_source_keys = 0
         self.duplicate_examples: list[str] = []
+        self.negative_by_key: dict[tuple[str, str], int] = defaultdict(int)
+        self.negative_excluded_examples: list[str] = []
         self.not_assigned_rows = 0
         self.not_assigned_counts = {BASIS_CLOSED: 0, BASIS_RECORDED: 0}
         self.not_provided: dict[tuple[str, str], int] = defaultdict(int)
@@ -316,14 +318,25 @@ class Aggregator:
 
 
 def _note_negative(aggregator, path, force, financial_year, quarter, offence_code,
-                   outcome_type, counts) -> None:
-    """Record a negative count so a person can see exactly where it was."""
-    if len(aggregator.negative_examples) < 20:
-        aggregator.negative_examples.append(
-            f"{path.name}: {force}, {financial_year} Q{quarter}, offence "
-            f"{offence_code}, outcome type {outcome_type}, "
-            f"recorded {counts[BASIS_RECORDED]}, closed {counts[BASIS_CLOSED]}"
-        )
+                   outcome_type, counts, excluded: bool = False) -> None:
+    """Record a negative count so a person can see exactly where it was.
+
+    Kept in two lists. Negatives inside outcome type 0 never reach a derived
+    total and are far more numerous, so mixing them with the ones that do would
+    fill the sample and hide the rows that matter.
+    """
+    entry = (
+        f"{path.name}: {force}, {financial_year} Q{quarter}, offence "
+        f"{offence_code}, outcome type {outcome_type}, "
+        f"recorded {counts[BASIS_RECORDED]}, closed {counts[BASIS_CLOSED]}"
+    )
+    target = (
+        aggregator.negative_excluded_examples if excluded else aggregator.negative_examples
+    )
+    if len(target) < 25:
+        target.append(entry)
+    if not excluded:
+        aggregator.negative_by_key[(force, financial_year)] += 1
 
 
 def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) -> None:
@@ -483,7 +496,7 @@ def _read_outcome_rows(
             if any(value < 0 for value in counts.values()):
                 aggregator.negative_counts_excluded += 1
                 _note_negative(aggregator, path, force, financial_year, quarter,
-                               offence_code, outcome_type, counts)
+                               offence_code, outcome_type, counts, excluded=True)
             aggregator.rows_used += 1
             continue
 
@@ -974,6 +987,11 @@ def main() -> int:
         "negative_count_rows": aggregator.negative_counts,
         "negative_count_rows_excluded": aggregator.negative_counts_excluded,
         "negative_count_examples": aggregator.negative_examples,
+        "negative_count_excluded_examples": aggregator.negative_excluded_examples,
+        "negative_counts_by_force_year": {
+            f"{force}|{financial_year}": count
+            for (force, financial_year), count in sorted(aggregator.negative_by_key.items())
+        },
         "subset_outcome_type_rows_dropped": dict(sorted(aggregator.subset_type_rows.items())),
         "duplicate_source_keys": aggregator.duplicate_source_keys,
         "duplicate_source_key_examples": aggregator.duplicate_examples,

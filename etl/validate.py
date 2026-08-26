@@ -193,33 +193,75 @@ def check_data_not_provided(coverage: dict, report: Report) -> None:
 
 
 def check_negative_counts(coverage: dict, tables: dict, report: Report) -> None:
-    if coverage.get("negative_count_rows"):
-        report.fail(
-            "negative_counts",
-            f"{coverage['negative_count_rows']} source rows that feed a derived "
-            "total carried a negative count",
-            examples=coverage.get("negative_count_examples", []),
-        )
-    if coverage.get("negative_count_rows_excluded"):
+    """Negative counts are published corrections, and are carried faithfully.
+
+    A force that cancels or reclassifies a crime recorded in an earlier quarter
+    produces a negative adjustment, and the Home Office publishes it as such.
+    Refusing them would mean refusing the data, and rewriting them to zero would
+    be worse, because the published totals would then no longer reconcile.
+
+    So they are carried, reported by force and year, and gated on where they
+    land. A negative in a quarterly cell is a correction absorbed within its
+    year. A negative in an annual total would mean corrections exceeding a whole
+    year of activity, which is not a correction any more, and stops the build.
+    """
+    excluded = coverage.get("negative_count_rows_excluded", 0)
+    if excluded:
         report.note(
             "negative_counts",
-            f"{coverage['negative_count_rows_excluded']} source rows carried a "
-            f"negative count in outcome type {NOT_ASSIGNED_TYPE}, which never "
-            "enters a derived total. A force can reclassify more offences in a "
-            "quarter than it records, which shows up here.",
-            examples=coverage.get("negative_count_examples", []),
+            f"{excluded:,} source rows carried a negative count in outcome type "
+            f"{NOT_ASSIGNED_TYPE}, which never enters a derived total.",
+            examples=coverage.get("negative_count_excluded_examples", [])[:5],
         )
-    for name, table in tables.items():
+
+    feeding = coverage.get("negative_count_rows", 0)
+    if feeding:
+        by_key = coverage.get("negative_counts_by_force_year", {})
+        forces = sorted({key.split("|")[0] for key in by_key})
+        report.flag(
+            "negative_counts",
+            f"{feeding:,} source rows that feed a derived total carried a "
+            f"negative count, across {len(forces)} forces. These are published "
+            "corrections, where a force cancelled or reclassified a crime "
+            "recorded earlier, and they are carried through as published.",
+            forces=forces,
+            examples=coverage.get("negative_count_examples", [])[:5],
+        )
+
+    for name in ("force_year", "national_year"):
+        table = tables.get(name)
+        if not table:
+            continue
         for row in table["rows"]:
             for key, value in row.items():
                 if isinstance(value, int) and value < 0:
                     report.fail(
                         "negative_counts",
-                        f"{name} has a negative value in {key}",
-                        row=row,
+                        f"{name} has a negative annual total in {key}. "
+                        "Corrections exceeding a whole year of activity are not "
+                        "corrections, and cannot be published as a count.",
+                        row={k: row[k] for k in ("force", "fy") if k in row},
                     )
                     return
-    report.note("negative_counts", "No negative counts in the derived tables")
+
+    negative_cells = 0
+    for name in ("force_quarter", "national_quarter"):
+        table = tables.get(name)
+        if not table:
+            continue
+        for row in table["rows"]:
+            negative_cells += sum(
+                1 for value in row.values() if isinstance(value, int) and value < 0
+            )
+    if negative_cells:
+        report.flag(
+            "negative_counts",
+            f"{negative_cells} quarterly cells are negative, where a correction "
+            "in that quarter exceeded the activity in it. Every annual total is "
+            "non negative.",
+        )
+    elif not feeding and not excluded:
+        report.note("negative_counts", "No negative counts anywhere")
 
 
 def check_duplicate_keys(coverage: dict, tables: dict, report: Report) -> None:
@@ -261,6 +303,10 @@ def check_totals_reconcile(tables: dict, report: Report) -> None:
     component_keys = [f"t{outcome_type}" for outcome_type in OOCD_TYPES]
     positive_keys = [f"t{outcome_type}" for outcome_type in POSITIVE_TYPES]
     checked = 0
+    # Removing rows can only raise a total when some of those rows were
+    # negative. That happens where a fraud correction lands, so it is a property
+    # of the published data rather than an error. Collected and reported.
+    larger_excluding_fraud: list[dict] = []
     for name in ("force_quarter", "force_year", "national_quarter", "national_year"):
         table = tables.get(name)
         if not table:
@@ -313,13 +359,25 @@ def check_totals_reconcile(tables: dict, report: Report) -> None:
                     if variant == "ex_fraud" and row[f"{prefix}assigned"] > row[
                         f"{basis}_all_assigned"
                     ]:
-                        report.fail(
-                            "totals_reconcile",
-                            f"{name}: excluding fraud produced a larger total "
-                            "than including it",
+                        larger_excluding_fraud.append(
+                            {
+                                "table": name,
+                                "basis": basis,
+                                **{k: row[k] for k in ("force", "fy", "q") if k in row},
+                                "fraud_contribution": row[f"{basis}_all_assigned"]
+                                - row[f"{prefix}assigned"],
+                            }
                         )
-                        return
                     checked += 1
+    if larger_excluding_fraud:
+        worst = min(entry["fraud_contribution"] for entry in larger_excluding_fraud)
+        report.flag(
+            "totals_reconcile",
+            f"{len(larger_excluding_fraud)} cells hold a larger total with fraud "
+            "excluded than with it included, because the fraud rows in them are "
+            f"negative corrections. The largest negative contribution is {worst}.",
+            examples=larger_excluding_fraud[:5],
+        )
     report.note("totals_reconcile", f"{checked} derived totals reconciled")
 
 

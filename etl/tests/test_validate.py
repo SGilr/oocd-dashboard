@@ -86,13 +86,6 @@ class TestTotalsReconcile:
         check_totals_reconcile(tables_from([row]), report)
         assert report.failures
 
-    def test_excluding_fraud_producing_a_larger_total_fails(self):
-        row = make_row()
-        row["closed_ex_fraud_assigned"] = row["closed_all_assigned"] + 1
-        report = Report()
-        check_totals_reconcile(tables_from([row]), report)
-        assert report.failures
-
 
 class TestForceCoverage:
     def test_all_forty_four_pass(self):
@@ -132,17 +125,47 @@ class TestOutcomeTypeCoverage:
 
 
 class TestNegativeCounts:
-    def test_a_negative_source_count_fails(self):
+    """Negative counts are published corrections, not corruption.
+
+    A force that cancels or reclassifies a crime recorded in an earlier quarter
+    produces a negative adjustment, and the Home Office publishes it. Failing on
+    those would mean the build could never pass on real data. The line is drawn
+    at where the negative lands.
+    """
+
+    def test_negative_source_rows_are_flagged_not_failed(self):
         report = Report()
-        check_negative_counts({"negative_count_rows": 3}, tables_from([]), report)
+        check_negative_counts(
+            {"negative_count_rows": 798, "negative_counts_by_force_year": {"Kent|2014/15": 3}},
+            tables_from([]),
+            report,
+        )
+        assert report.failures == []
+        assert any("published corrections" in flag["detail"] for flag in report.flags)
+
+    def test_a_negative_quarterly_cell_is_flagged_not_failed(self):
+        row = make_row()
+        row["q"] = 1
+        row["closed_all_t6"] = -2
+        report = Report()
+        check_negative_counts({}, tables_from([row], name="force_quarter"), report)
+        assert report.failures == []
+        assert any("quarterly cells are negative" in flag["detail"] for flag in report.flags)
+
+    def test_a_negative_annual_total_fails(self):
+        # Corrections exceeding a whole year of activity are not corrections.
+        row = make_row()
+        row.pop("q")
+        row["closed_all_oocd"] = -1
+        report = Report()
+        check_negative_counts({}, tables_from([row], name="force_year"), report)
         assert report.failures
 
-    def test_a_negative_derived_count_fails(self):
-        row = make_row()
-        row["closed_all_t8"] = -1
+    def test_negatives_inside_outcome_type_zero_are_only_noted(self):
         report = Report()
-        check_negative_counts({}, tables_from([row]), report)
-        assert report.failures
+        check_negative_counts({"negative_count_rows_excluded": 4009}, tables_from([]), report)
+        assert report.failures == [] and report.flags == []
+        assert any("never enters a derived total" in n["detail"] for n in report.notes)
 
 
 class TestYearOnYear:
@@ -190,4 +213,37 @@ class TestProvenance:
     def test_an_unrecognised_provenance_fails(self):
         report = Report()
         check_provenance({"provenance": "somewhere"}, report)
+        assert report.failures
+
+
+class TestFraudCorrections:
+    """Excluding fraud can raise a total, and that is not an error.
+
+    Fraud rows carrying negative corrections mean the all fraud total is lower
+    than the excluding fraud total. Failing on that would mean the build could
+    never pass on real data.
+    """
+
+    def test_a_larger_total_excluding_fraud_is_flagged_not_failed(self):
+        row = make_row()
+        row["closed_ex_fraud_assigned"] = row["closed_all_assigned"] + 1
+        report = Report()
+        check_totals_reconcile(tables_from([row]), report)
+        assert report.failures == []
+        assert any("negative corrections" in flag["detail"] for flag in report.flags)
+
+    def test_the_flag_reports_the_size_of_the_correction(self):
+        row = make_row()
+        row["closed_ex_fraud_assigned"] = row["closed_all_assigned"] + 7
+        report = Report()
+        check_totals_reconcile(tables_from([row]), report)
+        flag = next(f for f in report.flags if "negative corrections" in f["detail"])
+        assert "-7" in flag["detail"]
+
+    def test_components_still_have_to_add_up(self):
+        # Corrections do not excuse a total that does not equal its parts.
+        row = make_row()
+        row["closed_all_oocd"] += 3
+        report = Report()
+        check_totals_reconcile(tables_from([row]), report)
         assert report.failures

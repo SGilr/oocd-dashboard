@@ -31,7 +31,7 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 7
+version: 8
 last_reviewed: 2026-08-26
 
 annotations:
@@ -236,4 +236,25 @@ annotations:
     source_citation: >-
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
       London: Home Office. Notes to tables 1.2 and 3.2.
+    source_url_verified: true
+
+  - id: published-corrections-are-negative
+    scope: national
+    financial_years: all
+    measures: all
+    label: Corrections appear as negative counts
+    text: >-
+      Where a force cancels or reclassifies a crime it recorded in an earlier
+      quarter, the adjustment is published as a negative count. Across the
+      twelve years to March 2026 the tables carry 798 such rows in outcome types
+      that feed the figures here, and a further 4,009 inside outcome type 0,
+      which is excluded anyway. They are carried through exactly as published,
+      because rewriting them to zero would stop the totals reconciling with the
+      Home Office bulletin. A quarterly figure can therefore be negative where a
+      correction exceeded the activity in that quarter. Every annual total is
+      non negative, and the build stops if one is not.
+    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+    source_citation: >-
+      Home Office (2026) Police recorded crime and outcomes open data tables
+      user guide. London: Home Office.
     source_url_verified: true

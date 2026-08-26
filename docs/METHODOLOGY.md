@@ -315,11 +315,17 @@ checks are:
 - All 44 forces are present, and any force name in the source files that does not
   match the canonical list is reported rather than dropped in silence.
 - Every outcome type from 1 to 22 appears in at least one financial year.
-- No count that feeds a derived total is negative. A negative inside outcome type
-  0 is recorded as a note instead: a force can reclassify more offences in a
-  quarter than it records, which produces a small negative there, and that row
-  never enters a total. Humberside does this four times in the year ending March
-  2026, on distraction burglary.
+- No annual total is negative. Negative counts themselves are expected: where a
+  force cancels or reclassifies a crime recorded in an earlier quarter, the
+  adjustment is published as a negative, and those are carried through exactly
+  as published so that the totals still reconcile with the bulletin. A quarterly
+  figure can be negative where a correction exceeded the activity in that
+  quarter, and that is reported. An annual total that is negative would mean
+  corrections exceeding a whole year of activity, which is not a correction any
+  more, and stops the build.
+- Excluding fraud can produce a larger total than including it, where the fraud
+  rows in a cell are negative corrections. That is reported with the size of the
+  contribution rather than treated as an error.
 - No key of force, financial year, quarter, offence code and outcome type repeats
   in a source file, which would double count.
 - No derived table has more than one row for a key.
