@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prison demand and the front end of the system</title>
+<meta name="description" content="A working model of where prison demand comes from, and what out of court resolution can and cannot do about it. Oxon Advisory, for the De Montfort University out of court disposals review.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ------------------------------------------------------------------
+   Epistemic colour system.
+   Ink   = measured. Every figure in ink comes from a published source.
+   Rust  = modelled. Every figure in rust is produced by the calculator
+           on this page from parameters the reader sets.
+   Nothing on this page is rust unless the reader made it so.
+   ------------------------------------------------------------------ */
+:root{
+  color-scheme: light;
+  --paper:#f6f3ec;
+  --paper-2:#efeade;
+  --paper-3:#e7e0d0;
+  --ink:#14130f;
+  --ink-2:#4a473d;
+  --ink-3:#6f6b5e;
+  --rule:#d9d2c0;
+  --rule-strong:#b9b099;
+  --oocd:#12906a;
+  --court:#2a78d6;
+  --model:#b4441b;
+  --model-wash:rgba(180,68,27,.08);
+  --model-rule:rgba(180,68,27,.32);
+  --shadow:0 1px 0 rgba(20,19,15,.06), 0 12px 32px -20px rgba(20,19,15,.35);
+  --grain-opacity:.035;
+}
+:root:not([data-theme="light"]) , :root[data-theme="dark"]{ }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#16150f;
+    --paper-2:#1e1d16;
+    --paper-3:#26241b;
+    --ink:#f4f1e6;
+    --ink-2:#c0bcab;
+    --ink-3:#928d7c;
+    --rule:#33301f;
+    --rule-strong:#4a4632;
+    --oocd:#199e70;
+    --court:#3987e5;
+    --model:#e0693a;
+    --model-wash:rgba(224,105,58,.10);
+    --model-rule:rgba(224,105,58,.36);
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.9);
+    --grain-opacity:.05;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#16150f;
+  --paper-2:#1e1d16;
+  --paper-3:#26241b;
+  --ink:#f4f1e6;
+  --ink-2:#c0bcab;
+  --ink-3:#928d7c;
+  --rule:#33301f;
+  --rule-strong:#4a4632;
+  --oocd:#199e70;
+  --court:#3987e5;
+  --model:#e0693a;
+  --model-wash:rgba(224,105,58,.10);
+  --model-rule:rgba(224,105,58,.36);
+  --shadow:0 1px 0 rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.9);
+  --grain-opacity:.05;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Helvetica,sans-serif;
+  font-size:16.5px;
+  line-height:1.62;
+  font-feature-settings:"kern" 1;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:var(--grain-opacity);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 28px 120px}
+
+h1,h2,h3,.display{font-family:"Fraunces",Georgia,serif;font-variation-settings:"SOFT" 12,"WONK" 1;line-height:1.1;letter-spacing:-.012em}
+h2{font-size:clamp(1.5rem,2.6vw,2.05rem);font-weight:600;margin:0 0 .35em}
+h3{font-size:1.12rem;font-weight:600;margin:2.2em 0 .5em;letter-spacing:0}
+p{margin:0 0 1.05em;max-width:68ch}
+a{color:inherit;text-underline-offset:.18em;text-decoration-thickness:.06em}
+a:hover{color:var(--model)}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ---------- masthead ---------- */
+header.mast{padding:52px 0 0}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 22px;
+  display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+}
+.eyebrow .sep{color:var(--rule-strong)}
+h1{font-size:clamp(2.3rem,6.2vw,4.15rem);font-weight:600;margin:0 0 .28em;max-width:16ch}
+.standfirst{font-size:clamp(1.02rem,1.5vw,1.2rem);color:var(--ink-2);max-width:60ch;margin-bottom:2.2em}
+
+.themebtn{
+  position:fixed;top:16px;right:16px;z-index:20;
+  background:var(--paper-2);border:1px solid var(--rule);color:var(--ink-2);
+  font-family:"IBM Plex Mono",monospace;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 12px;border-radius:2px;cursor:pointer;
+}
+.themebtn:hover{border-color:var(--rule-strong);color:var(--ink)}
+
+/* ---------- epistemic key ---------- */
+.key{
+  display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--rule);
+  background:var(--paper-2);margin:0 0 64px;
+}
+.key div{flex:1 1 260px;padding:15px 18px;border-right:1px solid var(--rule)}
+.key div:last-child{border-right:0}
+.key b{display:block;font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px}
+.key .m b{color:var(--model)}
+.key span{font-size:.86rem;color:var(--ink-2);line-height:1.45;display:block}
+.swatch{display:inline-block;width:9px;height:9px;margin-right:7px;vertical-align:.02em}
+
+/* ---------- section furniture ---------- */
+section{padding-top:14px;margin-bottom:78px;scroll-margin-top:24px}
+.secnum{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.19em;
+  color:var(--ink-3);text-transform:uppercase;display:block;margin-bottom:14px;
+  padding-bottom:12px;border-bottom:1px solid var(--rule);
+}
+.lede{font-size:1.03rem;color:var(--ink-2);max-width:66ch;margin-bottom:2em}
+
+/* ---------- capacity ---------- */
+.cap{border:1px solid var(--rule);background:var(--paper-2);box-shadow:var(--shadow)}
+.cap-top{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--rule)}
+.stat{flex:1 1 210px;padding:24px 26px;border-right:1px solid var(--rule)}
+.stat:last-child{border-right:0}
+.stat .lab{font-family:"IBM Plex Mono",monospace;font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.stat .val{font-family:"Fraunces",Georgia,serif;font-size:clamp(2rem,4.4vw,2.85rem);font-weight:600;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.stat .sub{font-size:.79rem;color:var(--ink-3);margin-top:8px;line-height:1.4}
+.stat.derived .val{color:var(--ink)}
+.gauge-wrap{padding:26px}
+.gauge{position:relative;height:44px;background:var(--paper-3);border:1px solid var(--rule);overflow:hidden}
+.gauge .fill{position:absolute;inset:0 auto 0 0;background:var(--court);width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.gauge .cap-line{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink)}
+.gauge-legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px;font-size:.79rem;color:var(--ink-2)}
+.gauge-legend i{font-style:normal;display:inline-flex;align-items:center;gap:7px}
+.provenance{
+  border-top:1px solid var(--rule);padding:14px 26px;
+  font-size:.78rem;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;
+}
+.badge{
+  font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;
+  border:1px solid var(--rule-strong);padding:2px 6px;color:var(--ink-2);white-space:nowrap;
+}
+.badge.model{border-color:var(--model-rule);color:var(--model)}
+.badge.unsourced{border-color:var(--model-rule);color:var(--model);background:var(--model-wash)}
+
+/* ---------- cascade table ---------- */
+.tablescroll{overflow-x:auto;border:1px solid var(--rule);background:var(--paper-2)}
+table.cascade{width:100%;border-collapse:collapse;min-width:660px}
+table.cascade caption{text-align:left;padding:18px 22px 4px;font-size:.86rem;color:var(--ink-2);max-width:72ch}
+table.cascade th,table.cascade td{padding:13px 22px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--rule)}
+table.cascade thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;border-bottom:1px solid var(--rule-strong);
+}
+table.cascade tbody tr:last-child td{border-bottom:0}
+table.cascade tbody tr:hover{background:var(--paper-3)}
+.stage-name{font-weight:500}
+.stage-name small{display:block;font-weight:400;font-size:.76rem;color:var(--ink-3);line-height:1.4;margin-top:3px}
+td.figure{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:1.02rem;white-space:nowrap}
+.barcell{width:34%;min-width:190px}
+.bar{height:12px;background:var(--paper-3);position:relative;border:1px solid var(--rule)}
+.bar span{position:absolute;inset:0 auto 0 0;display:block}
+.bar span.oocd{background:var(--oocd)}
+.bar span.court{background:var(--court)}
+.bar span.ink{background:var(--ink-2)}
+.barlabel{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--ink-2);margin-top:5px;display:block}
+.legend{display:flex;gap:20px;flex-wrap:wrap;padding:14px 22px;font-size:.79rem;color:var(--ink-2);border-bottom:1px solid var(--rule)}
+.legend i{font-style:normal;display:inline-flex;align-items:center;gap:7px}
+
+/* ---------- model ---------- */
+.model{border:1px solid var(--model-rule);background:var(--paper-2);box-shadow:var(--shadow)}
+.model-head{padding:22px 26px;border-bottom:1px solid var(--model-rule);background:var(--model-wash)}
+.model-head p{margin:0;font-size:.9rem;color:var(--ink-2);max-width:74ch}
+.model-head strong{color:var(--model)}
+.model-body{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+@media (max-width:860px){.model-body{grid-template-columns:1fr}}
+.controls{padding:26px;border-right:1px solid var(--rule)}
+@media (max-width:860px){.controls{border-right:0;border-bottom:1px solid var(--rule)}}
+.target{padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid var(--rule)}
+.target label{display:block;font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.target output{display:block;font-family:"Fraunces",Georgia,serif;font-size:clamp(2.2rem,5vw,3rem);font-weight:600;line-height:1;font-variant-numeric:tabular-nums;margin-bottom:16px;letter-spacing:-.02em}
+.target .unit{font-size:.9rem;font-family:"Archivo",sans-serif;font-weight:400;color:var(--ink-2);letter-spacing:0;margin-left:8px}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;background:transparent;cursor:pointer;margin:0}
+input[type=range]:focus-visible{outline:2px solid var(--model);outline-offset:6px}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--rule-strong)}
+input[type=range]::-moz-range-track{height:3px;background:var(--rule-strong)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8.5px;background:var(--model);border:2px solid var(--paper-2);border-radius:50%}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;background:var(--model);border:2px solid var(--paper-2);border-radius:50%}
+
+.param{padding:15px 0;border-bottom:1px solid var(--rule)}
+.param:last-child{border-bottom:0}
+.param .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-bottom:5px}
+.param label{font-size:.88rem;font-weight:500;line-height:1.35}
+.param .pv{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:.94rem;white-space:nowrap;color:var(--model)}
+.param .note{font-size:.76rem;color:var(--ink-3);line-height:1.45;margin:7px 0 9px;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+
+.results{padding:26px;background:var(--paper)}
+.result-hero{border-bottom:1px solid var(--rule);padding-bottom:20px;margin-bottom:20px}
+.result-hero .lab{font-family:"IBM Plex Mono",monospace;font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.result-hero .big{font-family:"Fraunces",Georgia,serif;font-size:clamp(2.3rem,5.5vw,3.4rem);font-weight:700;line-height:1;color:var(--model);font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.result-hero .cap2{font-size:.86rem;color:var(--ink-2);margin-top:11px;max-width:44ch}
+.check{padding:13px 0;border-bottom:1px solid var(--rule);display:flex;gap:14px;align-items:flex-start}
+.check:last-child{border-bottom:0}
+.check .mark{font-family:"IBM Plex Mono",monospace;font-size:.9rem;line-height:1.5;flex:0 0 auto;width:1.4em;text-align:center}
+.check.impossible .mark{color:var(--model)}
+.check .txt{font-size:.87rem;line-height:1.5;color:var(--ink-2)}
+.check .txt b{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:500}
+.check .txt b.m{color:var(--model)}
+.verdict{
+  margin-top:20px;padding:16px 18px;border:1px solid var(--model-rule);background:var(--model-wash);
+  font-size:.88rem;line-height:1.55;color:var(--ink);
+}
+.verdict strong{color:var(--model)}
+.resetbtn{
+  margin-top:18px;background:transparent;border:1px solid var(--rule-strong);color:var(--ink-2);
+  font-family:"IBM Plex Mono",monospace;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 14px;cursor:pointer;
+}
+.resetbtn:hover{border-color:var(--model);color:var(--model)}
+
+/* ---------- evidence cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0;border:1px solid var(--rule)}
+.card{padding:24px 26px;border-right:1px solid var(--rule);background:var(--paper-2)}
+.card:last-child{border-right:0}
+@media (max-width:760px){.card{border-right:0;border-bottom:1px solid var(--rule)}.card:last-child{border-bottom:0}}
+.card h4{font-family:"Fraunces",Georgia,serif;font-size:1.02rem;font-weight:600;margin:0 0 4px;letter-spacing:0}
+.card .where{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+.card p{font-size:.87rem;color:var(--ink-2);margin-bottom:.8em;max-width:none}
+.card .finding{border-left:2px solid var(--court);padding-left:12px;margin:14px 0;font-size:.87rem;color:var(--ink)}
+.card .counter{border-left:2px solid var(--model);padding-left:12px;margin:14px 0 0;font-size:.87rem;color:var(--ink)}
+
+/* ---------- notes ---------- */
+.notes{border-top:1px solid var(--rule-strong);padding-top:26px}
+.notes ol{padding-left:1.3em;max-width:74ch}
+.notes li{font-size:.86rem;color:var(--ink-2);margin-bottom:.75em;line-height:1.55}
+.gaps{border:1px solid var(--rule);background:var(--paper-2);padding:20px 24px;margin:0 0 28px}
+.gaps h3{margin-top:0}
+.gaps ul{padding-left:1.2em;margin:0}
+.gaps li{font-size:.88rem;color:var(--ink-2);margin-bottom:.5em}
+footer{border-top:1px solid var(--rule);margin-top:60px;padding-top:22px;font-size:.8rem;color:var(--ink-3)}
+
+@media print{
+  body{background:#fff;color:#000;font-size:10.5pt}
+  @page{size:A4;margin:18mm}
+  .themebtn,input[type=range]{display:none}
+  body::before{display:none}
+  section{page-break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body data-palette="#12906a,#2a78d6,#b4441b" data-mode="light">
+<button class="themebtn" id="themebtn" type="button" aria-label="Switch between light and dark">Theme</button>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">
+    <span>Oxon Advisory</span><span class="sep">/</span>
+    <span>De Montfort University out of court disposals review</span><span class="sep">/</span>
+    <span>Working model, version 0.1</span>
+  </p>
+  <h1>Prison demand and the front end of the system</h1>
+  <p class="standfirst">
+    A recurring claim holds that increasing out of court resolution by some proportion reduces prison
+    demand by some other proportion. No published estimate of that relationship exists. This page sets
+    out what is measured, then lets you test for yourself what would have to be true for the claim to hold.
+  </p>
+
+  <div class="key">
+    <div>
+      <b><span class="swatch" style="background:var(--ink)"></span>Ink means measured</b>
+      <span>Every figure set in ink comes from a published statistical source, named in the notes with its date and price year.</span>
+    </div>
+    <div class="m">
+      <b><span class="swatch" style="background:var(--model)"></span>Rust means modelled</b>
+      <span>Every figure set in rust is produced by the calculator below from parameters you set. None of it is a forecast, and none of it is evidence.</span>
+    </div>
+    <div>
+      <b>Why the distinction is on the page</b>
+      <span>A health warning in a banner gets separated from the number it qualifies. A warning built into the colour system travels with it.</span>
+    </div>
+  </div>
+</header>
+
+<!-- =================== 1. CAPACITY =================== -->
+<section id="capacity" aria-labelledby="h-capacity">
+  <span class="secnum">01 &nbsp;/&nbsp; The constraint</span>
+  <h2 id="h-capacity">How full the estate is now</h2>
+  <p class="lede">
+    The Ministry of Justice publishes weekly estate figures every Monday. This panel reads the most recent
+    bulletin. Cells are only part of the constraint: the National Audit Office states that the ability to
+    accommodate additional prisoners is limited by staffing as well as by places, and thousands of cells are
+    out of use through dilapidation, maintenance and fire safety non-compliance.
+  </p>
+
+  <div class="cap">
+    <div class="cap-top">
+      <div class="stat">
+        <div class="lab">Prison population</div>
+        <div class="val num" id="c-pop">&mdash;</div>
+        <div class="sub" id="c-pop-sub">Loading the latest bulletin</div>
+      </div>
+      <div class="stat">
+        <div class="lab">Useable operational capacity</div>
+        <div class="val num" id="c-cap">&mdash;</div>
+        <div class="sub">The population the estate can safely hold, after the operating margin</div>
+      </div>
+      <div class="stat derived">
+        <div class="lab">Headroom</div>
+        <div class="val num" id="c-head">&mdash;</div>
+        <div class="sub" id="c-head-sub">Capacity less population</div>
+      </div>
+    </div>
+    <div class="gauge-wrap">
+      <div class="gauge" role="img" aria-labelledby="gauge-desc">
+        <span class="fill" id="c-fill"></span>
+        <span class="cap-line" id="c-line" style="left:100%"></span>
+      </div>
+      <div class="gauge-legend" id="gauge-desc">
+        <i><span class="swatch" style="background:var(--court)"></span>Occupied places</i>
+        <i><span class="swatch" style="background:var(--ink)"></span>Useable operational capacity</i>
+        <i id="c-occ">&mdash;</i>
+      </div>
+    </div>
+    <div class="provenance">
+      <span class="badge" id="c-badge">Source</span>
+      <span id="c-source">Awaiting first successful ingest. Seed figures shown.</span>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 2. CASCADE =================== -->
+<section id="cascade" aria-labelledby="h-cascade">
+  <span class="secnum">02 &nbsp;/&nbsp; The shape of demand</span>
+  <h2 id="h-cascade">Where cases go, and where prisoners come from</h2>
+  <p class="lede">
+    Out of court resolution and the sentenced prison population are two ends of a cascade that barely touch.
+    Each bar is a share of a denominator named explicitly in the table, because the three sources count
+    different things and a single running percentage would be false precision.
+  </p>
+
+  <div class="tablescroll">
+    <div class="legend">
+      <i><span class="swatch" style="background:var(--oocd)"></span>Resolved without prosecution</i>
+      <i><span class="swatch" style="background:var(--court)"></span>Prosecuted, sentenced, imprisoned</i>
+      <i><span class="swatch" style="background:var(--ink-2)"></span>All recorded offences</i>
+    </div>
+    <table class="cascade">
+      <caption>
+        The three stages come from three separate collections with different counting units and reference
+        periods: offences (Home Office, year to March 2026), offenders and defendants (Ministry of Justice,
+        year to December 2025) and people in custody on a single day (Ministry of Justice, 30 June 2026).
+        They are not a single reconciled flow and the percentages are indicative of scale, not exact transfers.
+      </caption>
+      <thead>
+        <tr><th scope="col">Stage</th><th scope="col">Volume</th><th scope="col" class="barcell">Share</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" class="stage-name">Offences recorded by the police<small>About 4.4 million victim-based and 873,255 non-victim-based, year to March 2026</small></th>
+          <td class="figure">~5,270,000</td>
+          <td class="barcell"><div class="bar"><span class="ink" style="width:100%"></span></div><span class="barlabel">The denominator for the two rows below</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Charged or summonsed<small>389,728 victim-based plus 127,530 non-victim-based</small></th>
+          <td class="figure">517,258</td>
+          <td class="barcell"><div class="bar"><span class="court" style="width:9.8%"></span></div><span class="barlabel">9.8% of recorded offences</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Resolved out of court<small>Of which 181,700 community resolutions, 80% of the total</small></th>
+          <td class="figure">226,300</td>
+          <td class="barcell"><div class="bar"><span class="oocd" style="width:4.3%"></span></div><span class="barlabel">4.3% of recorded offences</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Offenders sentenced<small>The counting unit changes here, from offences to people, and the period to the year ending December 2025</small></th>
+          <td class="figure">1,200,000</td>
+          <td class="barcell"><span class="barlabel">No comparable share. This becomes the denominator for the two rows below.</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Given a fine<small>Derived from the published 77% share</small></th>
+          <td class="figure">~924,000</td>
+          <td class="barcell"><div class="bar"><span class="court" style="width:77%"></span></div><span class="barlabel">77% of those sentenced</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Given immediate custody<small>58% of custodial sentences were under 12 months</small></th>
+          <td class="figure">88,100</td>
+          <td class="barcell"><div class="bar"><span class="court" style="width:7.3%"></span></div><span class="barlabel">7.3% of those sentenced</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">In prison on 30 June 2026<small>A stock on one day, not a flow over a year. This becomes the denominator for the two rows below.</small></th>
+          <td class="figure">85,858</td>
+          <td class="barcell"><span class="barlabel">No comparable share</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Of whom sentenced<small>The remainder is 15,386 on remand and 469 non-criminal</small></th>
+          <td class="figure">70,003</td>
+          <td class="barcell"><div class="bar"><span class="court" style="width:81.5%"></span></div><span class="barlabel">81.5% of the prison population</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="stage-name">Sentenced for violence, sexual offences or drugs<small>Violence against the person 34%, sexual offences 23%, drug offences 12%</small></th>
+          <td class="figure">~49,000</td>
+          <td class="barcell"><div class="bar"><span class="court" style="width:57%"></span></div><span class="barlabel">About 57% of the prison population, about 70% of the sentenced population</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:20px;font-size:.92rem;color:var(--ink-2)">
+    Two features of that cascade decide everything below. Prosecution ends in a fine more than three quarters
+    of the time, so the sentence an out of court resolution displaces is usually financial. And the sentenced
+    population is composed overwhelmingly of offences that no gravity matrix would route out of court.
+  </p>
+</section>
+
+<!-- =================== 3. MODEL =================== -->
+<section id="model" aria-labelledby="h-model">
+  <span class="secnum">03 &nbsp;/&nbsp; The calculator</span>
+  <h2 id="h-model">What would have to be true</h2>
+  <p class="lede">
+    This tool refuses to answer the question in the direction it is usually asked. It will not tell you how
+    many places a given increase in diversion would save, because nobody can source the parameters that
+    would make such a figure meaningful. Instead you set a target, and the tool derives the diversion volume
+    that target implies. Then you can judge whether that volume is available.
+  </p>
+
+  <div class="model">
+    <div class="model-head">
+      <p>
+        <strong>Read this as a constraint check, not a forecast.</strong>
+        Two of the five parameters below have no published value anywhere in England and Wales. They are
+        marked. The tool works because an unsourceable parameter still has a range, and some targets turn out
+        to be unreachable across the whole of it.
+      </p>
+    </div>
+    <div class="model-body">
+      <div class="controls">
+        <div class="target">
+          <label for="p-target">Prison places you want out of court resolution to remove</label>
+          <output id="out-target" class="num" for="p-target">1,000<span class="unit">place-years, each year</span></output>
+          <input type="range" id="p-target" min="100" max="10000" step="100" value="1000">
+        </div>
+
+        <div class="param">
+          <div class="row">
+            <label for="p-c">Share of the additionally diverted cases whose sentence would have been immediate custody</label>
+            <span class="pv" id="v-c">2.0%</span>
+          </div>
+          <div class="note">
+            <span class="badge unsourced">No published value</span>
+            <span>Nobody records the counterfactual sentence for a diverted case. The fines share of sentencing, 77%, is the reason to expect a low number.</span>
+          </div>
+          <input type="range" id="p-c" min="0" max="20" step="0.5" value="2">
+        </div>
+
+        <div class="param">
+          <div class="row">
+            <label for="p-t">Time actually served on each averted custodial sentence</label>
+            <span class="pv" id="v-t">2.0 months</span>
+          </div>
+          <div class="note">
+            <span class="badge">Derived</span>
+            <span>A six month sentence released at the one third point under the Sentencing Act 2026 occupies a place for two months.</span>
+          </div>
+          <input type="range" id="p-t" min="0.5" max="18" step="0.5" value="2">
+        </div>
+
+        <div class="param">
+          <div class="row">
+            <label for="p-dr">Reduction in the proportion who reoffend, diversion against prosecution</label>
+            <span class="pv" id="v-dr">5.0 pp</span>
+          </div>
+          <div class="note">
+            <span class="badge unsourced">No published value</span>
+            <span>No causal estimate exists for England and Wales. Observed differences are confounded by selection, because disposals go to lower risk people facing less serious allegations.</span>
+          </div>
+          <input type="range" id="p-dr" min="0" max="30" step="0.5" value="5">
+        </div>
+
+        <div class="param">
+          <div class="row">
+            <label for="p-c2">Custody rate applied to the reoffences thereby averted</label>
+            <span class="pv" id="v-c2">10.0%</span>
+          </div>
+          <div class="note">
+            <span class="badge">Anchored</span>
+            <span>The custody rate for indictable offences is 33.5%. Most reoffences by this group are summary, so the applicable rate is lower.</span>
+          </div>
+          <input type="range" id="p-c2" min="0" max="35" step="0.5" value="10">
+        </div>
+
+        <div class="param">
+          <div class="row">
+            <label for="p-t2">Time served on each averted future custodial sentence</label>
+            <span class="pv" id="v-t2">2.0 months</span>
+          </div>
+          <div class="note"><span class="badge">Derived</span><span>Same basis as above.</span></div>
+          <input type="range" id="p-t2" min="0.5" max="24" step="0.5" value="2">
+        </div>
+
+        <button class="resetbtn" id="reset" type="button">Reset to defaults</button>
+      </div>
+
+      <div class="results" aria-live="polite">
+        <div class="result-hero">
+          <div class="lab">Additional out of court resolutions required, every year</div>
+          <div class="big num" id="out-n">235,000</div>
+          <div class="cap2" id="out-n-cap">To remove 1,000 places on these assumptions.</div>
+        </div>
+
+        <div class="check" id="chk1">
+          <span class="mark" aria-hidden="true">1</span>
+          <span class="txt">That is <b class="m" id="k-pct">104%</b> on top of the <b>226,300</b> out of court resolutions issued in the year to December 2025.</span>
+        </div>
+        <div class="check" id="chk2">
+          <span class="mark" aria-hidden="true">2</span>
+          <span class="txt">It requires <b class="m" id="k-cust">4,700</b> cases a year that would have received immediate custody to be resolved out of court instead, which is <b class="m" id="k-custpct">5.3%</b> of every immediate custodial sentence passed in England and Wales.</span>
+        </div>
+        <div class="check" id="chk3">
+          <span class="mark" aria-hidden="true">3</span>
+          <span class="txt">The target represents <b class="m" id="k-poppct">1.2%</b> of the prison population, against a projected central path that adds roughly <b>8,200</b> determinate places by 2029.</span>
+        </div>
+        <div class="check" id="chk4">
+          <span class="mark" aria-hidden="true">4</span>
+          <span class="txt">Of the places removed, <b class="m" id="k-split">80%</b> come from the displaced sentence and the remainder from averted reoffending, which is the only channel with any causal evidence behind it.</span>
+        </div>
+
+        <div class="verdict" id="verdict"></div>
+
+        <h3 style="margin-top:30px">On the same assumptions, what the existing volume buys</h3>
+        <div class="check">
+          <span class="mark" aria-hidden="true">&rarr;</span>
+          <span class="txt">All <b>226,300</b> out of court resolutions issued in the year to December 2025 account for
+            <b class="m" id="k-current">940</b> places, or <b class="m" id="k-currentpct">1.1%</b> of the prison population.</span>
+        </div>
+        <div class="check">
+          <span class="mark" aria-hidden="true">&rarr;</span>
+          <span class="txt">At <b>£39,454</b> per place in direct resource terms, 2024-25 prices, that is
+            <b class="m" id="k-money">£37m</b> of resource. It is not cash. Staffing, maintenance and estate costs fall in
+            steps, so a saving of this kind is only banked at the scale of closing an establishment.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>How the arithmetic works</h3>
+  <p style="font-size:.92rem;color:var(--ink-2)">
+    Places removed per additional diverted case equal the immediate effect, that is the counterfactual custody
+    share multiplied by time served, plus the downstream effect, that is the reoffending reduction multiplied
+    by the custody rate for averted reoffences multiplied by time served on them. The number of cases needed is
+    the target divided by that per-case figure. Every quantity is stated in place-years per year, so a result of
+    1,000 means 1,000 fewer occupied places at any given moment, sustained.
+  </p>
+</section>
+
+<!-- =================== 4. EVIDENCE =================== -->
+<section id="evidence" aria-labelledby="h-evidence">
+  <span class="secnum">04 &nbsp;/&nbsp; The evidence that does exist</span>
+  <h2 id="h-evidence">The downstream channel</h2>
+  <p class="lede">
+    Two quasi-experimental studies come closest to the question. Both are from the United States, both find
+    substantial benefits from diversion, and neither supports a prison places claim as usually stated. The
+    second finding in each card is the one that tends to be left out.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <h4>Felony diversion and the second chance</h4>
+      <div class="where">Harris County, Texas &nbsp;·&nbsp; Mueller-Smith and Schnepel, 2021</div>
+      <p>
+        A regression discontinuity on first-time felony defendants, using a 1994 penal code reform and a 2007
+        failed jail expansion ballot as two natural experiments, with a ten year follow-up.
+      </p>
+      <div class="finding">Diversion cut the probability of any future conviction by around 45%, cut total future convictions by around 75%, and raised quarterly employment by around 49%.</div>
+      <div class="counter">On custody it found no significant difference in time served in the initial follow-up, and in the second sample only temporal displacement, with no cumulative difference after four months.</div>
+    </div>
+    <div class="card">
+      <h4>Non-prosecution of minor offences</h4>
+      <div class="where">Suffolk County, Massachusetts &nbsp;·&nbsp; Agan, Doleac and Harvey, 2023</div>
+      <p>
+        Sixty-seven thousand nonviolent misdemeanour cases, identified through the as-if random assignment of
+        cases to prosecutors of differing leniency, over a two year window.
+      </p>
+      <div class="finding">For the marginal defendant, non-prosecution produced a 29 percentage point fall in the likelihood of a new criminal complaint, a reduction of 53%, and 1.7 fewer complaints.</div>
+      <div class="counter">The outcome measured is subsequent contact with the system, not prison places. The jurisdiction, the offence definitions and the prosecutorial structure are not those of England and Wales.</div>
+    </div>
+    <div class="card">
+      <h4>What the domestic evaluations measured</h4>
+      <div class="where">England and Wales &nbsp;·&nbsp; 2018 to 2024</div>
+      <p>
+        The Checkpoint randomised controlled trial, Operation Turning Point, the two-tier pilot evaluations and
+        the Ministry of Justice reoffending analyses all examine reoffending, process and cost at the point of
+        resolution.
+      </p>
+      <div class="finding">A conditional caution saves around 33 minutes of officer time against a charge, roughly 6%. The saving comes from resolving without arrest, not from the conditions attached.</div>
+      <div class="counter">None of them measured prison demand. The Ministry of Justice appraised out of court reform once under Green Book rules and returned a ten year net present value of minus £109.19 million in 2019/20 prices.</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 5. METHOD =================== -->
+<section id="method" aria-labelledby="h-method">
+  <span class="secnum">05 &nbsp;/&nbsp; Method and limits</span>
+  <h2 id="h-method">What this page is not</h2>
+
+  <div class="gaps">
+    <h3>Three parameters the public evidence base does not contain</h3>
+    <ul>
+      <li>The unit cost of a caution, a community resolution or a magistrates' court case. The most recent published court unit costs are National Audit Office figures in 2015/16 prices, and the Ministry of Justice states in both 2026 Courts and Tribunals Bill impact assessments that per-case costs for HMCTS, the Crown Prosecution Service and legal aid are not disclosed.</li>
+      <li>The counterfactual disposal for cases resolved out of court. Forces do not systematically record cases assessed and refused, with coded reasons, which is the module that would let anyone estimate selection.</li>
+      <li>A causal estimate of the reoffending difference between out of court resolution and prosecution for comparable cases in England and Wales.</li>
+    </ul>
+  </div>
+
+  <p style="font-size:.92rem;color:var(--ink-2);max-width:70ch">
+    A closing note on money. A prison place cost £39,454 in direct resource terms and £59,026 overall in
+    2024-25 prices. Neither figure is cash-realisable at the margin: staffing, maintenance and estate costs
+    fall in steps, and the saving is only banked at the scale of closing an establishment. A page of this kind
+    could easily carry a ticking savings counter. It would be the weakest thing on it, so there is not one.
+  </p>
+
+  <div class="notes">
+    <h3>Sources</h3>
+    <ol>
+      <li>Home Office (2026) <em>Crime outcomes in England and Wales 2025 to 2026</em>. Recorded offences and charge or summons volumes, year ending March 2026.</li>
+      <li>Ministry of Justice (2026) <em>Criminal justice statistics quarterly: December 2025</em>. Out of court resolutions, offenders sentenced, sentence type shares, immediate custody volumes and custody rates.</li>
+      <li>Ministry of Justice (2026) <em>Offender management statistics quarterly: January to March 2026</em>. Prison population at 30 June 2026 by custody type, sentence length band and offence group.</li>
+      <li>Ministry of Justice (2026) <em>Prison population weekly estate figures 2026</em>. Transparency data, published Mondays, read by this page through the GOV.UK Content API.</li>
+      <li>Ministry of Justice (2025) <em>Prison population projections 2025 to 2030, England and Wales</em>. Determinate, remand and recall paths. The model takes defendants proceeded against at court as its input and contains no out of court disposal term.</li>
+      <li>Ministry of Justice (2025) <em>Sentencing Bill impact assessment</em>, 1 September. Prison places attributed to five sentencing measures, totalling 7,500 after interactions. No out of court measure is modelled.</li>
+      <li>Ministry of Justice (2026) <em>Proven reoffending statistics: July to September 2024</em>. Adult proven reoffending 29.7%; 68.2% for custodial sentences under 12 months; 22.9% for 12 months or more. Rates for cautions are not separately reported in the bulletin.</li>
+      <li>House of Commons Library (2026) <em>Changes to automatic prisoner release dates in England and Wales</em>, CBP-10974. Release at the one third point for most standard determinate sentences from 1 October 2026.</li>
+      <li>National Audit Office (2024) <em>Increasing the capacity of the prison estate to meet demand</em>, HC 376. Staffing constraint at paragraph 3.8; cells out of use at paragraph 1.25.</li>
+      <li>HM Prison and Probation Service (2026) <em>Costs per place and costs per prisoner 2024-25</em>. Direct and overall resource cost per place.</li>
+      <li>Mueller-Smith, M. and Schnepel, K.T. (2021) 'Diversion in the criminal justice system', <em>Review of Economic Studies</em>, 88(2), pp. 883-936.</li>
+      <li>Agan, A., Doleac, J.L. and Harvey, A. (2023) 'Misdemeanor prosecution', <em>Quarterly Journal of Economics</em>, 138(3), pp. 1453-1505.</li>
+      <li>Neyroud, P. (2018) <em>Out of court disposals managed by the police: a review of the evidence</em>. National Police Chiefs' Council.</li>
+    </ol>
+  </div>
+
+  <footer>
+    <p style="margin:0">
+      Built for the De Montfort University out of court disposals review. Figures update weekly from published
+      Ministry of Justice transparency data; the model is a reasoning aid and produces no forecast. Comments and
+      corrections are welcome, particularly on the three parameters above.
+    </p>
+  </footer>
+</section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var fmt = function(n){ return Math.round(n).toLocaleString('en-GB'); };
+  var pct = function(n,dp){ return n.toFixed(dp===undefined?1:dp) + '%'; };
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement, btn = document.getElementById('themebtn');
+  try{ var saved = localStorage.getItem('oocd-theme'); if(saved){ root.setAttribute('data-theme', saved); } }catch(e){}
+  btn.addEventListener('click', function(){
+    var now = root.getAttribute('data-theme');
+    if(!now){ now = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+    var next = now === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('oocd-theme', next); }catch(e){}
+  });
+
+  /* ---------- capacity panel ---------- */
+  var FALLBACK = {
+    as_at:'2026-06-30', population:85858, useable_operational_capacity:89617,
+    headroom:3759, headroom_derived:true, parser_status:'seed',
+    source_title:'Offender management statistics quarterly, January to March 2026',
+    source_url:'https://www.gov.uk/government/statistics/offender-management-statistics-quarterly-january-to-march-2026/offender-management-statistics-quarterly-january-to-march-2026'
+  };
+  function renderCapacity(d){
+    var pop = d.population, cap = d.useable_operational_capacity;
+    var head = (d.headroom !== null && d.headroom !== undefined) ? d.headroom
+             : (pop !== null && cap !== null ? cap - pop : null);
+    document.getElementById('c-pop').textContent  = pop  === null ? 'not published' : fmt(pop);
+    document.getElementById('c-cap').textContent  = cap  === null ? 'not published' : fmt(cap);
+    document.getElementById('c-head').textContent = head === null ? 'not published' : fmt(head);
+
+    var when = d.as_at ? new Date(d.as_at + 'T00:00:00Z').toLocaleDateString('en-GB',
+                 {day:'numeric', month:'long', year:'numeric', timeZone:'UTC'}) : 'date not stated';
+    document.getElementById('c-pop-sub').textContent = 'At ' + when;
+    document.getElementById('c-head-sub').textContent = d.headroom_derived
+      ? 'Capacity less population. Derived here from two figures of different dates, so it is not itself a published statistic.'
+      : 'Capacity less population, as published';
+
+    if(pop !== null && cap !== null && cap > 0){
+      var occ = pop / cap;
+      var scale = Math.max(1, occ);           /* keep the capacity line on screen if ever exceeded */
+      document.getElementById('c-fill').style.width = (occ / scale * 100).toFixed(2) + '%';
+      document.getElementById('c-line').style.left  = (1 / scale * 100).toFixed(2) + '%';
+      document.getElementById('c-occ').textContent  = 'Occupancy ' + pct(occ * 100);
+    }
+
+    var badge = document.getElementById('c-badge');
+    var txt = document.getElementById('c-source');
+    if(d.parser_status === 'ok'){
+      badge.textContent = 'Weekly ingest';
+      txt.innerHTML = 'Read from ' + (d.source_title ? '<a href="' + d.source_url + '">' + d.source_title + '</a>'
+                                                     : 'the weekly bulletin')
+                    + (d.fetched_at ? ', fetched ' + new Date(d.fetched_at).toLocaleString('en-GB') : '') + '.';
+    } else if(d.parser_status === 'needs_review'){
+      badge.textContent = 'Ingest needs review';
+      txt.textContent = 'The weekly file was downloaded but its layout did not match the expected labels, so the last verified figures are shown instead.';
+    } else {
+      badge.textContent = 'Seed figures';
+      txt.innerHTML = 'Entered by hand from <a href="' + d.source_url + '">' + d.source_title + '</a>. '
+                    + 'These are replaced automatically once the weekly ingest has run successfully.';
+    }
+  }
+  fetch('data/prison-capacity.json', {cache:'no-store'})
+    .then(function(r){ if(!r.ok){ throw new Error('no file'); } return r.json(); })
+    .then(function(d){ renderCapacity(d); })
+    .catch(function(){ renderCapacity(FALLBACK); });
+
+  /* ---------- reverse-solve model ---------- */
+  var MEASURED = {
+    oocr: 226300,          /* out of court resolutions, year to Dec 2025          */
+    custodySentences: 88100, /* immediate custodial sentences, year to Dec 2025    */
+    population: 85858,     /* prison population, 30 June 2026                     */
+    projectedRise: 8200    /* determinate places added on the central path to 2029 */
+  };
+  var DEFAULTS = { target:1000, c:2, t:2, dr:5, c2:10, t2:2 };
+  var ids = ['target','c','t','dr','c2','t2'];
+  var el = {};
+  ids.forEach(function(k){ el[k] = document.getElementById('p-' + k); });
+
+  function compute(){
+    var target = +el.target.value;
+    var c  = +el.c.value  / 100;
+    var t  = +el.t.value  / 12;
+    var dr = +el.dr.value / 100;
+    var c2 = +el.c2.value / 100;
+    var t2 = +el.t2.value / 12;
+
+    var immediate  = c * t;
+    var downstream = dr * c2 * t2;
+    var perCase    = immediate + downstream;
+
+    document.getElementById('out-target').innerHTML = fmt(target) + '<span class="unit">place-years, each year</span>';
+    document.getElementById('v-c').textContent  = pct(+el.c.value);
+    document.getElementById('v-t').textContent  = (+el.t.value).toFixed(1) + ' months';
+    document.getElementById('v-dr').textContent = (+el.dr.value).toFixed(1) + ' pp';
+    document.getElementById('v-c2').textContent = pct(+el.c2.value);
+    document.getElementById('v-t2').textContent = (+el.t2.value).toFixed(1) + ' months';
+
+    var out = document.getElementById('out-n');
+    var cap = document.getElementById('out-n-cap');
+    var verdict = document.getElementById('verdict');
+
+    if(perCase <= 0){
+      out.textContent = 'no finite answer';
+      cap.textContent = 'With both channels set to zero, no volume of diversion removes any places at all.';
+      ['k-pct','k-cust','k-custpct','k-poppct','k-split','k-current','k-currentpct','k-money'].forEach(function(i){
+        document.getElementById(i).textContent = '—';
+      });
+      verdict.innerHTML = '<strong>Both channels are switched off.</strong> Raise the counterfactual custody '
+        + 'share or the reoffending reduction to give the model something to work with.';
+      return;
+    }
+
+    var n = target / perCase;
+    var upliftPct   = n / MEASURED.oocr * 100;
+    var custCases   = n * c;
+    var custShare   = custCases / MEASURED.custodySentences * 100;
+    var popShare    = target / MEASURED.population * 100;
+    var immedShare  = immediate / perCase * 100;
+
+    out.textContent = fmt(n);
+    cap.textContent = 'To remove ' + fmt(target) + ' places on these assumptions, sustained year on year.';
+    document.getElementById('k-pct').textContent     = pct(upliftPct, upliftPct >= 100 ? 0 : 1);
+    document.getElementById('k-cust').textContent    = fmt(custCases);
+    document.getElementById('k-custpct').textContent = pct(custShare);
+    document.getElementById('k-poppct').textContent  = pct(popShare);
+    document.getElementById('k-split').textContent   = pct(immedShare, 0);
+
+    document.getElementById('chk1').classList.toggle('impossible', upliftPct > 100);
+    document.getElementById('chk2').classList.toggle('impossible', custShare > 100);
+
+    var msg;
+    if(custShare > 100){
+      msg = '<strong>This target cannot be reached at any volume.</strong> It requires more cases with a '
+          + 'custodial counterfactual than there are immediate custodial sentences passed in England and Wales '
+          + 'in a year, before any question of whether those cases would pass a gravity matrix.';
+    } else if(custShare > 10){
+      msg = '<strong>The binding assumption is the counterfactual, not the volume.</strong> You are assuming '
+          + pct(custShare) + ' of all immediate custodial sentences could instead have been resolved by the '
+          + 'police out of court. The gravity matrix and the admission requirement both work against that.';
+    } else if(upliftPct > 100){
+      msg = '<strong>This target requires out of court resolution volume to more than double.</strong> '
+          + 'Total volume has been broadly flat since 2019, at 209,217 resolutions then and 226,318 in 2025, '
+          + 'with the change in composition rather than quantity.';
+    } else if(immedShare < 40){
+      msg = '<strong>Most of this target now comes from the downstream channel.</strong> That is the channel '
+          + 'with causal evidence behind it, from Harris County and Suffolk County, and it is also the one '
+          + 'where the strongest study found no reduction in time served. Treat the result as an upper bound.';
+    } else {
+      msg = '<strong>Within reach on these parameters, and worth stating what that costs.</strong> The result '
+          + 'holds only if the two unsourced parameters are close to the values you have set, and neither has '
+          + 'a published estimate to check them against.';
+    }
+    verdict.innerHTML = msg;
+
+    var currentPlaces = MEASURED.oocr * perCase;
+    document.getElementById('k-current').textContent    = fmt(currentPlaces);
+    document.getElementById('k-currentpct').textContent = pct(currentPlaces / MEASURED.population * 100);
+    document.getElementById('k-money').textContent      = '£' + fmt(currentPlaces * 39454 / 1e6) + 'm';
+  }
+
+  ids.forEach(function(k){ el[k].addEventListener('input', compute); });
+  document.getElementById('reset').addEventListener('click', function(){
+    ids.forEach(function(k){ el[k].value = DEFAULTS[k]; });
+    compute();
+  });
+  compute();
+})();
+</script>
+</body>
+</html>

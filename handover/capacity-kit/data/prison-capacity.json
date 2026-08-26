@@ -1,0 +1,13 @@
+{
+  "as_at": "2026-06-30",
+  "published": null,
+  "population": 85858,
+  "useable_operational_capacity": 89617,
+  "headroom": 3759,
+  "source_title": "Offender management statistics quarterly, January to March 2026 (population at 30 June 2026); useable operational capacity from Prison Service Pay Review Body, twenty-fifth report 2026 (January 2026)",
+  "source_url": "https://www.gov.uk/government/statistics/offender-management-statistics-quarterly-january-to-march-2026/offender-management-statistics-quarterly-january-to-march-2026",
+  "fetched_at": null,
+  "parser_status": "seed",
+  "note": "Seed values entered by hand from published statistics. Population is at 30 June 2026; useable operational capacity is the January 2026 figure, so the headroom shown is a subtraction of two figures of different dates and is not itself a published statistic. Replaced automatically once the weekly ingest runs successfully.",
+  "headroom_derived": true
+}

@@ -1,0 +1,48 @@
+name: Weekly prison figures
+
+# The Ministry of Justice publishes the weekly estate bulletin on Mondays.
+# This runs on Tuesday mornings to allow for a late publication, and can be
+# started by hand from the Actions tab at any time.
+
+on:
+  schedule:
+    - cron: "15 7 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the latest bulletin
+        id: fetch
+        run: python3 scripts/fetch_prison_figures.py
+        continue-on-error: true
+
+      - name: Commit any change
+        run: |
+          if [ -z "$(git status --porcelain data/)" ]; then
+            echo "No change to the figures."
+            exit 0
+          fi
+          git config user.name  "prison-figures bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git commit -m "Weekly prison figures: $(date -u +%Y-%m-%d)"
+          git push
+
+      - name: Fail the run if the parse was incomplete
+        if: steps.fetch.outcome != 'success'
+        run: |
+          echo "The bulletin was downloaded but the figures could not be read."
+          echo "Open data/_sheet-dump.json in this commit and extend LABELS in"
+          echo "scripts/fetch_prison_figures.py to match the real row labels."
+          exit 1

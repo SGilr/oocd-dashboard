@@ -1,0 +1,12 @@
+# Cache rules for the static assets served from this Worker.
+# The capacity JSON changes weekly and must not sit in an edge cache for longer
+# than that, or the panel will show last week's figures after a successful ingest.
+#
+# If the page is placed in a subdirectory, change /data/* to match.
+# These rules apply only to responses served from the asset binding. Anything the
+# Worker generates in code needs its Cache-Control set in the Worker instead.
+/data/*
+  Cache-Control: public, max-age=300, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=600, must-revalidate
