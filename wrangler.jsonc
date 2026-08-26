@@ -30,11 +30,14 @@
   // otherwise pick them itself, and a deployment should not depend on a
   // default that can change.
   //
-  // workers_dev keeps https://oocd-dashboard.<account>.workers.dev serving the
-  // site. Once the custom domain is live this should be set to false: the same
-  // pages answering on two origins is a duplicate the canonical tags have to
-  // paper over, and there is no reason to keep the second one.
-  "workers_dev": true,
+  // The site answers only on its custom domain. The workers.dev address served
+  // it while the domain was being set up and is now off: the same pages on two
+  // origins is a duplicate the canonical tags would have to paper over, and
+  // there is no reason to keep the second one.
+  //
+  // Preview URLs stay on. They are per deployment, carry their own origin, and
+  // exist so a change can be looked at before it reaches the live site.
+  "workers_dev": false,
   "preview_urls": true,
 
   "observability": {
