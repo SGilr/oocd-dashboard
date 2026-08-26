@@ -211,11 +211,13 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
     {measureMeta.label}, {latestYear}. {measureMeta.question}
   </p>
 
-  <div class="table-scroll" tabindex="0" role="region" aria-label="Forces ranked within the selected measure">
+  <div class="table-scroll table-scroll--wide" tabindex="0" role="region" aria-label="Forces ranked within the selected measure">
     <table id="compare-table">
       <caption id="table-caption">
         All {forces.length} forces, ranked by {measureMeta.label.toLowerCase()} in {latestYear},
-        on the basis {BASIS_LABELS[basis].toLowerCase()}, fraud included.
+        on the basis {BASIS_LABELS[basis].toLowerCase()}, fraud included. Trend runs
+        from {financialYears[0]} to {latestYear}. Scroll the table sideways for the
+        counts behind each measure.
       </caption>
       <thead>
         <tr>
@@ -223,10 +225,9 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           <th scope="col">Force</th>
           <th scope="col">Notes</th>
           <th scope="col" class="numeric" id="measure-heading">{measureMeta.short}</th>
-          <th scope="col">Trend, {financialYears[0]} to {latestYear}</th>
+          <th scope="col">Trend</th>
           <th scope="col" class="numeric">Out of court disposals</th>
-          <th scope="col" class="numeric">Positive outcomes</th>
-          <th scope="col" class="numeric">All assigned outcomes</th>
+          <th scope="col" class="numeric" id="denominator-heading">Positive outcomes</th>
         </tr>
       </thead>
       <tbody id="compare-body">
@@ -252,7 +253,6 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
             </td>
             <td class="numeric">{row.oocd.toLocaleString("en-GB")}</td>
             <td class="numeric">{row.positive.toLocaleString("en-GB")}</td>
-            <td class="numeric">{row.assigned.toLocaleString("en-GB")}</td>
           </tr>
         ))}
       </tbody>
@@ -295,6 +295,22 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
     if (node && body && form) {
       const payload = JSON.parse(node.textContent || "{}") as Payload;
       const colIndex = new Map(payload.cols.map((name, index) => [name, index]));
+      /**
+       * Which denominator each measure divides by.
+       *
+       * The table used to carry all three counts at once, which made it too
+       * wide to fit and told the reader nothing about which one was in play.
+       * Showing the denominator the selected measure actually uses is narrower
+       * and more informative: the number beside the share is the number the
+       * share was calculated against.
+       */
+      const denominators: Record<string, { label: string; column: string | null }> = {
+        share_positive: { label: "Positive outcomes", column: "positive" },
+        share_assigned: { label: "All assigned outcomes", column: "assigned" },
+        rate_per_1000_recorded_crime: { label: "Recorded crime", column: "crime" },
+        volume: { label: "Positive outcomes", column: "positive" },
+      };
+
       const measureLabels: Record<string, { short: string; label: string; question: string; unit: string; needsDenominator: boolean }> = {
         share_positive: {
           short: "Share of positive outcomes",
@@ -416,8 +432,10 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
             f,
             value: types.length ? compute(id, f, y, b, v, types) : null,
             oocd: types.length ? oocd(f, y, b, v, types) : 0,
-            positive: cell(f, y, b, v, "positive"),
-            assigned: cell(f, y, b, v, "assigned"),
+            denominator:
+              denominators[id].column === "crime"
+                ? payload.crime[f][y]
+                : cell(f, y, b, v, denominators[id].column as string),
             spark: sparkPath(payload.years.map((_, yi) => compute(id, f, yi, b, v, types))),
           }))
           .filter((row) => !search || row.force.name.toLowerCase().includes(search))
@@ -447,14 +465,18 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
               `<td><svg class="sparkline" viewBox="0 0 88 24" aria-hidden="true" focusable="false" preserveAspectRatio="none">` +
               `<path d="${row.spark}" fill="none" stroke="var(--series-national)" stroke-width="1.5"/></svg></td>` +
               `<td class="numeric">${row.oocd.toLocaleString("en-GB")}</td>` +
-              `<td class="numeric">${row.positive.toLocaleString("en-GB")}</td>` +
-              `<td class="numeric">${row.assigned.toLocaleString("en-GB")}</td>`;
+              `<td class="numeric">${
+                row.denominator ? row.denominator.toLocaleString("en-GB") : "not available"
+              }</td>`;
             return tr;
           })
         );
 
         const heading = document.getElementById("measure-heading");
         if (heading) heading.textContent = meta.short;
+
+        const denominatorHeading = document.getElementById("denominator-heading");
+        if (denominatorHeading) denominatorHeading.textContent = denominators[id].label;
 
         const summary = document.getElementById("table-summary");
         if (summary) {
