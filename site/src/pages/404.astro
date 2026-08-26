@@ -1,0 +1,27 @@
+---
+import Layout from "../components/Layout.astro";
+import { forces } from "../lib/data";
+---
+
+<Layout
+  title="Page not found"
+  description="The page you asked for is not on this site."
+>
+  <h1>Page not found</h1>
+  <p class="lede">
+    There is nothing at that address. It may have been a force page whose name
+    has changed, or a link that was mistyped.
+  </p>
+  <p>
+    The <a href="/">overview</a> has the national picture, <a href="/compare">compare
+    forces</a> has every force on one measure, and <a href="/data">data</a> has every
+    derived table with its checksums. If you were looking for a particular force,
+    it is in the list below.
+  </p>
+  <h2>Forces</h2>
+  <ul class="force-index">
+    {forces.map((force) => (
+      <li><a href={`/force/${force.slug}`}>{force.name}</a></li>
+    ))}
+  </ul>
+</Layout>

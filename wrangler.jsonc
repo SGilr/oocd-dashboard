@@ -1,0 +1,32 @@
+{
+  // Cloudflare configuration for the out of court disposals dashboard.
+  //
+  // Pages and Workers were merged, so this deploys as a Worker that serves
+  // static assets and nothing else. There is no `main` entry point on purpose:
+  // an assets only Worker runs no code of ours, which keeps the deployment as
+  // simple to reason about as the old static site was. No database, no runtime
+  // API, no secret to leak.
+  //
+  // Declaring this here rather than in the dashboard means the deployment is
+  // versioned with the code, and a change to it is reviewed like any other.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "oocd-dashboard",
+  "compatibility_date": "2026-08-26",
+
+  "assets": {
+    // Written by `npm run build` in site/, which first copies the derived
+    // tables into site/public/data so the pages and the downloads on /data are
+    // served from one set of files.
+    "directory": "./site/dist",
+
+    // The site builds to directories with an index.html, so /compare and
+    // /compare/ must both resolve. This is wrangler's default, stated
+    // explicitly because it is load bearing.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

@@ -9,38 +9,42 @@ created from the environment this repository was built in. Anyone with access to
 the Cloudflare account can create it from what is written here in about five
 minutes.
 
-## Create the Pages project
+## Create the Cloudflare project
+
+Cloudflare has merged Pages into Workers, so this deploys as a Worker that
+serves static assets and runs no code of ours. `wrangler.jsonc` at the root of
+this repository holds the configuration, which means the deployment is versioned
+with the code and a change to it is reviewed like any other, rather than living
+only in a dashboard form.
 
 1. In the Cloudflare dashboard, go to Workers and Pages, then Create, then
-   Pages, then Connect to Git.
-2. Select the GitHub repository and authorise Cloudflare for it.
-3. Set the production branch to the repository's default branch.
-4. Set the build settings:
+   Import a repository, and select the GitHub repository.
+2. Set the production branch to `main`.
+3. Set the build settings:
 
    | Setting | Value |
    | --- | --- |
-   | Framework preset | Astro |
    | Build command | `cd site && npm ci && npm run build` |
-   | Build output directory | `site/dist` |
-   | Root directory | repository root |
-   | Node version | 22 |
+   | Deploy command | `npx wrangler deploy` |
+   | Root directory | leave blank, the repository root |
 
-   The build command runs `scripts/stage-data.mjs` first, through the `prebuild`
-   script, which copies `data/processed/` into `site/public/data/` and writes the
-   provenance and checksums the data page shows.
+   There is no build output directory field any more. `wrangler.jsonc` names
+   `./site/dist`, which is what the deploy command reads.
 
-5. Add one environment variable, for production and for previews:
+4. Add two environment variables, for production and for previews:
 
    | Name | Value |
    | --- | --- |
-   | `SITE_URL` | `https://oocd.howpreventionworks.com` |
+   | `SITE_URL` | the site's own origin |
+   | `NODE_VERSION` | `22` |
 
-   It sets the canonical URL and the sitemap origin. Without it the build falls
-   back to the `pages.dev` address, which is correct for a preview and wrong for
-   production.
+   `NODE_VERSION` matters. The default is older than Astro needs and the build
+   fails without it. `SITE_URL` sets the canonical URL and the sitemap origin;
+   without it the build falls back to the value in `site/astro.config.mjs`.
 
-6. Deploy. Every push to the default branch publishes production, and every pull
-   request gets its own preview URL.
+The build command runs `scripts/stage-data.mjs` first, through the `prebuild`
+script, which copies `data/processed/` into `site/public/data/` and writes the
+provenance and checksums the data page shows.
 
 ## What is committed
 

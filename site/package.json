@@ -22,5 +22,8 @@
     "playwright": "^1.62.1"
   },
   "private": true,
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4.126.0"
+  }
 }
