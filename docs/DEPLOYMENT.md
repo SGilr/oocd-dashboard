@@ -42,6 +42,16 @@ minutes.
 6. Deploy. Every push to the default branch publishes production, and every pull
    request gets its own preview URL.
 
+## What is committed
+
+`data/processed/` and `data/manifest.json` are committed, and so is
+`data/validation-report.json`. The site renders the report on its data and
+methodology pages, and Cloudflare builds from the repository, so a report that
+is not committed means those sections come up empty on the deployed site.
+
+`data/raw/` is not committed. It is rebuilt from the manifest, and the checksums
+confirm a rebuild produced the same bytes.
+
 ## Before the first production deploy
 
 The build succeeds whether or not the data is real, which is deliberate: the site
