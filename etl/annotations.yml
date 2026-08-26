@@ -22,7 +22,15 @@
 # write the result back into the validation report. Nothing is published as
 # verified until that has run somewhere with network access to the sources.
 
-version: 3
+# Source verification, 26 August 2026. All nine sources confirmed to resolve.
+# The Home Office user guide and the West Yorkshire Police and Crime
+# Commissioner page were checked with curl and returned 200. The crime outcomes
+# bulletin was opened in a browser. The British Transport Police page answers
+# 403 to a script but opens in a browser, which is a firewall refusing the
+# script rather than a missing page, so `validate.py --urls-only` will report it
+# as unknown and ask for a person to look. That is expected, not a regression.
+
+version: 4
 last_reviewed: 2026-08-26
 
 annotations:
@@ -119,7 +127,7 @@ annotations:
     source_citation: >-
       British Transport Police (2026) About us. London: British Transport
       Police.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: offence-code-expiry
     scope: national
