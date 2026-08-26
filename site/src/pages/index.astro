@@ -58,7 +58,7 @@ const tiles = [
     note: `${latestYear}. Of every 100 cases closed with somebody held to account, ${latestShare.toFixed(0)} were dealt with outside court.`,
   },
   {
-    label: "Out of court disposals",
+    label: "Out of court resolutions",
     value: latestVolume.toLocaleString("en-GB"),
     note: `${latestYear}, all 44 forces, on the ${BASIS_LABELS[basis].toLowerCase()} basis.`,
   },
@@ -171,7 +171,7 @@ const mixPlot = renderPlot(
     ],
   },
   {
-    title: "National out of court disposals by type and quarter",
+    title: "National out of court resolutions by type and quarter",
     description:
       "A stacked area chart. Community resolutions are the largest type throughout. Outcome 22 appears from 2019/20 and grows after recording became compulsory in 2021/22.",
   }
@@ -194,7 +194,7 @@ const mixTableRows = financialYears.map((fy) => {
 >
   <TexturePatterns />
 
-  <h1>Out of court disposals in England and Wales</h1>
+  <h1>Out of court resolutions in England and Wales</h1>
 
   <p class="lede">
     This dashboard shows how the 43 territorial police forces of England and Wales,
@@ -230,7 +230,7 @@ const mixTableRows = financialYears.map((fy) => {
   <p class="small">
     Every figure on this page uses the count basis
     <strong>{BASIS_LABELS[basis].toLowerCase()}</strong>, includes fraud offences, and
-    counts all six out of court disposal types. The
+    counts all six out of court resolution types. The
     <a href="/compare">compare page</a> lets you change each of those.
   </p>
 
@@ -238,7 +238,7 @@ const mixTableRows = financialYears.map((fy) => {
     title="The out of court share of positive outcomes"
     subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
     plot={trendPlot}
-    description="Positive outcomes are charge or summons plus the six out of court disposal types. The share is the part of those that were dealt with outside court."
+    description="Positive outcomes are charge or summons plus the six out of court resolution types. The share is the part of those that were dealt with outside court."
     notes={[
       "The shaded period runs before outcome 22 recording became compulsory in 2021/22, so part of the rise after that point is forces recording an outcome they were already using.",
     ]}
@@ -247,7 +247,7 @@ const mixTableRows = financialYears.map((fy) => {
       caption: `National out of court share of positive outcomes by quarter, ${firstYear} to ${latestYear}`,
       columns: [
         { key: "period", label: "Quarter" },
-        { key: "oocd", label: "Out of court disposals", numeric: true },
+        { key: "oocd", label: "Out of court resolutions", numeric: true },
         { key: "positive", label: "Positive outcomes", numeric: true },
         { key: "share", label: "Share", numeric: true },
       ],
@@ -261,7 +261,7 @@ const mixTableRows = financialYears.map((fy) => {
   />
 
   <Figure
-    title="The mix of out of court disposals"
+    title="The mix of out of court resolutions"
     subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
     plot={mixPlot}
     description="Each band is one disposal type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
@@ -269,7 +269,7 @@ const mixTableRows = financialYears.map((fy) => {
     legendTitle="Disposal type"
     annotationIds={["outcome-22-recording-change", "published-corrections-are-negative"]}
     table={{
-      caption: `National out of court disposals by type and financial year, ${firstYear} to ${latestYear}`,
+      caption: `National out of court resolutions by type and financial year, ${firstYear} to ${latestYear}`,
       columns: [
         { key: "fy", label: "Financial year" },
         ...DISPOSAL_SERIES.map((series) => ({

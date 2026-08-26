@@ -27,7 +27,7 @@ const DESCRIPTIONS: Record<string, string> = {
   "manifest.json": "Every source file, with its resolved URL, retrieval timestamp, size and SHA256.",
   "validation-report.json": "The result of every validation check for this build.",
   "prison-capacity.json":
-    "Prison population and useable operational capacity from the Ministry of Justice weekly estate bulletin, read by the capacity page. Refreshed weekly, not part of the out of court disposals extract.",
+    "Prison population and useable operational capacity from the Ministry of Justice weekly estate bulletin, read by the capacity page. Refreshed weekly, not part of the out of court resolutions extract.",
   "build-info.json": "Provenance, build timestamp and the checksums shown on this page.",
 };
 
@@ -253,7 +253,7 @@ git clone ${REPO}.git`}</code></pre>
   </p>
   <p>To cite the dashboard itself:</p>
   <blockquote>
-    Oxon Advisory ({buildInfo.builtAt.slice(0, 4)}) <em>Out of court disposals dashboard</em>.
+    Oxon Advisory ({buildInfo.builtAt.slice(0, 4)}) <em>Out of court resolutions dashboard</em>.
     Built {buildInfo.builtAt.slice(0, 10)}. Derived from Home Office police recorded
     crime and outcomes open data tables.
   </blockquote>

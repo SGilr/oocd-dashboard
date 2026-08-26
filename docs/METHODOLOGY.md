@@ -95,7 +95,7 @@ that a rebuild produced the same bytes.
 ### Outcome types
 
 The published tables carry an outcome type code from 1 to 22. Six of them are
-out of court disposals.
+out of court resolutions.
 
 <!-- INJECT:OUTCOME-TYPES -->
 
@@ -124,7 +124,7 @@ drops them and records the number dropped in `coverage.json`. They are not a
 split between simple and conditional cautions, which the published tables do not
 support at all.
 
-Outcome type 4, taken into consideration, is not an out of court disposal. It
+Outcome type 4, taken into consideration, is not an out of court resolution. It
 records an offence the person admitted and asked the court to take into account
 alongside the offences being prosecuted, so it accompanies a prosecution rather
 than replacing one. It is excluded throughout. Sweeping it in would inflate every
@@ -150,7 +150,7 @@ groups, which is independent confirmation that excluding outcome type 4 from the
 out of court set is the right reading and not a judgement of ours.
 
 Note that the Home Office reports outcome 22 separately from both out of court
-groups, whereas this dashboard counts it as the sixth out of court disposal
+groups, whereas this dashboard counts it as the sixth out of court resolution
 type. That is a deliberate difference, and it is why a published out of court
 figure will be smaller than the figure here unless outcome 22 is added to it.
 The reconciliation targets name the outcome types they cover so the two can be
@@ -202,17 +202,17 @@ them.
 Three denominators are defensible and they answer different questions, so all
 three are offered.
 
-**Share of positive outcomes.** Out of court disposals divided by charge or
+**Share of positive outcomes.** Out of court resolutions divided by charge or
 summons plus all six out of court types. Of the cases where somebody was held to
 account, how many were dealt with outside court. This is the default, because it
 comes closest to the decision under examination.
 
-**Share of all assigned outcomes.** Out of court disposals divided by every
+**Share of all assigned outcomes.** Out of court resolutions divided by every
 assigned outcome. How much of everything the force closes runs out of court.
 This number is lower and moves with the proportion of cases closed with no
 suspect identified, which is largely a function of offence mix.
 
-**Rate per 1,000 recorded crimes.** Out of court disposals divided by recorded
+**Rate per 1,000 recorded crimes.** Out of court resolutions divided by recorded
 crime in the force area, multiplied by a thousand. Volume normalised for force
 size.
 
@@ -294,7 +294,7 @@ a later decision maker sees.
 
 **No published outcome measure per force.** Ministry of Justice proven
 reoffending statistics are built from court disposals and cautions, and exclude
-the out of court disposals that are not cautions. There is therefore no published
+the out of court resolutions that are not cautions. There is therefore no published
 reoffending measure that covers the disposals shown here, and no way to attach an
 effectiveness figure to a force from published data.
 

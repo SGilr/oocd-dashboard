@@ -186,7 +186,7 @@
   {
    "change_pct": 146.2,
    "check": "year_on_year",
-   "detail": "Cheshire out of court disposals moved +146.2 per cent from 2021/22 to 2022/23, 2188 to 5386. Check whether an annotation explains it before publishing.",
+   "detail": "Cheshire out of court resolutions moved +146.2 per cent from 2021/22 to 2022/23, 2188 to 5386. Check whether an annotation explains it before publishing.",
    "force": "Cheshire",
    "from_year": "2021/22",
    "to_year": "2022/23"
@@ -194,7 +194,7 @@
   {
    "change_pct": 47.9,
    "check": "year_on_year",
-   "detail": "Cleveland out of court disposals moved +47.9 per cent from 2024/25 to 2025/26, 1453 to 2149. Check whether an annotation explains it before publishing.",
+   "detail": "Cleveland out of court resolutions moved +47.9 per cent from 2024/25 to 2025/26, 1453 to 2149. Check whether an annotation explains it before publishing.",
    "force": "Cleveland",
    "from_year": "2024/25",
    "to_year": "2025/26"
@@ -202,7 +202,7 @@
   {
    "change_pct": 51.1,
    "check": "year_on_year",
-   "detail": "Durham out of court disposals moved +51.1 per cent from 2016/17 to 2017/18, 5027 to 7598. Check whether an annotation explains it before publishing.",
+   "detail": "Durham out of court resolutions moved +51.1 per cent from 2016/17 to 2017/18, 5027 to 7598. Check whether an annotation explains it before publishing.",
    "force": "Durham",
    "from_year": "2016/17",
    "to_year": "2017/18"
@@ -210,7 +210,7 @@
   {
    "change_pct": 85.6,
    "check": "year_on_year",
-   "detail": "Dyfed-Powys out of court disposals moved +85.6 per cent from 2021/22 to 2022/23, 1621 to 3008. Check whether an annotation explains it before publishing.",
+   "detail": "Dyfed-Powys out of court resolutions moved +85.6 per cent from 2021/22 to 2022/23, 1621 to 3008. Check whether an annotation explains it before publishing.",
    "force": "Dyfed-Powys",
    "from_year": "2021/22",
    "to_year": "2022/23"
@@ -218,7 +218,7 @@
   {
    "change_pct": 74.5,
    "check": "year_on_year",
-   "detail": "Gloucestershire out of court disposals moved +74.5 per cent from 2021/22 to 2022/23, 1137 to 1984. Check whether an annotation explains it before publishing.",
+   "detail": "Gloucestershire out of court resolutions moved +74.5 per cent from 2021/22 to 2022/23, 1137 to 1984. Check whether an annotation explains it before publishing.",
    "force": "Gloucestershire",
    "from_year": "2021/22",
    "to_year": "2022/23"
@@ -226,7 +226,7 @@
   {
    "change_pct": 42.5,
    "check": "year_on_year",
-   "detail": "Gloucestershire out of court disposals moved +42.5 per cent from 2022/23 to 2023/24, 1984 to 2827. Check whether an annotation explains it before publishing.",
+   "detail": "Gloucestershire out of court resolutions moved +42.5 per cent from 2022/23 to 2023/24, 1984 to 2827. Check whether an annotation explains it before publishing.",
    "force": "Gloucestershire",
    "from_year": "2022/23",
    "to_year": "2023/24"
@@ -234,7 +234,7 @@
   {
    "change_pct": -74.8,
    "check": "year_on_year",
-   "detail": "Greater Manchester out of court disposals moved -74.8 per cent from 2018/19 to 2019/20, 8376 to 2107. Check whether an annotation explains it before publishing.",
+   "detail": "Greater Manchester out of court resolutions moved -74.8 per cent from 2018/19 to 2019/20, 8376 to 2107. Check whether an annotation explains it before publishing.",
    "force": "Greater Manchester",
    "from_year": "2018/19",
    "to_year": "2019/20"
@@ -242,7 +242,7 @@
   {
    "change_pct": 252.9,
    "check": "year_on_year",
-   "detail": "Greater Manchester out of court disposals moved +252.9 per cent from 2019/20 to 2020/21, 2107 to 7435. Check whether an annotation explains it before publishing.",
+   "detail": "Greater Manchester out of court resolutions moved +252.9 per cent from 2019/20 to 2020/21, 2107 to 7435. Check whether an annotation explains it before publishing.",
    "force": "Greater Manchester",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -250,7 +250,7 @@
   {
    "change_pct": 50.1,
    "check": "year_on_year",
-   "detail": "Greater Manchester out of court disposals moved +50.1 per cent from 2024/25 to 2025/26, 14041 to 21076. Check whether an annotation explains it before publishing.",
+   "detail": "Greater Manchester out of court resolutions moved +50.1 per cent from 2024/25 to 2025/26, 14041 to 21076. Check whether an annotation explains it before publishing.",
    "force": "Greater Manchester",
    "from_year": "2024/25",
    "to_year": "2025/26"
@@ -258,7 +258,7 @@
   {
    "change_pct": 42.8,
    "check": "year_on_year",
-   "detail": "Gwent out of court disposals moved +42.8 per cent from 2022/23 to 2023/24, 2028 to 2896. Check whether an annotation explains it before publishing.",
+   "detail": "Gwent out of court resolutions moved +42.8 per cent from 2022/23 to 2023/24, 2028 to 2896. Check whether an annotation explains it before publishing.",
    "force": "Gwent",
    "from_year": "2022/23",
    "to_year": "2023/24"
@@ -266,7 +266,7 @@
   {
    "change_pct": 48.1,
    "check": "year_on_year",
-   "detail": "Hampshire out of court disposals moved +48.1 per cent from 2016/17 to 2017/18, 5519 to 8175. Check whether an annotation explains it before publishing.",
+   "detail": "Hampshire out of court resolutions moved +48.1 per cent from 2016/17 to 2017/18, 5519 to 8175. Check whether an annotation explains it before publishing.",
    "force": "Hampshire",
    "from_year": "2016/17",
    "to_year": "2017/18"
@@ -274,7 +274,7 @@
   {
    "change_pct": 45.5,
    "check": "year_on_year",
-   "detail": "Hertfordshire out of court disposals moved +45.5 per cent from 2024/25 to 2025/26, 3309 to 4816. Check whether an annotation explains it before publishing.",
+   "detail": "Hertfordshire out of court resolutions moved +45.5 per cent from 2024/25 to 2025/26, 3309 to 4816. Check whether an annotation explains it before publishing.",
    "force": "Hertfordshire",
    "from_year": "2024/25",
    "to_year": "2025/26"
@@ -282,7 +282,7 @@
   {
    "change_pct": 61.9,
    "check": "year_on_year",
-   "detail": "Humberside out of court disposals moved +61.9 per cent from 2019/20 to 2020/21, 4354 to 7049. Check whether an annotation explains it before publishing.",
+   "detail": "Humberside out of court resolutions moved +61.9 per cent from 2019/20 to 2020/21, 4354 to 7049. Check whether an annotation explains it before publishing.",
    "force": "Humberside",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -290,7 +290,7 @@
   {
    "change_pct": 43.1,
    "check": "year_on_year",
-   "detail": "Humberside out of court disposals moved +43.1 per cent from 2022/23 to 2023/24, 5775 to 8263. Check whether an annotation explains it before publishing.",
+   "detail": "Humberside out of court resolutions moved +43.1 per cent from 2022/23 to 2023/24, 5775 to 8263. Check whether an annotation explains it before publishing.",
    "force": "Humberside",
    "from_year": "2022/23",
    "to_year": "2023/24"
@@ -298,7 +298,7 @@
   {
    "change_pct": 51.9,
    "check": "year_on_year",
-   "detail": "Kent out of court disposals moved +51.9 per cent from 2023/24 to 2024/25, 5897 to 8958. Check whether an annotation explains it before publishing.",
+   "detail": "Kent out of court resolutions moved +51.9 per cent from 2023/24 to 2024/25, 5897 to 8958. Check whether an annotation explains it before publishing.",
    "force": "Kent",
    "from_year": "2023/24",
    "to_year": "2024/25"
@@ -306,7 +306,7 @@
   {
    "change_pct": 57.3,
    "check": "year_on_year",
-   "detail": "Lancashire out of court disposals moved +57.3 per cent from 2022/23 to 2023/24, 6814 to 10718. Check whether an annotation explains it before publishing.",
+   "detail": "Lancashire out of court resolutions moved +57.3 per cent from 2022/23 to 2023/24, 6814 to 10718. Check whether an annotation explains it before publishing.",
    "force": "Lancashire",
    "from_year": "2022/23",
    "to_year": "2023/24"
@@ -314,7 +314,7 @@
   {
    "change_pct": -44.8,
    "check": "year_on_year",
-   "detail": "Leicestershire out of court disposals moved -44.8 per cent from 2014/15 to 2015/16, 4752 to 2621. Check whether an annotation explains it before publishing.",
+   "detail": "Leicestershire out of court resolutions moved -44.8 per cent from 2014/15 to 2015/16, 4752 to 2621. Check whether an annotation explains it before publishing.",
    "force": "Leicestershire",
    "from_year": "2014/15",
    "to_year": "2015/16"
@@ -322,7 +322,7 @@
   {
    "change_pct": 44.3,
    "check": "year_on_year",
-   "detail": "Leicestershire out of court disposals moved +44.3 per cent from 2019/20 to 2020/21, 4747 to 6848. Check whether an annotation explains it before publishing.",
+   "detail": "Leicestershire out of court resolutions moved +44.3 per cent from 2019/20 to 2020/21, 4747 to 6848. Check whether an annotation explains it before publishing.",
    "force": "Leicestershire",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -330,7 +330,7 @@
   {
    "change_pct": 280.1,
    "check": "year_on_year",
-   "detail": "North Yorkshire out of court disposals moved +280.1 per cent from 2019/20 to 2020/21, 1795 to 6823. Check whether an annotation explains it before publishing.",
+   "detail": "North Yorkshire out of court resolutions moved +280.1 per cent from 2019/20 to 2020/21, 1795 to 6823. Check whether an annotation explains it before publishing.",
    "force": "North Yorkshire",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -338,7 +338,7 @@
   {
    "change_pct": -63.8,
    "check": "year_on_year",
-   "detail": "North Yorkshire out of court disposals moved -63.8 per cent from 2020/21 to 2021/22, 6823 to 2472. Check whether an annotation explains it before publishing.",
+   "detail": "North Yorkshire out of court resolutions moved -63.8 per cent from 2020/21 to 2021/22, 6823 to 2472. Check whether an annotation explains it before publishing.",
    "force": "North Yorkshire",
    "from_year": "2020/21",
    "to_year": "2021/22"
@@ -346,7 +346,7 @@
   {
    "change_pct": 66.6,
    "check": "year_on_year",
-   "detail": "Northamptonshire out of court disposals moved +66.6 per cent from 2020/21 to 2021/22, 2312 to 3852. Check whether an annotation explains it before publishing.",
+   "detail": "Northamptonshire out of court resolutions moved +66.6 per cent from 2020/21 to 2021/22, 2312 to 3852. Check whether an annotation explains it before publishing.",
    "force": "Northamptonshire",
    "from_year": "2020/21",
    "to_year": "2021/22"
@@ -354,7 +354,7 @@
   {
    "change_pct": 98.5,
    "check": "year_on_year",
-   "detail": "Northumbria out of court disposals moved +98.5 per cent from 2023/24 to 2024/25, 3448 to 6846. Check whether an annotation explains it before publishing.",
+   "detail": "Northumbria out of court resolutions moved +98.5 per cent from 2023/24 to 2024/25, 3448 to 6846. Check whether an annotation explains it before publishing.",
    "force": "Northumbria",
    "from_year": "2023/24",
    "to_year": "2024/25"
@@ -362,7 +362,7 @@
   {
    "change_pct": -46.1,
    "check": "year_on_year",
-   "detail": "South Wales out of court disposals moved -46.1 per cent from 2021/22 to 2022/23, 5977 to 3221. Check whether an annotation explains it before publishing.",
+   "detail": "South Wales out of court resolutions moved -46.1 per cent from 2021/22 to 2022/23, 5977 to 3221. Check whether an annotation explains it before publishing.",
    "force": "South Wales",
    "from_year": "2021/22",
    "to_year": "2022/23"
@@ -370,7 +370,7 @@
   {
    "change_pct": 47.8,
    "check": "year_on_year",
-   "detail": "South Yorkshire out of court disposals moved +47.8 per cent from 2018/19 to 2019/20, 4657 to 6882. Check whether an annotation explains it before publishing.",
+   "detail": "South Yorkshire out of court resolutions moved +47.8 per cent from 2018/19 to 2019/20, 4657 to 6882. Check whether an annotation explains it before publishing.",
    "force": "South Yorkshire",
    "from_year": "2018/19",
    "to_year": "2019/20"
@@ -378,7 +378,7 @@
   {
    "change_pct": 125.4,
    "check": "year_on_year",
-   "detail": "South Yorkshire out of court disposals moved +125.4 per cent from 2019/20 to 2020/21, 6882 to 15509. Check whether an annotation explains it before publishing.",
+   "detail": "South Yorkshire out of court resolutions moved +125.4 per cent from 2019/20 to 2020/21, 6882 to 15509. Check whether an annotation explains it before publishing.",
    "force": "South Yorkshire",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -386,7 +386,7 @@
   {
    "change_pct": -41.3,
    "check": "year_on_year",
-   "detail": "South Yorkshire out of court disposals moved -41.3 per cent from 2022/23 to 2023/24, 10152 to 5963. Check whether an annotation explains it before publishing.",
+   "detail": "South Yorkshire out of court resolutions moved -41.3 per cent from 2022/23 to 2023/24, 10152 to 5963. Check whether an annotation explains it before publishing.",
    "force": "South Yorkshire",
    "from_year": "2022/23",
    "to_year": "2023/24"
@@ -394,7 +394,7 @@
   {
    "change_pct": 75.3,
    "check": "year_on_year",
-   "detail": "Staffordshire out of court disposals moved +75.3 per cent from 2020/21 to 2021/22, 2950 to 5171. Check whether an annotation explains it before publishing.",
+   "detail": "Staffordshire out of court resolutions moved +75.3 per cent from 2020/21 to 2021/22, 2950 to 5171. Check whether an annotation explains it before publishing.",
    "force": "Staffordshire",
    "from_year": "2020/21",
    "to_year": "2021/22"
@@ -402,7 +402,7 @@
   {
    "change_pct": -64.2,
    "check": "year_on_year",
-   "detail": "Suffolk out of court disposals moved -64.2 per cent from 2014/15 to 2015/16, 5151 to 1842. Check whether an annotation explains it before publishing.",
+   "detail": "Suffolk out of court resolutions moved -64.2 per cent from 2014/15 to 2015/16, 5151 to 1842. Check whether an annotation explains it before publishing.",
    "force": "Suffolk",
    "from_year": "2014/15",
    "to_year": "2015/16"
@@ -410,7 +410,7 @@
   {
    "change_pct": 109.4,
    "check": "year_on_year",
-   "detail": "Suffolk out of court disposals moved +109.4 per cent from 2015/16 to 2016/17, 1842 to 3857. Check whether an annotation explains it before publishing.",
+   "detail": "Suffolk out of court resolutions moved +109.4 per cent from 2015/16 to 2016/17, 1842 to 3857. Check whether an annotation explains it before publishing.",
    "force": "Suffolk",
    "from_year": "2015/16",
    "to_year": "2016/17"
@@ -418,7 +418,7 @@
   {
    "change_pct": 93.4,
    "check": "year_on_year",
-   "detail": "Thames Valley out of court disposals moved +93.4 per cent from 2019/20 to 2020/21, 5251 to 10156. Check whether an annotation explains it before publishing.",
+   "detail": "Thames Valley out of court resolutions moved +93.4 per cent from 2019/20 to 2020/21, 5251 to 10156. Check whether an annotation explains it before publishing.",
    "force": "Thames Valley",
    "from_year": "2019/20",
    "to_year": "2020/21"
@@ -426,7 +426,7 @@
   {
    "change_pct": 69.4,
    "check": "year_on_year",
-   "detail": "Wiltshire out of court disposals moved +69.4 per cent from 2023/24 to 2024/25, 1738 to 2945. Check whether an annotation explains it before publishing.",
+   "detail": "Wiltshire out of court resolutions moved +69.4 per cent from 2023/24 to 2024/25, 1738 to 2945. Check whether an annotation explains it before publishing.",
    "force": "Wiltshire",
    "from_year": "2023/24",
    "to_year": "2024/25"

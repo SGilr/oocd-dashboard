@@ -1,5 +1,5 @@
 {
-  // Cloudflare configuration for the out of court disposals dashboard.
+  // Cloudflare configuration for the out of court resolutions dashboard.
   //
   // Pages and Workers were merged, so this deploys as a Worker that serves
   // static assets and nothing else. There is no `main` entry point on purpose:

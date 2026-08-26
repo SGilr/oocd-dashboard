@@ -1,6 +1,6 @@
-# Out of Court Disposals Dashboard
+# Out of Court Resolutions Dashboard
 
-A public, static, reproducible dashboard of out of court disposals by police
+A public, static, reproducible dashboard of out of court resolutions by police
 force in England and Wales, built for a symposium convened with De Montfort
 University and the East Midlands Policing Academic Collaboration, and produced by
 Oxon Advisory.
@@ -18,7 +18,7 @@ It is not an assessment of whether those decisions were right, consistent,
 proportionate or effective. No published national dataset supports that claim.
 There is no national record of what condition was attached to a disposal, whether
 the person engaged with it or whether they completed it, and Ministry of Justice
-proven reoffending statistics exclude the out of court disposals that are not
+proven reoffending statistics exclude the out of court resolutions that are not
 cautions, so there is no published outcome measure per force.
 
 The limitation is built into the site as a section of its own rather than as a
@@ -56,11 +56,11 @@ share of all assigned outcomes, share of positive outcomes, and rate per 1,000
 recorded crimes. All three are offered. The default is share of positive
 outcomes, which comes closest to the decision under examination.
 
-**Which outcome types.** Out of court disposals are outcome types 2 and 3
+**Which outcome types.** Out of court resolutions are outcome types 2 and 3
 (cautions, youths and adults), 6 (penalty notices for disorder), 7 (cannabis or
 khat warning), 8 (community resolution) and 22 (diversionary, educational or
 intervention activity). Outcome 4, taken into consideration, is not an out of
-court disposal and is excluded. Outcome 1, charge or summons, is the comparator.
+court resolution and is excluded. Outcome 1, charge or summons, is the comparator.
 
 **No per capita measure.** Mid year population estimates per police force area
 could not be retrieved from a named published source, so the measure is omitted

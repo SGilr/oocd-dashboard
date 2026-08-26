@@ -1,4 +1,4 @@
-"""Shared definitions for the out of court disposals ETL.
+"""Shared definitions for the out of court resolutions ETL.
 
 Everything that the rest of the pipeline needs to agree on lives here: the
 outcome type classification, the canonical force list, header normalisation and
@@ -106,7 +106,7 @@ NOT_ASSIGNED_TYPE = 0
 # year ending March 2026 file carries no type 19, for instance.
 ESSENTIAL_TYPES: tuple[int, ...] = (1, 2, 3, 6, 7, 8, 22)
 
-# The six out of court disposal types. Outcome 4, taken into consideration, is
+# The six out of court resolution types. Outcome 4, taken into consideration, is
 # deliberately absent: it is an admission recorded alongside a prosecution, not
 # a disposal made instead of one.
 OOCD_TYPES: tuple[int, ...] = (2, 3, 6, 7, 8, 22)
@@ -115,7 +115,7 @@ OOCD_TYPES: tuple[int, ...] = (2, 3, 6, 7, 8, 22)
 CHARGE_TYPES: tuple[int, ...] = (1,)
 
 # A positive outcome is one where somebody was held to account, by a charge or
-# by an out of court disposal.
+# by an out of court resolution.
 POSITIVE_TYPES: tuple[int, ...] = tuple(sorted(CHARGE_TYPES + OOCD_TYPES))
 
 # Short labels used on charts, where the full label will not fit.

@@ -403,7 +403,7 @@ def check_year_on_year(tables: dict, report: Report) -> None:
                 flagged += 1
                 report.flag(
                     "year_on_year",
-                    f"{force} out of court disposals moved {change:+.1f} per "
+                    f"{force} out of court resolutions moved {change:+.1f} per "
                     f"cent from {previous_year} to {current_year}, "
                     f"{previous} to {current}. Check whether an annotation "
                     "explains it before publishing.",

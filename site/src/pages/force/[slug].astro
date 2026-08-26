@@ -196,7 +196,7 @@ const mixPlot = renderPlot(
     ],
   },
   {
-    title: `${force.name} out of court disposals by type and quarter`,
+    title: `${force.name} out of court resolutions by type and quarter`,
     description: "A stacked area chart of the six disposal types.",
   }
 );
@@ -227,7 +227,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
 
 <Layout
   title={force.name}
-  description={`Out of court disposal volume, share, mix and trend for ${force.name}, from ${financialYears[0]} to ${latestYear}, with the caveats that apply to this force.`}
+  description={`Out of court resolution volume, share, mix and trend for ${force.name}, from ${financialYears[0]} to ${latestYear}, with the caveats that apply to this force.`}
   wide
 >
   <TexturePatterns />
@@ -236,7 +236,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
   <h1>{force.name}</h1>
 
   <p class="lede">
-    Out of court disposals from {financialYears[0]} to {latestYear}, on the count basis
+    Out of court resolutions from {financialYears[0]} to {latestYear}, on the count basis
     {BASIS_LABELS[basis].toLowerCase()}, with fraud offences included and all six
     disposal types counted.
   </p>
@@ -251,7 +251,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
       </p>
     </div>
     <div class="tile">
-      <p class="tile__label">Out of court disposals</p>
+      <p class="tile__label">Out of court resolutions</p>
       <p class="tile__value">{latestVolume.toLocaleString("en-GB")}</p>
       <p class="tile__note">{latestYear}, all six types.</p>
     </div>
@@ -340,12 +340,12 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
   />
 
   <Figure
-    title={`The mix of out of court disposals in ${force.name}`}
+    title={`The mix of out of court resolutions in ${force.name}`}
     subtitle={`By quarter, ${financialYears[0]} to ${latestYear}.`}
     plot={mixPlot}
     description={
       mixTotal === 0
-        ? "This force records no out of court disposals of any type in the period covered."
+        ? "This force records no out of court resolutions of any type in the period covered."
         : "Each band is one disposal type, filled with both a colour and a texture so the six stay distinguishable in greyscale."
     }
     legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
@@ -354,7 +354,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
       .filter((annotation) => annotation.id !== "btp-no-resident-population")
       .map((annotation) => annotation.id)}
     table={{
-      caption: `${force.name} out of court disposals by type and financial year`,
+      caption: `${force.name} out of court resolutions by type and financial year`,
       columns: [
         { key: "fy", label: "Financial year" },
         ...DISPOSAL_SERIES.map((series) => ({ key: `t${series.type}`, label: series.short, numeric: true })),
@@ -384,7 +384,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
     caption={`${force.name} out of court and charge outcomes by offence group, ${latestYear}`}
     columns={[
       { key: "group", label: "Offence group" },
-      { key: "oocd", label: "Out of court disposals", numeric: true },
+      { key: "oocd", label: "Out of court resolutions", numeric: true },
       { key: "charge", label: "Charge or summons", numeric: true },
       { key: "share", label: "Out of court share", numeric: true },
     ]}

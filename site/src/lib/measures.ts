@@ -35,7 +35,7 @@ export const MEASURES: Measure[] = [
     label: "Share of positive outcomes",
     short: "Share of positive outcomes",
     question:
-      "Of the cases where somebody was held to account, by a charge or by an out of court disposal, how many were dealt with outside court?",
+      "Of the cases where somebody was held to account, by a charge or by an out of court resolution, how many were dealt with outside court?",
     unit: "percentage",
     needsDenominator: false,
     axisLabel: "Out of court share of positive outcomes",
@@ -55,19 +55,19 @@ export const MEASURES: Measure[] = [
     label: "Rate per 1,000 recorded crimes",
     short: "Per 1,000 recorded crimes",
     question:
-      "How many out of court disposals does the force issue for every thousand crimes it records?",
+      "How many out of court resolutions does the force issue for every thousand crimes it records?",
     unit: "rate",
     needsDenominator: true,
-    axisLabel: "Out of court disposals per 1,000 recorded crimes",
+    axisLabel: "Out of court resolutions per 1,000 recorded crimes",
   },
   {
     id: "volume",
     label: "Absolute volume",
     short: "Volume",
-    question: "How many out of court disposals did the force issue?",
+    question: "How many out of court resolutions did the force issue?",
     unit: "count",
     needsDenominator: false,
-    axisLabel: "Out of court disposals",
+    axisLabel: "Out of court resolutions",
   },
 ];
 

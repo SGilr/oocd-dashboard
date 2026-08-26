@@ -5,7 +5,7 @@ next, including its author in six months.
 
 ## What this is
 
-A public dashboard of out of court disposals by police force in England and
+A public dashboard of out of court resolutions by police force in England and
 Wales, live at https://oocd.howpreventionworks.com, built for a symposium
 convened with De Montfort University and the East Midlands Policing Academic
 Collaboration.
@@ -102,7 +102,7 @@ share of positive outcomes, share of all assigned outcomes, and rate per 1,000
 recorded crimes. All three are offered. The default is share of positive
 outcomes, which comes closest to the decision under examination.
 
-**The outcome types.** Out of court disposals are types 2, 3, 6, 7, 8 and 22.
+**The outcome types.** Out of court resolutions are types 2, 3, 6, 7, 8 and 22.
 Outcome 4, taken into consideration, is excluded: it accompanies a prosecution
 rather than replacing one. The Home Office's own outcome group column agrees,
 grouping type 4 separately from both out of court groups. That agreement is
