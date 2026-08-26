@@ -1,0 +1,571 @@
+{
+ "failures": [],
+ "financial_years": [
+  "2014/15",
+  "2015/16",
+  "2016/17",
+  "2017/18",
+  "2018/19",
+  "2019/20",
+  "2020/21",
+  "2021/22",
+  "2022/23",
+  "2023/24",
+  "2024/25",
+  "2025/26"
+ ],
+ "flags": [
+  {
+   "check": "outcome_type_coverage",
+   "detail": "Outcome types appear in no financial year. This can be correct, the published tables do not carry every type in every year, but check it against the user guide before publishing.",
+   "missing": [
+    "19 National Fraud Intelligence Bureau, fraud case"
+   ]
+  },
+  {
+   "check": "negative_counts",
+   "detail": "798 source rows that feed a derived total carried a negative count, across 35 forces. These are published corrections, where a force cancelled or reclassified a crime recorded earlier, and they are carried through as published.",
+   "examples": [
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Bedfordshire, 2014/15 Q2, offence 105A, outcome type 6, recorded 0, closed -1",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Cambridgeshire, 2014/15 Q2, offence 58C, outcome type 12, recorded 0, closed -1",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Cambridgeshire, 2014/15 Q2, offence 28C, outcome type 15, recorded 0, closed -1",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Cambridgeshire, 2014/15 Q2, offence 1/4.1/4.10/4.2, outcome type 18, recorded 0, closed -1",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Cambridgeshire, 2014/15 Q2, offence 49A, outcome type 17, recorded 0, closed -2"
+   ],
+   "forces": [
+    "Bedfordshire",
+    "British Transport Police",
+    "Cambridgeshire",
+    "City of London",
+    "Cleveland",
+    "Cumbria",
+    "Derbyshire",
+    "Devon and Cornwall",
+    "Dorset",
+    "Durham",
+    "Dyfed-Powys",
+    "Essex",
+    "Gloucestershire",
+    "Hampshire",
+    "Hertfordshire",
+    "Humberside",
+    "Kent",
+    "Lancashire",
+    "Leicestershire",
+    "Merseyside",
+    "Norfolk",
+    "North Yorkshire",
+    "Northamptonshire",
+    "Northumbria",
+    "Nottinghamshire",
+    "South Wales",
+    "South Yorkshire",
+    "Staffordshire",
+    "Suffolk",
+    "Surrey",
+    "Warwickshire",
+    "West Mercia",
+    "West Midlands",
+    "West Yorkshire",
+    "Wiltshire"
+   ]
+  },
+  {
+   "check": "negative_counts",
+   "detail": "2 quarterly cells are negative, where a correction in that quarter exceeded the activity in it. Every annual total is non negative."
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Bedfordshire did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Bedfordshire",
+   "rows": 2261
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "British Transport Police did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "British Transport Police",
+   "rows": 9044
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Cumbria did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Cumbria",
+   "rows": 9044
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Dyfed-Powys did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Dyfed-Powys",
+   "rows": 4522
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Hertfordshire did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Hertfordshire",
+   "rows": 2261
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Leicestershire did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Leicestershire",
+   "rows": 9044
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "Metropolitan Police did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "Metropolitan Police",
+   "rows": 6783
+  },
+  {
+   "check": "data_not_provided",
+   "detail": "South Yorkshire did not supply counts for 2014/15. Those rows read as zero, so the force is understated in those years and must not be compared with others across them.",
+   "financial_years": [
+    "2014/15"
+   ],
+   "force": "South Yorkshire",
+   "rows": 2261
+  },
+  {
+   "check": "totals_reconcile",
+   "detail": "4 cells hold a larger total with fraud excluded than with it included, because the fraud rows in them are negative corrections. The largest negative contribution is -2.",
+   "examples": [
+    {
+     "basis": "closed",
+     "force": "Essex",
+     "fraud_contribution": -2,
+     "fy": "2015/16",
+     "q": 3,
+     "table": "force_quarter"
+    },
+    {
+     "basis": "closed",
+     "force": "Kent",
+     "fraud_contribution": -2,
+     "fy": "2014/15",
+     "q": 4,
+     "table": "force_quarter"
+    },
+    {
+     "basis": "closed",
+     "force": "Wiltshire",
+     "fraud_contribution": -1,
+     "fy": "2014/15",
+     "q": 4,
+     "table": "force_quarter"
+    },
+    {
+     "basis": "closed",
+     "fraud_contribution": -2,
+     "fy": "2015/16",
+     "q": 3,
+     "table": "national_quarter"
+    }
+   ]
+  },
+  {
+   "change_pct": 146.2,
+   "check": "year_on_year",
+   "detail": "Cheshire out of court disposals moved +146.2 per cent from 2021/22 to 2022/23, 2188 to 5386. Check whether an annotation explains it before publishing.",
+   "force": "Cheshire",
+   "from_year": "2021/22",
+   "to_year": "2022/23"
+  },
+  {
+   "change_pct": 47.9,
+   "check": "year_on_year",
+   "detail": "Cleveland out of court disposals moved +47.9 per cent from 2024/25 to 2025/26, 1453 to 2149. Check whether an annotation explains it before publishing.",
+   "force": "Cleveland",
+   "from_year": "2024/25",
+   "to_year": "2025/26"
+  },
+  {
+   "change_pct": 51.1,
+   "check": "year_on_year",
+   "detail": "Durham out of court disposals moved +51.1 per cent from 2016/17 to 2017/18, 5027 to 7598. Check whether an annotation explains it before publishing.",
+   "force": "Durham",
+   "from_year": "2016/17",
+   "to_year": "2017/18"
+  },
+  {
+   "change_pct": 85.6,
+   "check": "year_on_year",
+   "detail": "Dyfed-Powys out of court disposals moved +85.6 per cent from 2021/22 to 2022/23, 1621 to 3008. Check whether an annotation explains it before publishing.",
+   "force": "Dyfed-Powys",
+   "from_year": "2021/22",
+   "to_year": "2022/23"
+  },
+  {
+   "change_pct": 74.5,
+   "check": "year_on_year",
+   "detail": "Gloucestershire out of court disposals moved +74.5 per cent from 2021/22 to 2022/23, 1137 to 1984. Check whether an annotation explains it before publishing.",
+   "force": "Gloucestershire",
+   "from_year": "2021/22",
+   "to_year": "2022/23"
+  },
+  {
+   "change_pct": 42.5,
+   "check": "year_on_year",
+   "detail": "Gloucestershire out of court disposals moved +42.5 per cent from 2022/23 to 2023/24, 1984 to 2827. Check whether an annotation explains it before publishing.",
+   "force": "Gloucestershire",
+   "from_year": "2022/23",
+   "to_year": "2023/24"
+  },
+  {
+   "change_pct": -74.8,
+   "check": "year_on_year",
+   "detail": "Greater Manchester out of court disposals moved -74.8 per cent from 2018/19 to 2019/20, 8376 to 2107. Check whether an annotation explains it before publishing.",
+   "force": "Greater Manchester",
+   "from_year": "2018/19",
+   "to_year": "2019/20"
+  },
+  {
+   "change_pct": 252.9,
+   "check": "year_on_year",
+   "detail": "Greater Manchester out of court disposals moved +252.9 per cent from 2019/20 to 2020/21, 2107 to 7435. Check whether an annotation explains it before publishing.",
+   "force": "Greater Manchester",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": 50.1,
+   "check": "year_on_year",
+   "detail": "Greater Manchester out of court disposals moved +50.1 per cent from 2024/25 to 2025/26, 14041 to 21076. Check whether an annotation explains it before publishing.",
+   "force": "Greater Manchester",
+   "from_year": "2024/25",
+   "to_year": "2025/26"
+  },
+  {
+   "change_pct": 42.8,
+   "check": "year_on_year",
+   "detail": "Gwent out of court disposals moved +42.8 per cent from 2022/23 to 2023/24, 2028 to 2896. Check whether an annotation explains it before publishing.",
+   "force": "Gwent",
+   "from_year": "2022/23",
+   "to_year": "2023/24"
+  },
+  {
+   "change_pct": 48.1,
+   "check": "year_on_year",
+   "detail": "Hampshire out of court disposals moved +48.1 per cent from 2016/17 to 2017/18, 5519 to 8175. Check whether an annotation explains it before publishing.",
+   "force": "Hampshire",
+   "from_year": "2016/17",
+   "to_year": "2017/18"
+  },
+  {
+   "change_pct": 45.5,
+   "check": "year_on_year",
+   "detail": "Hertfordshire out of court disposals moved +45.5 per cent from 2024/25 to 2025/26, 3309 to 4816. Check whether an annotation explains it before publishing.",
+   "force": "Hertfordshire",
+   "from_year": "2024/25",
+   "to_year": "2025/26"
+  },
+  {
+   "change_pct": 61.9,
+   "check": "year_on_year",
+   "detail": "Humberside out of court disposals moved +61.9 per cent from 2019/20 to 2020/21, 4354 to 7049. Check whether an annotation explains it before publishing.",
+   "force": "Humberside",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": 43.1,
+   "check": "year_on_year",
+   "detail": "Humberside out of court disposals moved +43.1 per cent from 2022/23 to 2023/24, 5775 to 8263. Check whether an annotation explains it before publishing.",
+   "force": "Humberside",
+   "from_year": "2022/23",
+   "to_year": "2023/24"
+  },
+  {
+   "change_pct": 51.9,
+   "check": "year_on_year",
+   "detail": "Kent out of court disposals moved +51.9 per cent from 2023/24 to 2024/25, 5897 to 8958. Check whether an annotation explains it before publishing.",
+   "force": "Kent",
+   "from_year": "2023/24",
+   "to_year": "2024/25"
+  },
+  {
+   "change_pct": 57.3,
+   "check": "year_on_year",
+   "detail": "Lancashire out of court disposals moved +57.3 per cent from 2022/23 to 2023/24, 6814 to 10718. Check whether an annotation explains it before publishing.",
+   "force": "Lancashire",
+   "from_year": "2022/23",
+   "to_year": "2023/24"
+  },
+  {
+   "change_pct": -44.8,
+   "check": "year_on_year",
+   "detail": "Leicestershire out of court disposals moved -44.8 per cent from 2014/15 to 2015/16, 4752 to 2621. Check whether an annotation explains it before publishing.",
+   "force": "Leicestershire",
+   "from_year": "2014/15",
+   "to_year": "2015/16"
+  },
+  {
+   "change_pct": 44.3,
+   "check": "year_on_year",
+   "detail": "Leicestershire out of court disposals moved +44.3 per cent from 2019/20 to 2020/21, 4747 to 6848. Check whether an annotation explains it before publishing.",
+   "force": "Leicestershire",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": 280.1,
+   "check": "year_on_year",
+   "detail": "North Yorkshire out of court disposals moved +280.1 per cent from 2019/20 to 2020/21, 1795 to 6823. Check whether an annotation explains it before publishing.",
+   "force": "North Yorkshire",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": -63.8,
+   "check": "year_on_year",
+   "detail": "North Yorkshire out of court disposals moved -63.8 per cent from 2020/21 to 2021/22, 6823 to 2472. Check whether an annotation explains it before publishing.",
+   "force": "North Yorkshire",
+   "from_year": "2020/21",
+   "to_year": "2021/22"
+  },
+  {
+   "change_pct": 66.6,
+   "check": "year_on_year",
+   "detail": "Northamptonshire out of court disposals moved +66.6 per cent from 2020/21 to 2021/22, 2312 to 3852. Check whether an annotation explains it before publishing.",
+   "force": "Northamptonshire",
+   "from_year": "2020/21",
+   "to_year": "2021/22"
+  },
+  {
+   "change_pct": 98.5,
+   "check": "year_on_year",
+   "detail": "Northumbria out of court disposals moved +98.5 per cent from 2023/24 to 2024/25, 3448 to 6846. Check whether an annotation explains it before publishing.",
+   "force": "Northumbria",
+   "from_year": "2023/24",
+   "to_year": "2024/25"
+  },
+  {
+   "change_pct": -46.1,
+   "check": "year_on_year",
+   "detail": "South Wales out of court disposals moved -46.1 per cent from 2021/22 to 2022/23, 5977 to 3221. Check whether an annotation explains it before publishing.",
+   "force": "South Wales",
+   "from_year": "2021/22",
+   "to_year": "2022/23"
+  },
+  {
+   "change_pct": 47.8,
+   "check": "year_on_year",
+   "detail": "South Yorkshire out of court disposals moved +47.8 per cent from 2018/19 to 2019/20, 4657 to 6882. Check whether an annotation explains it before publishing.",
+   "force": "South Yorkshire",
+   "from_year": "2018/19",
+   "to_year": "2019/20"
+  },
+  {
+   "change_pct": 125.4,
+   "check": "year_on_year",
+   "detail": "South Yorkshire out of court disposals moved +125.4 per cent from 2019/20 to 2020/21, 6882 to 15509. Check whether an annotation explains it before publishing.",
+   "force": "South Yorkshire",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": -41.3,
+   "check": "year_on_year",
+   "detail": "South Yorkshire out of court disposals moved -41.3 per cent from 2022/23 to 2023/24, 10152 to 5963. Check whether an annotation explains it before publishing.",
+   "force": "South Yorkshire",
+   "from_year": "2022/23",
+   "to_year": "2023/24"
+  },
+  {
+   "change_pct": 75.3,
+   "check": "year_on_year",
+   "detail": "Staffordshire out of court disposals moved +75.3 per cent from 2020/21 to 2021/22, 2950 to 5171. Check whether an annotation explains it before publishing.",
+   "force": "Staffordshire",
+   "from_year": "2020/21",
+   "to_year": "2021/22"
+  },
+  {
+   "change_pct": -64.2,
+   "check": "year_on_year",
+   "detail": "Suffolk out of court disposals moved -64.2 per cent from 2014/15 to 2015/16, 5151 to 1842. Check whether an annotation explains it before publishing.",
+   "force": "Suffolk",
+   "from_year": "2014/15",
+   "to_year": "2015/16"
+  },
+  {
+   "change_pct": 109.4,
+   "check": "year_on_year",
+   "detail": "Suffolk out of court disposals moved +109.4 per cent from 2015/16 to 2016/17, 1842 to 3857. Check whether an annotation explains it before publishing.",
+   "force": "Suffolk",
+   "from_year": "2015/16",
+   "to_year": "2016/17"
+  },
+  {
+   "change_pct": 93.4,
+   "check": "year_on_year",
+   "detail": "Thames Valley out of court disposals moved +93.4 per cent from 2019/20 to 2020/21, 5251 to 10156. Check whether an annotation explains it before publishing.",
+   "force": "Thames Valley",
+   "from_year": "2019/20",
+   "to_year": "2020/21"
+  },
+  {
+   "change_pct": 69.4,
+   "check": "year_on_year",
+   "detail": "Wiltshire out of court disposals moved +69.4 per cent from 2023/24 to 2024/25, 1738 to 2945. Check whether an annotation explains it before publishing.",
+   "force": "Wiltshire",
+   "from_year": "2023/24",
+   "to_year": "2024/25"
+  }
+ ],
+ "forces": 44,
+ "generated_at": "2026-08-26T14:38:31+00:00",
+ "notes": [
+  {
+   "check": "provenance",
+   "detail": "Manifest records live Home Office source files"
+  },
+  {
+   "check": "force_coverage",
+   "detail": "44 forces present, 44 expected"
+  },
+  {
+   "check": "outcome_type_coverage",
+   "detail": "Outcome type 0, not yet assigned an outcome, excluded from every total: 365,668 source rows, 0 on the closed basis and 1,034,617 on the recorded basis."
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 2, Caution, youths: 2014/15 to 2025/26"
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 3, Caution, adults: 2014/15 to 2025/26"
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 6, Penalty notices for disorder: 2014/15 to 2025/26"
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 7, Cannabis or khat warning: 2014/15 to 2025/26"
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 8, Community resolution: 2014/15 to 2025/26"
+  },
+  {
+   "check": "outcome_type_years",
+   "detail": "Outcome 22, Diversionary, educational or intervention activity: 2015/16 to 2025/26"
+  },
+  {
+   "check": "negative_counts",
+   "detail": "4,009 source rows carried a negative count in outcome type 0, which never enters a derived total.",
+   "examples": [
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Avon and Somerset, 2014/15 Q1, offence 5D, outcome type 0, recorded -1, closed 0",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Avon and Somerset, 2014/15 Q1, offence 54, outcome type 0, recorded -1, closed 0",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Avon and Somerset, 2014/15 Q1, offence 8L, outcome type 0, recorded -1, closed 0",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Avon and Somerset, 2014/15 Q1, offence 106, outcome type 0, recorded -1, closed 0",
+    "prc-outcomes-open-data-mar2015-tables-241024.xlsx: Avon and Somerset, 2014/15 Q1, offence 86, outcome type 0, recorded -6, closed 0"
+   ]
+  },
+  {
+   "check": "duplicate_keys",
+   "detail": "Derived tables checked for repeated keys"
+  },
+  {
+   "check": "totals_reconcile",
+   "detail": "10800 derived totals reconciled"
+  },
+  {
+   "check": "year_on_year",
+   "detail": "31 force year movements above 40.0 per cent flagged for review"
+  },
+  {
+   "check": "annotations",
+   "detail": "10 annotations checked"
+  },
+  {
+   "check": "reconciliation",
+   "citation": "Pivot table of the outcomes open data file for the year ending March 2026, built independently in Excel, summing the recorded quarter column by outcome group. Charged/Summonsed row.",
+   "column": "recorded_all_t1",
+   "derived": 447514,
+   "detail": "charge-total-2025-26-recomputed (recomputation): derived 447,514 against 447,514, 0.00 per cent apart",
+   "difference_pct": 0.0,
+   "financial_year": "2025/26",
+   "id": "charge-total-2025-26-recomputed",
+   "kind": "recomputation",
+   "measure": "charge_total",
+   "published": 447514,
+   "source_url": "https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables",
+   "tolerance_pct": 0.01
+  },
+  {
+   "check": "reconciliation",
+   "citation": "Pivot table as above, summing the three out of court rows the Home Office groups separately: Out-of-court (formal) 42,474, Out-of-court (informal) 174,735, and diversionary, educational or intervention activity 23,277. Their sum is exactly the six outcome types this dashboard counts, which is an independent confirmation of the classification.",
+   "column": "recorded_all_oocd",
+   "derived": 240486,
+   "detail": "oocd-total-2025-26-recomputed (recomputation): derived 240,486 against 240,486, 0.00 per cent apart",
+   "difference_pct": 0.0,
+   "financial_year": "2025/26",
+   "id": "oocd-total-2025-26-recomputed",
+   "kind": "recomputation",
+   "measure": "oocd_total",
+   "published": 240486,
+   "source_url": "https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables",
+   "tolerance_pct": 0.01
+  },
+  {
+   "check": "reconciliation",
+   "citation": "Home Office (2026) Crime outcomes in England and Wales 2025 to 2026, Table 3.1, number of outcomes assigned by offence type and outcome group, year ending March 2026. London: Home Office. The charged or summonsed column, total victim offences 319,984 plus total state offences 127,530. The table states that it counts crimes recorded in the year, which is the recorded basis, that it covers all 44 forces including British Transport Police, and that it excludes fraud and Computer Misuse Act offences.",
+   "column": "recorded_all_t1",
+   "derived": 447514,
+   "detail": "charge-total-2025-26-published (published): derived 447,514 against 447,514, 0.00 per cent apart",
+   "difference_pct": 0.0,
+   "financial_year": "2025/26",
+   "id": "charge-total-2025-26-published",
+   "kind": "published",
+   "measure": "charge_total",
+   "published": 447514,
+   "source_url": "https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026",
+   "tolerance_pct": 0.01
+  },
+  {
+   "check": "reconciliation",
+   "citation": "Home Office (2026) Crime outcomes in England and Wales 2025 to 2026, Table 3.1, as above. The out-of-court formal and informal column, total victim offences 111,286 plus total state offences 105,923. That column covers outcome types 2, 3, 6, 7 and 8. Outcome 22 is grouped separately by the Home Office and so is excluded from this target, which is why the target names its outcome types rather than using the dashboard's own out of court total.",
+   "column": "recorded_all_types_2_3_6_7_8",
+   "derived": 217209,
+   "detail": "out-of-court-formal-informal-2025-26-published (published): derived 217,209 against 217,209, 0.00 per cent apart",
+   "difference_pct": 0.0,
+   "financial_year": "2025/26",
+   "id": "out-of-court-formal-informal-2025-26-published",
+   "kind": "published",
+   "measure": "outcome_types",
+   "published": 217209,
+   "source_url": "https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026",
+   "tolerance_pct": 0.01
+  }
+ ],
+ "passed": true,
+ "provenance": "home_office_open_data",
+ "row_counts": {
+  "force_offence_year": 5280,
+  "force_quarter": 2112,
+  "force_year": 528,
+  "national_quarter": 48,
+  "national_year": 12
+ }
+}

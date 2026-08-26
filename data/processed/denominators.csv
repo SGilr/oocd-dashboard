@@ -1,0 +1,606 @@
+force,slug,fy,recorded_crime
+Avon and Somerset,avon-and-somerset,2012/13,99355
+Avon and Somerset,avon-and-somerset,2013/14,96867
+Avon and Somerset,avon-and-somerset,2014/15,97989
+Avon and Somerset,avon-and-somerset,2015/16,119775
+Avon and Somerset,avon-and-somerset,2016/17,139986
+Avon and Somerset,avon-and-somerset,2017/18,140317
+Avon and Somerset,avon-and-somerset,2018/19,137560
+Avon and Somerset,avon-and-somerset,2019/20,141217
+Avon and Somerset,avon-and-somerset,2020/21,121775
+Avon and Somerset,avon-and-somerset,2021/22,140431
+Avon and Somerset,avon-and-somerset,2022/23,142183
+Avon and Somerset,avon-and-somerset,2023/24,150861
+Avon and Somerset,avon-and-somerset,2024/25,168350
+Avon and Somerset,avon-and-somerset,2025/26,175347
+Bedfordshire,bedfordshire,2012/13,35678
+Bedfordshire,bedfordshire,2013/14,36262
+Bedfordshire,bedfordshire,2014/15,39105
+Bedfordshire,bedfordshire,2015/16,40682
+Bedfordshire,bedfordshire,2016/17,42837
+Bedfordshire,bedfordshire,2017/18,46912
+Bedfordshire,bedfordshire,2018/19,56668
+Bedfordshire,bedfordshire,2019/20,55971
+Bedfordshire,bedfordshire,2020/21,48250
+Bedfordshire,bedfordshire,2021/22,51402
+Bedfordshire,bedfordshire,2022/23,50862
+Bedfordshire,bedfordshire,2023/24,50072
+Bedfordshire,bedfordshire,2024/25,52034
+Bedfordshire,bedfordshire,2025/26,51458
+British Transport Police,british-transport-police,2012/13,52189
+British Transport Police,british-transport-police,2013/14,49130
+British Transport Police,british-transport-police,2014/15,44949
+Cambridgeshire,cambridgeshire,2012/13,46435
+Cambridgeshire,cambridgeshire,2013/14,43970
+Cambridgeshire,cambridgeshire,2014/15,46321
+Cambridgeshire,cambridgeshire,2015/16,48574
+Cambridgeshire,cambridgeshire,2016/17,57854
+Cambridgeshire,cambridgeshire,2017/18,66135
+Cambridgeshire,cambridgeshire,2018/19,64505
+Cambridgeshire,cambridgeshire,2019/20,68220
+Cambridgeshire,cambridgeshire,2020/21,60084
+Cambridgeshire,cambridgeshire,2021/22,67696
+Cambridgeshire,cambridgeshire,2022/23,71472
+Cambridgeshire,cambridgeshire,2023/24,68875
+Cambridgeshire,cambridgeshire,2024/25,67702
+Cambridgeshire,cambridgeshire,2025/26,69372
+Cheshire,cheshire,2012/13,57287
+Cheshire,cheshire,2013/14,55501
+Cheshire,cheshire,2014/15,53647
+Cheshire,cheshire,2015/16,52762
+Cheshire,cheshire,2016/17,65922
+Cheshire,cheshire,2017/18,87445
+Cheshire,cheshire,2018/19,94540
+Cheshire,cheshire,2019/20,94985
+Cheshire,cheshire,2020/21,83178
+Cheshire,cheshire,2021/22,90071
+Cheshire,cheshire,2022/23,86580
+Cheshire,cheshire,2023/24,78869
+Cheshire,cheshire,2024/25,78370
+Cheshire,cheshire,2025/26,77061
+City of London,city-of-london,2012/13,5554
+City of London,city-of-london,2013/14,5441
+City of London,city-of-london,2014/15,5318
+City of London,city-of-london,2015/16,5227
+City of London,city-of-london,2016/17,5493
+City of London,city-of-london,2017/18,5870
+City of London,city-of-london,2018/19,7195
+City of London,city-of-london,2019/20,8734
+City of London,city-of-london,2020/21,3858
+City of London,city-of-london,2021/22,6312
+City of London,city-of-london,2022/23,7664
+City of London,city-of-london,2023/24,8783
+City of London,city-of-london,2024/25,9184
+City of London,city-of-london,2025/26,8731
+Cleveland,cleveland,2012/13,39523
+Cleveland,cleveland,2013/14,38973
+Cleveland,cleveland,2014/15,42041
+Cleveland,cleveland,2015/16,47976
+Cleveland,cleveland,2016/17,50657
+Cleveland,cleveland,2017/18,57131
+Cleveland,cleveland,2018/19,67227
+Cleveland,cleveland,2019/20,69378
+Cleveland,cleveland,2020/21,62323
+Cleveland,cleveland,2021/22,73322
+Cleveland,cleveland,2022/23,83880
+Cleveland,cleveland,2023/24,75909
+Cleveland,cleveland,2024/25,71358
+Cleveland,cleveland,2025/26,74091
+Cumbria,cumbria,2012/13,23226
+Cumbria,cumbria,2013/14,23998
+Cumbria,cumbria,2014/15,24842
+Cumbria,cumbria,2015/16,25977
+Cumbria,cumbria,2016/17,25375
+Cumbria,cumbria,2017/18,28461
+Cumbria,cumbria,2018/19,36763
+Cumbria,cumbria,2019/20,38201
+Cumbria,cumbria,2020/21,30919
+Cumbria,cumbria,2021/22,37145
+Cumbria,cumbria,2022/23,38877
+Cumbria,cumbria,2023/24,35561
+Cumbria,cumbria,2024/25,37028
+Cumbria,cumbria,2025/26,36258
+Derbyshire,derbyshire,2012/13,51441
+Derbyshire,derbyshire,2013/14,52538
+Derbyshire,derbyshire,2014/15,51701
+Derbyshire,derbyshire,2015/16,52903
+Derbyshire,derbyshire,2016/17,53827
+Derbyshire,derbyshire,2017/18,55589
+Derbyshire,derbyshire,2018/19,59753
+Derbyshire,derbyshire,2019/20,80118
+Derbyshire,derbyshire,2020/21,75294
+Derbyshire,derbyshire,2021/22,86228
+Derbyshire,derbyshire,2022/23,86228
+Derbyshire,derbyshire,2023/24,88949
+Derbyshire,derbyshire,2024/25,84583
+Derbyshire,derbyshire,2025/26,85805
+Devon and Cornwall,devon-and-cornwall,2012/13,85454
+Devon and Cornwall,devon-and-cornwall,2013/14,85207
+Devon and Cornwall,devon-and-cornwall,2014/15,80243
+Devon and Cornwall,devon-and-cornwall,2015/16,77078
+Devon and Cornwall,devon-and-cornwall,2016/17,84772
+Devon and Cornwall,devon-and-cornwall,2017/18,103312
+Devon and Cornwall,devon-and-cornwall,2018/19,106900
+Devon and Cornwall,devon-and-cornwall,2019/20,100031
+Devon and Cornwall,devon-and-cornwall,2020/21,90249
+Devon and Cornwall,devon-and-cornwall,2021/22,100858
+Devon and Cornwall,devon-and-cornwall,2022/23,101582
+Devon and Cornwall,devon-and-cornwall,2023/24,108740
+Devon and Cornwall,devon-and-cornwall,2024/25,121659
+Devon and Cornwall,devon-and-cornwall,2025/26,122351
+Dorset,dorset,2012/13,40164
+Dorset,dorset,2013/14,37212
+Dorset,dorset,2014/15,36082
+Dorset,dorset,2015/16,41590
+Dorset,dorset,2016/17,45221
+Dorset,dorset,2017/18,49874
+Dorset,dorset,2018/19,55404
+Dorset,dorset,2019/20,54452
+Dorset,dorset,2020/21,47418
+Dorset,dorset,2021/22,51466
+Dorset,dorset,2022/23,52740
+Dorset,dorset,2023/24,51860
+Dorset,dorset,2024/25,51123
+Dorset,dorset,2025/26,47076
+Durham,durham,2012/13,30088
+Durham,durham,2013/14,32806
+Durham,durham,2014/15,32924
+Durham,durham,2015/16,36459
+Durham,durham,2016/17,46608
+Durham,durham,2017/18,61371
+Durham,durham,2018/19,63793
+Durham,durham,2019/20,64474
+Durham,durham,2020/21,55786
+Durham,durham,2021/22,59056
+Durham,durham,2022/23,63999
+Durham,durham,2023/24,64228
+Durham,durham,2024/25,59356
+Durham,durham,2025/26,59558
+Dyfed-Powys,dyfed-powys,2012/13,19182
+Dyfed-Powys,dyfed-powys,2013/14,18618
+Dyfed-Powys,dyfed-powys,2014/15,18975
+Dyfed-Powys,dyfed-powys,2015/16,21448
+Dyfed-Powys,dyfed-powys,2016/17,23379
+Dyfed-Powys,dyfed-powys,2017/18,26773
+Dyfed-Powys,dyfed-powys,2018/19,30386
+Dyfed-Powys,dyfed-powys,2019/20,32289
+Dyfed-Powys,dyfed-powys,2020/21,32221
+Dyfed-Powys,dyfed-powys,2021/22,42350
+Dyfed-Powys,dyfed-powys,2022/23,44970
+Dyfed-Powys,dyfed-powys,2023/24,37130
+Dyfed-Powys,dyfed-powys,2024/25,37885
+Dyfed-Powys,dyfed-powys,2025/26,35875
+Essex,essex,2012/13,100144
+Essex,essex,2013/14,99346
+Essex,essex,2014/15,99740
+Essex,essex,2015/16,111022
+Essex,essex,2016/17,120658
+Essex,essex,2017/18,133940
+Essex,essex,2018/19,158463
+Essex,essex,2019/20,167128
+Essex,essex,2020/21,148586
+Essex,essex,2021/22,166849
+Essex,essex,2022/23,164209
+Essex,essex,2023/24,154248
+Essex,essex,2024/25,144427
+Essex,essex,2025/26,143105
+Gloucestershire,gloucestershire,2012/13,30095
+Gloucestershire,gloucestershire,2013/14,29480
+Gloucestershire,gloucestershire,2014/15,29247
+Gloucestershire,gloucestershire,2015/16,29929
+Gloucestershire,gloucestershire,2016/17,31417
+Gloucestershire,gloucestershire,2017/18,34317
+Gloucestershire,gloucestershire,2018/19,35627
+Gloucestershire,gloucestershire,2019/20,41368
+Gloucestershire,gloucestershire,2020/21,37107
+Gloucestershire,gloucestershire,2021/22,47302
+Gloucestershire,gloucestershire,2022/23,57664
+Gloucestershire,gloucestershire,2023/24,52429
+Gloucestershire,gloucestershire,2024/25,45840
+Gloucestershire,gloucestershire,2025/26,45020
+Greater Manchester,greater-manchester,2012/13,181055
+Greater Manchester,greater-manchester,2013/14,181827
+Greater Manchester,greater-manchester,2014/15,200280
+Greater Manchester,greater-manchester,2015/16,224751
+Greater Manchester,greater-manchester,2016/17,267437
+Greater Manchester,greater-manchester,2017/18,339667
+Greater Manchester,greater-manchester,2018/19,333680
+Greater Manchester,greater-manchester,2019/20,300210
+Greater Manchester,greater-manchester,2020/21,273383
+Greater Manchester,greater-manchester,2021/22,351488
+Greater Manchester,greater-manchester,2022/23,371707
+Greater Manchester,greater-manchester,2023/24,342147
+Greater Manchester,greater-manchester,2024/25,318647
+Greater Manchester,greater-manchester,2025/26,312081
+Gwent,gwent,2012/13,34153
+Gwent,gwent,2013/14,35397
+Gwent,gwent,2014/15,36490
+Gwent,gwent,2015/16,37639
+Gwent,gwent,2016/17,41036
+Gwent,gwent,2017/18,48817
+Gwent,gwent,2018/19,58486
+Gwent,gwent,2019/20,56643
+Gwent,gwent,2020/21,47922
+Gwent,gwent,2021/22,53554
+Gwent,gwent,2022/23,58366
+Gwent,gwent,2023/24,56324
+Gwent,gwent,2024/25,57822
+Gwent,gwent,2025/26,56970
+Hampshire,hampshire,2012/13,108708
+Hampshire,hampshire,2013/14,102828
+Hampshire,hampshire,2014/15,111836
+Hampshire,hampshire,2015/16,132596
+Hampshire,hampshire,2016/17,145101
+Hampshire,hampshire,2017/18,159815
+Hampshire,hampshire,2018/19,160079
+Hampshire,hampshire,2019/20,161340
+Hampshire,hampshire,2020/21,139484
+Hampshire,hampshire,2021/22,171411
+Hampshire,hampshire,2022/23,175165
+Hampshire,hampshire,2023/24,159931
+Hampshire,hampshire,2024/25,154841
+Hampshire,hampshire,2025/26,151788
+Hertfordshire,hertfordshire,2012/13,53104
+Hertfordshire,hertfordshire,2013/14,51358
+Hertfordshire,hertfordshire,2014/15,56598
+Hertfordshire,hertfordshire,2015/16,63803
+Hertfordshire,hertfordshire,2016/17,74046
+Hertfordshire,hertfordshire,2017/18,82659
+Hertfordshire,hertfordshire,2018/19,85748
+Hertfordshire,hertfordshire,2019/20,84297
+Hertfordshire,hertfordshire,2020/21,71378
+Hertfordshire,hertfordshire,2021/22,74533
+Hertfordshire,hertfordshire,2022/23,76153
+Hertfordshire,hertfordshire,2023/24,74478
+Hertfordshire,hertfordshire,2024/25,82310
+Hertfordshire,hertfordshire,2025/26,84238
+Humberside,humberside,2012/13,63975
+Humberside,humberside,2013/14,65908
+Humberside,humberside,2014/15,66313
+Humberside,humberside,2015/16,69201
+Humberside,humberside,2016/17,77487
+Humberside,humberside,2017/18,86181
+Humberside,humberside,2018/19,102792
+Humberside,humberside,2019/20,99758
+Humberside,humberside,2020/21,85874
+Humberside,humberside,2021/22,91837
+Humberside,humberside,2022/23,101234
+Humberside,humberside,2023/24,99048
+Humberside,humberside,2024/25,93719
+Humberside,humberside,2025/26,92826
+Kent,kent,2012/13,98566
+Kent,kent,2013/14,108870
+Kent,kent,2014/15,110287
+Kent,kent,2015/16,112670
+Kent,kent,2016/17,128398
+Kent,kent,2017/18,176083
+Kent,kent,2018/19,200452
+Kent,kent,2019/20,190687
+Kent,kent,2020/21,167102
+Kent,kent,2021/22,180826
+Kent,kent,2022/23,175136
+Kent,kent,2023/24,166114
+Kent,kent,2024/25,162051
+Kent,kent,2025/26,154163
+Lancashire,lancashire,2012/13,93933
+Lancashire,lancashire,2013/14,95372
+Lancashire,lancashire,2014/15,92559
+Lancashire,lancashire,2015/16,97745
+Lancashire,lancashire,2016/17,108328
+Lancashire,lancashire,2017/18,127409
+Lancashire,lancashire,2018/19,166063
+Lancashire,lancashire,2019/20,142230
+Lancashire,lancashire,2020/21,118908
+Lancashire,lancashire,2021/22,137278
+Lancashire,lancashire,2022/23,131268
+Lancashire,lancashire,2023/24,129105
+Lancashire,lancashire,2024/25,128999
+Lancashire,lancashire,2025/26,128460
+Leicestershire,leicestershire,2012/13,58878
+Leicestershire,leicestershire,2013/14,60834
+Leicestershire,leicestershire,2014/15,59220
+Leicestershire,leicestershire,2015/16,60747
+Leicestershire,leicestershire,2016/17,70422
+Leicestershire,leicestershire,2017/18,83869
+Leicestershire,leicestershire,2018/19,91810
+Leicestershire,leicestershire,2019/20,93476
+Leicestershire,leicestershire,2020/21,87210
+Leicestershire,leicestershire,2021/22,100581
+Leicestershire,leicestershire,2022/23,105852
+Leicestershire,leicestershire,2023/24,99929
+Leicestershire,leicestershire,2024/25,95194
+Leicestershire,leicestershire,2025/26,89771
+Lincolnshire,lincolnshire,2012/13,37574
+Lincolnshire,lincolnshire,2013/14,35974
+Lincolnshire,lincolnshire,2014/15,35255
+Lincolnshire,lincolnshire,2015/16,35973
+Lincolnshire,lincolnshire,2016/17,37220
+Lincolnshire,lincolnshire,2017/18,40726
+Lincolnshire,lincolnshire,2018/19,52747
+Lincolnshire,lincolnshire,2019/20,59836
+Lincolnshire,lincolnshire,2020/21,49107
+Lincolnshire,lincolnshire,2021/22,54467
+Lincolnshire,lincolnshire,2022/23,58778
+Lincolnshire,lincolnshire,2023/24,55171
+Lincolnshire,lincolnshire,2024/25,54894
+Lincolnshire,lincolnshire,2025/26,53664
+Merseyside,merseyside,2012/13,90840
+Merseyside,merseyside,2013/14,93348
+Merseyside,merseyside,2014/15,97244
+Merseyside,merseyside,2015/16,102351
+Merseyside,merseyside,2016/17,110029
+Merseyside,merseyside,2017/18,125637
+Merseyside,merseyside,2018/19,135697
+Merseyside,merseyside,2019/20,137651
+Merseyside,merseyside,2020/21,128854
+Merseyside,merseyside,2021/22,165714
+Merseyside,merseyside,2022/23,169247
+Merseyside,merseyside,2023/24,145284
+Merseyside,merseyside,2024/25,135001
+Merseyside,merseyside,2025/26,137975
+Metropolitan Police,metropolitan-police,2012/13,770220
+Metropolitan Police,metropolitan-police,2013/14,698729
+Metropolitan Police,metropolitan-police,2014/15,700886
+Metropolitan Police,metropolitan-police,2015/16,740605
+Metropolitan Police,metropolitan-police,2016/17,775540
+Metropolitan Police,metropolitan-police,2017/18,821736
+Metropolitan Police,metropolitan-police,2018/19,863837
+Metropolitan Police,metropolitan-police,2019/20,906062
+Metropolitan Police,metropolitan-police,2020/21,744224
+Metropolitan Police,metropolitan-police,2021/22,830824
+Metropolitan Police,metropolitan-police,2022/23,881856
+Metropolitan Police,metropolitan-police,2023/24,931638
+Metropolitan Police,metropolitan-police,2024/25,944158
+Metropolitan Police,metropolitan-police,2025/26,916963
+Norfolk,norfolk,2012/13,38191
+Norfolk,norfolk,2013/14,38060
+Norfolk,norfolk,2014/15,44175
+Norfolk,norfolk,2015/16,47916
+Norfolk,norfolk,2016/17,50897
+Norfolk,norfolk,2017/18,56787
+Norfolk,norfolk,2018/19,61535
+Norfolk,norfolk,2019/20,65924
+Norfolk,norfolk,2020/21,62662
+Norfolk,norfolk,2021/22,69212
+Norfolk,norfolk,2022/23,67244
+Norfolk,norfolk,2023/24,59566
+Norfolk,norfolk,2024/25,59547
+Norfolk,norfolk,2025/26,57814
+North Wales,north-wales,2012/13,37840
+North Wales,north-wales,2013/14,36540
+North Wales,north-wales,2014/15,36743
+North Wales,north-wales,2015/16,38700
+North Wales,north-wales,2016/17,41164
+North Wales,north-wales,2017/18,51629
+North Wales,north-wales,2018/19,59831
+North Wales,north-wales,2019/20,60611
+North Wales,north-wales,2020/21,54980
+North Wales,north-wales,2021/22,67760
+North Wales,north-wales,2022/23,63909
+North Wales,north-wales,2023/24,55928
+North Wales,north-wales,2024/25,53148
+North Wales,north-wales,2025/26,52435
+North Yorkshire,north-yorkshire,2012/13,35301
+North Yorkshire,north-yorkshire,2013/14,34449
+North Yorkshire,north-yorkshire,2014/15,34617
+North Yorkshire,north-yorkshire,2015/16,38960
+North Yorkshire,north-yorkshire,2016/17,37551
+North Yorkshire,north-yorkshire,2017/18,39021
+North Yorkshire,north-yorkshire,2018/19,45835
+North Yorkshire,north-yorkshire,2019/20,46607
+North Yorkshire,north-yorkshire,2020/21,39197
+North Yorkshire,north-yorkshire,2021/22,47016
+North Yorkshire,north-yorkshire,2022/23,49203
+North Yorkshire,north-yorkshire,2023/24,47502
+North Yorkshire,north-yorkshire,2024/25,45024
+North Yorkshire,north-yorkshire,2025/26,44035
+Northamptonshire,northamptonshire,2012/13,46983
+Northamptonshire,northamptonshire,2013/14,40898
+Northamptonshire,northamptonshire,2014/15,45930
+Northamptonshire,northamptonshire,2015/16,49195
+Northamptonshire,northamptonshire,2016/17,54399
+Northamptonshire,northamptonshire,2017/18,54760
+Northamptonshire,northamptonshire,2018/19,59239
+Northamptonshire,northamptonshire,2019/20,62928
+Northamptonshire,northamptonshire,2020/21,61223
+Northamptonshire,northamptonshire,2021/22,61743
+Northamptonshire,northamptonshire,2022/23,63820
+Northamptonshire,northamptonshire,2023/24,60169
+Northamptonshire,northamptonshire,2024/25,59290
+Northamptonshire,northamptonshire,2025/26,57243
+Northumbria,northumbria,2012/13,67574
+Northumbria,northumbria,2013/14,70078
+Northumbria,northumbria,2014/15,72881
+Northumbria,northumbria,2015/16,93656
+Northumbria,northumbria,2016/17,123764
+Northumbria,northumbria,2017/18,151982
+Northumbria,northumbria,2018/19,158545
+Northumbria,northumbria,2019/20,148619
+Northumbria,northumbria,2020/21,123354
+Northumbria,northumbria,2021/22,135448
+Northumbria,northumbria,2022/23,142233
+Northumbria,northumbria,2023/24,143578
+Northumbria,northumbria,2024/25,137907
+Northumbria,northumbria,2025/26,136332
+Nottinghamshire,nottinghamshire,2012/13,68146
+Nottinghamshire,nottinghamshire,2013/14,68519
+Nottinghamshire,nottinghamshire,2014/15,72447
+Nottinghamshire,nottinghamshire,2015/16,72325
+Nottinghamshire,nottinghamshire,2016/17,82402
+Nottinghamshire,nottinghamshire,2017/18,97412
+Nottinghamshire,nottinghamshire,2018/19,107860
+Nottinghamshire,nottinghamshire,2019/20,107340
+Nottinghamshire,nottinghamshire,2020/21,85509
+Nottinghamshire,nottinghamshire,2021/22,99632
+Nottinghamshire,nottinghamshire,2022/23,105091
+Nottinghamshire,nottinghamshire,2023/24,101876
+Nottinghamshire,nottinghamshire,2024/25,98118
+Nottinghamshire,nottinghamshire,2025/26,101425
+South Wales,south-wales,2012/13,84528
+South Wales,south-wales,2013/14,82133
+South Wales,south-wales,2014/15,89388
+South Wales,south-wales,2015/16,89286
+South Wales,south-wales,2016/17,95072
+South Wales,south-wales,2017/18,105157
+South Wales,south-wales,2018/19,111814
+South Wales,south-wales,2019/20,110917
+South Wales,south-wales,2020/21,95221
+South Wales,south-wales,2021/22,104219
+South Wales,south-wales,2022/23,106687
+South Wales,south-wales,2023/24,113568
+South Wales,south-wales,2024/25,110099
+South Wales,south-wales,2025/26,106881
+South Yorkshire,south-yorkshire,2012/13,93657
+South Yorkshire,south-yorkshire,2013/14,91682
+South Yorkshire,south-yorkshire,2014/15,93466
+South Yorkshire,south-yorkshire,2015/16,102111
+South Yorkshire,south-yorkshire,2016/17,121495
+South Yorkshire,south-yorkshire,2017/18,142277
+South Yorkshire,south-yorkshire,2018/19,145688
+South Yorkshire,south-yorkshire,2019/20,148715
+South Yorkshire,south-yorkshire,2020/21,130597
+South Yorkshire,south-yorkshire,2021/22,148587
+South Yorkshire,south-yorkshire,2022/23,160487
+South Yorkshire,south-yorkshire,2023/24,154820
+South Yorkshire,south-yorkshire,2024/25,149363
+South Yorkshire,south-yorkshire,2025/26,145338
+Staffordshire,staffordshire,2012/13,59396
+Staffordshire,staffordshire,2013/14,59384
+Staffordshire,staffordshire,2014/15,60763
+Staffordshire,staffordshire,2015/16,68126
+Staffordshire,staffordshire,2016/17,77560
+Staffordshire,staffordshire,2017/18,83784
+Staffordshire,staffordshire,2018/19,84894
+Staffordshire,staffordshire,2019/20,79400
+Staffordshire,staffordshire,2020/21,66243
+Staffordshire,staffordshire,2021/22,69758
+Staffordshire,staffordshire,2022/23,97216
+Staffordshire,staffordshire,2023/24,86094
+Staffordshire,staffordshire,2024/25,86285
+Staffordshire,staffordshire,2025/26,88410
+Suffolk,suffolk,2012/13,40009
+Suffolk,suffolk,2013/14,36441
+Suffolk,suffolk,2014/15,38000
+Suffolk,suffolk,2015/16,44090
+Suffolk,suffolk,2016/17,45226
+Suffolk,suffolk,2017/18,53174
+Suffolk,suffolk,2018/19,54634
+Suffolk,suffolk,2019/20,56992
+Suffolk,suffolk,2020/21,48284
+Suffolk,suffolk,2021/22,50689
+Suffolk,suffolk,2022/23,52167
+Suffolk,suffolk,2023/24,45965
+Suffolk,suffolk,2024/25,44509
+Suffolk,suffolk,2025/26,44078
+Surrey,surrey,2012/13,52740
+Surrey,surrey,2013/14,48486
+Surrey,surrey,2014/15,50339
+Surrey,surrey,2015/16,59329
+Surrey,surrey,2016/17,64276
+Surrey,surrey,2017/18,73502
+Surrey,surrey,2018/19,76726
+Surrey,surrey,2019/20,77104
+Surrey,surrey,2020/21,67110
+Surrey,surrey,2021/22,72280
+Surrey,surrey,2022/23,74087
+Surrey,surrey,2023/24,75146
+Surrey,surrey,2024/25,73764
+Surrey,surrey,2025/26,74197
+Sussex,sussex,2012/13,91064
+Sussex,sussex,2013/14,83393
+Sussex,sussex,2014/15,90407
+Sussex,sussex,2015/16,94985
+Sussex,sussex,2016/17,104833
+Sussex,sussex,2017/18,113349
+Sussex,sussex,2018/19,116914
+Sussex,sussex,2019/20,127832
+Sussex,sussex,2020/21,108246
+Sussex,sussex,2021/22,120099
+Sussex,sussex,2022/23,129428
+Sussex,sussex,2023/24,135937
+Sussex,sussex,2024/25,135289
+Sussex,sussex,2025/26,130298
+Thames Valley,thames-valley,2012/13,133675
+Thames Valley,thames-valley,2013/14,127431
+Thames Valley,thames-valley,2014/15,120942
+Thames Valley,thames-valley,2015/16,129525
+Thames Valley,thames-valley,2016/17,137906
+Thames Valley,thames-valley,2017/18,148710
+Thames Valley,thames-valley,2018/19,161517
+Thames Valley,thames-valley,2019/20,170699
+Thames Valley,thames-valley,2020/21,149726
+Thames Valley,thames-valley,2021/22,174909
+Thames Valley,thames-valley,2022/23,181952
+Thames Valley,thames-valley,2023/24,174087
+Thames Valley,thames-valley,2024/25,172264
+Thames Valley,thames-valley,2025/26,169175
+Warwickshire,warwickshire,2012/13,29616
+Warwickshire,warwickshire,2013/14,28377
+Warwickshire,warwickshire,2014/15,27294
+Warwickshire,warwickshire,2015/16,31558
+Warwickshire,warwickshire,2016/17,37325
+Warwickshire,warwickshire,2017/18,41604
+Warwickshire,warwickshire,2018/19,42172
+Warwickshire,warwickshire,2019/20,41981
+Warwickshire,warwickshire,2020/21,36692
+Warwickshire,warwickshire,2021/22,40120
+Warwickshire,warwickshire,2022/23,41841
+Warwickshire,warwickshire,2023/24,39776
+Warwickshire,warwickshire,2024/25,39539
+Warwickshire,warwickshire,2025/26,39558
+West Mercia,west-mercia,2012/13,60537
+West Mercia,west-mercia,2013/14,58014
+West Mercia,west-mercia,2014/15,60763
+West Mercia,west-mercia,2015/16,76290
+West Mercia,west-mercia,2016/17,80803
+West Mercia,west-mercia,2017/18,84496
+West Mercia,west-mercia,2018/19,87140
+West Mercia,west-mercia,2019/20,86875
+West Mercia,west-mercia,2020/21,72915
+West Mercia,west-mercia,2021/22,87131
+West Mercia,west-mercia,2022/23,94887
+West Mercia,west-mercia,2023/24,86478
+West Mercia,west-mercia,2024/25,80759
+West Mercia,west-mercia,2025/26,79871
+West Midlands,west-midlands,2012/13,170713
+West Midlands,west-midlands,2013/14,174524
+West Midlands,west-midlands,2014/15,176280
+West Midlands,west-midlands,2015/16,185634
+West Midlands,west-midlands,2016/17,206630
+West Midlands,west-midlands,2017/18,233688
+West Midlands,west-midlands,2018/19,259932
+West Midlands,west-midlands,2019/20,260839
+West Midlands,west-midlands,2020/21,280732
+West Midlands,west-midlands,2021/22,359437
+West Midlands,west-midlands,2022/23,365882
+West Midlands,west-midlands,2023/24,328104
+West Midlands,west-midlands,2024/25,308494
+West Midlands,west-midlands,2025/26,301020
+West Yorkshire,west-yorkshire,2012/13,164760
+West Yorkshire,west-yorkshire,2013/14,159513
+West Yorkshire,west-yorkshire,2014/15,157811
+West Yorkshire,west-yorkshire,2015/16,202660
+West Yorkshire,west-yorkshire,2016/17,239088
+West Yorkshire,west-yorkshire,2017/18,265727
+West Yorkshire,west-yorkshire,2018/19,295953
+West Yorkshire,west-yorkshire,2019/20,288343
+West Yorkshire,west-yorkshire,2020/21,250219
+West Yorkshire,west-yorkshire,2021/22,294284
+West Yorkshire,west-yorkshire,2022/23,314540
+West Yorkshire,west-yorkshire,2023/24,289841
+West Yorkshire,west-yorkshire,2024/25,275211
+West Yorkshire,west-yorkshire,2025/26,262745
+Wiltshire,wiltshire,2012/13,34106
+Wiltshire,wiltshire,2013/14,32829
+Wiltshire,wiltshire,2014/15,32214
+Wiltshire,wiltshire,2015/16,38038
+Wiltshire,wiltshire,2016/17,41691
+Wiltshire,wiltshire,2017/18,43770
+Wiltshire,wiltshire,2018/19,43639
+Wiltshire,wiltshire,2019/20,43636
+Wiltshire,wiltshire,2020/21,36780
+Wiltshire,wiltshire,2021/22,41694
+Wiltshire,wiltshire,2022/23,44262
+Wiltshire,wiltshire,2023/24,40728
+Wiltshire,wiltshire,2024/25,40297
+Wiltshire,wiltshire,2025/26,43053
