@@ -30,6 +30,12 @@ jobs:
       - run: pip install -e ".[dev]"
       - name: Read the bulletin, writing nothing
         run: python etl/prison_capacity.py --dry-run
+      # The artifact blob host is unreachable from the environment reviewing
+      # this, so the dump is printed here as well as uploaded.
+      - name: Print the sheet dump
+        if: always()
+        run: cat data/_sheet-dump.json
+
       - name: Upload the sheet dump
         if: always()
         uses: actions/upload-artifact@v4
