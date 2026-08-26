@@ -9,7 +9,7 @@
     "2014/15"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:05:17+00:00",
+   "retrieved_at": "2026-08-26T16:26:10+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "cf651dd5aa388e8e11ee3ffe9af76828dea270c795ec0d447ed73b6140079c12",
@@ -24,7 +24,7 @@
     "2015/16"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:05:12+00:00",
+   "retrieved_at": "2026-08-26T16:26:05+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "2ce603e1c17f902d6e58447fbedbe61d7b8c02aec4d11772b4ec522693e5f481",
@@ -39,7 +39,7 @@
     "2016/17"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:05:06+00:00",
+   "retrieved_at": "2026-08-26T16:26:01+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "b8971b23222e1aa3245229f568bd5864e4903a8a5c76cdd5744a7fe22243edca",
@@ -54,7 +54,7 @@
     "2017/18"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:57+00:00",
+   "retrieved_at": "2026-08-26T16:25:57+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "4b04cb277bac29ae7d9e0d178da1433d50a4d8ab6ef902a5189dff8f7833b513",
@@ -69,7 +69,7 @@
     "2018/19"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:51+00:00",
+   "retrieved_at": "2026-08-26T16:25:53+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "4938d7e5bd8955cae81e65f640a42b89fda180d7e72dc2455ab5a1118ceb6b0d",
@@ -84,7 +84,7 @@
     "2019/20"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:45+00:00",
+   "retrieved_at": "2026-08-26T16:25:49+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "e02fc76eb0c980ef357d6c5cb8a6cac555c16529360482330cb4314a4dc2e9cf",
@@ -99,7 +99,7 @@
     "2020/21"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:38+00:00",
+   "retrieved_at": "2026-08-26T16:25:44+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "c87feca5b7aab1ae1573fd0267e99cfd9b36b93f647cf4ccb5c2c459fa895fdf",
@@ -114,7 +114,7 @@
     "2021/22"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:31+00:00",
+   "retrieved_at": "2026-08-26T16:25:39+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "7536a78f8cb8416e14246cb2811253f0c3844d5d1a3fb511c4b37b4991144dbc",
@@ -129,7 +129,7 @@
     "2022/23"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:23+00:00",
+   "retrieved_at": "2026-08-26T16:25:35+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "590d7ecfc1ad98e445494094095f762b2cd4b2a131a0862eac484d592ddf063a",
@@ -144,7 +144,7 @@
     "2023/24"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:16+00:00",
+   "retrieved_at": "2026-08-26T16:25:31+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "1a77b971b356878090d338caec2e14e0ada81b88cc9af5a2cb9a15bbc61c08bc",
@@ -159,7 +159,7 @@
     "2024/25"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:08+00:00",
+   "retrieved_at": "2026-08-26T16:25:26+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "d74ec31f481a0b6831f1e1f870bd5032311e422052d2163b3f5f9db54fc004e7",
@@ -174,7 +174,7 @@
     "2025/26"
    ],
    "kind": "outcomes_open_data",
-   "retrieved_at": "2026-08-26T14:04:01+00:00",
+   "retrieved_at": "2026-08-26T16:25:23+00:00",
    "reused_local_copy": false,
    "section": "Outcomes open data",
    "sha256": "f59004c8eb83f888fc0c7a8709cc866dde2f0f70dfd854a684af46bd42e402a9",
@@ -190,7 +190,7 @@
     "onwards"
    ],
    "kind": "police_force_area_crime",
-   "retrieved_at": "2026-08-26T14:03:54+00:00",
+   "retrieved_at": "2026-08-26T16:25:19+00:00",
    "reused_local_copy": false,
    "section": "Police recorded crime open data, Police force area tables",
    "sha256": "ae6f37357ae3104fb8f04de861cd2effe0a1ddce482beeed6f3f77cb8892d2f5",
@@ -199,7 +199,7 @@
    "url": "https://assets.publishing.service.gov.uk/media/6a5e588624d44672cf1b4649/prc-pfa-mar2013-onwards-tables-230726.ods"
   }
  ],
- "generated_at": "2026-08-26T14:05:17+00:00",
+ "generated_at": "2026-08-26T16:26:10+00:00",
  "landing_page": "https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables",
  "licence": "Open Government Licence v3.0",
  "provenance": "home_office_open_data"
