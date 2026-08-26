@@ -1,0 +1,21 @@
+# Raw source files are rebuilt from data/manifest.json, never committed.
+data/raw/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Node and Astro
+node_modules/
+site/dist/
+site/.astro/
+.DS_Store
+
+# Build logs are regenerated
+data/validation-report.json
+
+# Synthetic fixtures, in full. Invented numbers must never reach data/processed/.
+data/fixture/

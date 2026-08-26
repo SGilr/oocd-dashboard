@@ -1,0 +1,126 @@
+# Caveats that apply to the published series.
+#
+# This file is the single source of truth for every caveat on the site. Adding
+# one is a change to this file alone: it appears as a numbered footnote marker
+# on any chart it touches, and in full on the methodology page.
+#
+# Fields
+#   id                    stable identifier, used in the footnote anchor
+#   scope                 "national", or a list of canonical force names
+#   financial_years       list of financial years affected, or "all"
+#   measures              which measures the marker attaches to, or "all"
+#   label                 short text for the chart footnote
+#   text                  the full statement, shown on the methodology page
+#   source_url            where the claim can be checked
+#   source_citation       Harvard reference for the methodology page
+#   source_url_verified   true, false or null. null means not yet checked.
+#
+# Run `python etl/validate.py --check-urls` to resolve every source_url and
+# write the result back into the validation report. Nothing is published as
+# verified until that has run somewhere with network access to the sources.
+
+version: 1
+last_reviewed: 2026-08-26
+
+annotations:
+  - id: outcome-22-recording-change
+    scope: national
+    financial_years:
+      - 2018/19
+      - 2019/20
+      - 2020/21
+    measures: all
+    label: Outcome 22 recording was voluntary before 2021/22
+    text: >-
+      Outcome 22, diversionary, educational or intervention activity, was
+      available for voluntary recording from April 2019 and became compulsory
+      from April 2021. A series that crosses that boundary compares forces that
+      recorded the outcome with forces that did not, so differences between
+      forces before 2021/22 may reflect recording practice rather than
+      decision making. Charts shade the period before 2021/22 wherever outcome
+      22 is shown.
+    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+    source_citation: >-
+      Home Office (2026) Police recorded crime and outcomes open data tables
+      user guide. London: Home Office.
+    source_url_verified: null
+
+  - id: west-yorkshire-two-tier
+    scope:
+      - West Yorkshire
+    financial_years: all
+    measures: all
+    label: West Yorkshire operates a restricted disposal set
+    text: >-
+      West Yorkshire Police operates a restricted set of out of court
+      disposals. Under the two tier model the force uses conditional cautions
+      and community resolutions, and does not issue simple cautions, penalty
+      notices for disorder or cannabis and khat warnings, although national
+      guidance still provides for all three. A fall in the force's count of
+      those disposal types is a policy decision, not a change in offending or
+      in officer behaviour, and the force should not be compared with others
+      on those types.
+    source_url: https://www.westyorkshire-pcc.gov.uk/our-business/out-court-disposals.html
+    source_citation: >-
+      Office of the Police and Crime Commissioner for West Yorkshire (2024)
+      Out of court disposals. Wakefield: West Yorkshire Police and Crime
+      Commissioner.
+    source_url_verified: null
+
+  - id: centrally-recorded-fraud
+    scope: national
+    financial_years: all
+    measures: all
+    label: Centrally recorded fraud distorts offence mix
+    text: >-
+      Fraud reported to Action Fraud, Cifas and Financial Fraud UK is recorded
+      centrally and then attributed to police force areas. It appears in the
+      force area tables without having been investigated by the force in the
+      way other recorded crime is, and it falls unevenly across forces, so it
+      distorts offence mix and any measure that uses recorded crime as a
+      denominator. Every chart offers an exclude fraud toggle, which drops the
+      whole fraud offence group. The published tables do not allow centrally
+      recorded fraud to be separated from force recorded fraud, so the toggle
+      removes both.
+    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+    source_citation: >-
+      Home Office (2026) Police recorded crime and outcomes open data tables
+      user guide. London: Home Office.
+    source_url_verified: null
+
+  - id: btp-no-resident-population
+    scope:
+      - British Transport Police
+    financial_years: all
+    measures:
+      - rate_per_1000_recorded_crime
+    label: British Transport Police has no resident population
+    text: >-
+      British Transport Police polices the railway network across England,
+      Wales and Scotland rather than a geographical area with residents. It has
+      no resident population and a distinct offence profile, so it is excluded
+      by default from measures that normalise for force size. It remains in
+      share based measures, where the denominator is the force's own outcomes.
+    source_url: https://www.btp.police.uk/police-forces/british-transport-police/areas/about-us/about-us/
+    source_citation: >-
+      British Transport Police (2026) About us. London: British Transport
+      Police.
+    source_url_verified: null
+
+  - id: offence-code-expiry
+    scope: national
+    financial_years: all
+    measures: all
+    label: Some offence codes expire during the series
+    text: >-
+      Offence codes are added and retired across the period. The published
+      tables carry an offence code expired flag, and the extract reads that
+      flag rather than assuming a stable code list. Comparisons of a single
+      offence over the whole series may therefore be comparing different code
+      sets. Offence group totals are unaffected, because retired codes are
+      mapped into the same groups.
+    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+    source_citation: >-
+      Home Office (2026) Police recorded crime and outcomes open data tables
+      user guide. London: Home Office.
+    source_url_verified: null

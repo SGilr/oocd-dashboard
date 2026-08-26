@@ -1,0 +1,39 @@
+# Published headline figures, used to reconcile the derived tables.
+#
+# Each target is a figure taken from a Home Office bulletin, with the citation
+# and the page or table it came from, so the derived tables can be checked
+# against something a reader can look up. validate.py fails the build when a
+# derived figure differs from its target by more than the stated tolerance.
+#
+# A target must be typed in by a person who has read the bulletin. Nothing here
+# is derived from the open data tables, otherwise the check would compare the
+# extract with itself and always pass.
+#
+# Fields
+#   id             stable identifier
+#   financial_year the financial year the figure covers
+#   measure        one of: oocd_total, charge_total, assigned_total
+#   basis          closed or recorded
+#   fraud_variant  all or ex_fraud
+#   value          the published figure
+#   tolerance_pct  permitted difference, as a percentage of the published figure
+#   citation       Harvard reference
+#   source_url     where the figure was read
+
+targets: []
+
+# Example of the shape a target takes, kept commented out so it is never
+# mistaken for a checked figure:
+#
+# targets:
+#   - id: oocd-total-2024-25
+#     financial_year: 2024/25
+#     measure: oocd_total
+#     basis: closed
+#     fraud_variant: all
+#     value: 0
+#     tolerance_pct: 0.5
+#     citation: >-
+#       Home Office (2025) Crime outcomes in England and Wales 2024 to 2025.
+#       London: Home Office.
+#     source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2024-to-2025
