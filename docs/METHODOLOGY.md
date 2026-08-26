@@ -103,14 +103,24 @@ followed by the Crown Prosecution Service and the College of Policing.
 Neither phrase is the language of the statute. Part 6 of the Police, Crime,
 Sentencing and Courts Act 2022 (c. 32) is headed Cautions, and what it
 legislates for is cautions of two kinds, the diversionary caution and the
-community caution, governed by the Diversionary and Community Cautions Code of
-Practice. Both "disposals" and "resolutions" are administrative umbrella terms
-sitting above that. This is why the change of word needed no change in law and
-no change to what is counted.
+community caution. Both "disposals" and "resolutions" are administrative
+umbrella terms sitting above that.
 
-The outcome types below are the same six either way, and anyone arriving here
-searching for out of court disposals is in the right place. Where a publication is cited by its title, the
-title is left as published: the Neyroud review and the West Yorkshire Police and
+That framework is not in force, and the tense matters here. Chapter 1 of Part 6
+was prospective at Royal Assent, see section 208(1), and sections 98 to 115 and
+117 to 121 remain so. Section 118, which would abolish the simple caution, the
+conditional caution and the penalty notice for disorder, is among them. Section
+116 alone has been commenced, on 24 May 2023 by SI 2023/573, and it does no more
+than create the duty to prepare a code of practice. The draft Diversionary and
+Community Cautions Code of Practice was consulted on in 2023, drew no government
+response, and has never been brought into force.
+
+So the change of word needed no change in law, and no change to what is counted.
+
+The outcome types below are the same six either way, and they are the law as it
+stands rather than a legacy awaiting replacement. Anyone arriving here searching
+for out of court disposals is in the right place. Where a publication is cited
+by its title, the title is left as published: the Neyroud review and the West Yorkshire Police and
 Crime Commissioner report both say disposals, and restating them would be a
 misquotation.
 
