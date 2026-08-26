@@ -23,3 +23,6 @@ site/public/data/
 
 # Ad hoc extracts built from files supplied by hand, for header validation.
 data/real/
+
+# Local Python environment
+.venv/

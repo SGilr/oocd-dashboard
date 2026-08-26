@@ -49,18 +49,37 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: pip install -e ".[dev]"
-      - name: Build the fixture data the site needs
+      - name: Build the fixture data, for the second build below
         run: |
           python etl/make_fixtures.py
           python etl/transform.py --data-root fixture
           python etl/validate.py --data-root fixture
-      - name: Build the site
+      - name: Build the site from the committed data
         working-directory: site
         run: |
           npm ci
           npm run build
-      - name: Confirm the build is marked as fixture data
+      - name: Confirm the committed data is the published data
         working-directory: site
         run: |
+          node -e '
+            const info = require("./public/data/build-info.json");
+            if (info.provenance !== "home_office_open_data") {
+              throw new Error(`provenance is ${info.provenance}, expected the published files`);
+            }
+            if (info.isFixture) throw new Error("the committed data is marked as fixture");
+          '
+          if grep -q "These figures are not real" dist/index.html; then
+            echo "The fixture banner is on a build made from the committed data." >&2
+            exit 1
+          fi
+          echo "Built from the published data, and no fixture banner."
+
+      - name: Build again from fixtures, and confirm the banner appears
+        working-directory: site
+        env:
+          OOCD_DATA_ROOT: ../data/fixture
+        run: |
+          npm run build
           grep -q "These figures are not real" dist/index.html
           echo "The fixture banner is present, as it must be on a fixture build."
