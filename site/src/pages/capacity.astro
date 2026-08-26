@@ -1,0 +1,1730 @@
+---
+/**
+ * Prison demand and the front end of the system.
+ *
+ * A recurring claim holds that increasing out of court resolution by some
+ * proportion reduces prison demand by some other proportion. No published
+ * estimate of that relationship exists. This page sets out what is measured,
+ * then lets a reader test what would have to be true for the claim to hold.
+ *
+ * Three rules govern every edit to this file.
+ *
+ * The calculator runs backwards on purpose. The reader sets a target in prison
+ * places and the tool derives the diversion volume that target implies. It
+ * must never output "increase diversion by x and save y places", because a
+ * forward number would be quoted as a forecast the moment it left the page and
+ * nothing published supports one.
+ *
+ * There is no ticking money figure. The cost per place is not cash realisable
+ * at the margin, and section 05 says so in prose. A counter would contradict
+ * the argument the page is making.
+ *
+ * Ink means measured and rust means modelled. Every figure in --ink-1 traces
+ * to a published source named in the notes. Every figure in --modelled is
+ * produced by the calculator from parameters the reader set. The distinction
+ * is carried by the colour rather than by a banner, because a banner gets
+ * separated from the number it qualifies as soon as anyone screenshots the
+ * number.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import Layout from "../components/Layout.astro";
+
+interface CapacityRecord {
+  as_at: string | null;
+  population: number | null;
+  useable_operational_capacity: number | null;
+  headroom: number | null;
+  headroom_derived?: boolean;
+  source_title: string | null;
+  source_url: string | null;
+  fetched_at?: string | null;
+  parser_status: "ok" | "needs_review" | "seed";
+}
+
+/**
+ * The figures shown before the weekly ingest has ever run, and the figures the
+ * panel falls back to if the file cannot be read. Both dates are published;
+ * the headroom between them is not, because they are figures of different
+ * dates, and the panel says so rather than presenting the subtraction as a
+ * statistic.
+ */
+const SEED: CapacityRecord = {
+  as_at: "2026-06-30",
+  population: 85858,
+  useable_operational_capacity: 89617,
+  headroom: 3759,
+  headroom_derived: true,
+  source_title:
+    "Offender management statistics quarterly, January to March 2026, with useable operational capacity from the Prison Service Pay Review Body twenty-fifth report",
+  source_url:
+    "https://www.gov.uk/government/statistics/offender-management-statistics-quarterly-january-to-march-2026/offender-management-statistics-quarterly-january-to-march-2026",
+  parser_status: "seed",
+};
+
+/**
+ * Rendered from the staged file when the ingest has produced one, so the panel
+ * is right for a reader without JavaScript and there is no empty flash before
+ * the fetch resolves. The client script refreshes it against the live file,
+ * which is what the short cache on /data/ in public/_headers is for.
+ */
+const stagedPath = join(process.cwd(), "public", "data", "prison-capacity.json");
+const initial: CapacityRecord = existsSync(stagedPath)
+  ? (JSON.parse(readFileSync(stagedPath, "utf8")) as CapacityRecord)
+  : SEED;
+
+/** The three published denominators every result is tested against. */
+const MEASURED = {
+  /** Out of court resolutions, year to December 2025. */
+  oocr: 226300,
+  /** Immediate custodial sentences, year to December 2025. */
+  custodySentences: 88100,
+  /** Prison population, 30 June 2026. */
+  population: 85858,
+  /** Determinate places added on the central projection path to 2029. */
+  projectedRise: 8200,
+};
+
+const DEFAULTS = { target: 1000, c: 2, t: 2, dr: 5, c2: 10, t2: 2 };
+
+/**
+ * The same arithmetic the client runs, so the server rendered state and the
+ * first client render agree to the digit rather than approximately.
+ *
+ * All quantities are place-years per year. A target of 1,000 means 1,000 fewer
+ * occupied places at any given moment, sustained.
+ */
+function solve(p: typeof DEFAULTS) {
+  const immediate = (p.c / 100) * (p.t / 12);
+  const downstream = (p.dr / 100) * (p.c2 / 100) * (p.t2 / 12);
+  const perCase = immediate + downstream;
+  const n = p.target / perCase;
+  return {
+    perCase,
+    n,
+    uplift: (n / MEASURED.oocr) * 100,
+    custodyCases: n * (p.c / 100),
+    custodyShare: ((n * (p.c / 100)) / MEASURED.custodySentences) * 100,
+    populationShare: (p.target / MEASURED.population) * 100,
+    immediateShare: (immediate / perCase) * 100,
+    currentPlaces: MEASURED.oocr * perCase,
+  };
+}
+
+const start = solve(DEFAULTS);
+const n0 = (value: number, dp = 0) =>
+  value.toLocaleString("en-GB", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+const seedDate = (iso: string | null) =>
+  iso
+    ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : "date not stated";
+
+const occupancy =
+  initial.population && initial.useable_operational_capacity
+    ? (initial.population / initial.useable_operational_capacity) * 100
+    : null;
+
+/** The demand cascade. Every row names the denominator its share is of. */
+const CASCADE = [
+  {
+    stage: "Offences recorded by the police",
+    detail:
+      "About 4.4 million victim-based and 873,255 non-victim-based, year to March 2026",
+    figure: "~5,270,000",
+    route: "total" as const,
+    width: 100,
+    share: "The denominator for the two rows below",
+  },
+  {
+    stage: "Charged or summonsed",
+    detail: "389,728 victim-based plus 127,530 non-victim-based",
+    figure: "517,258",
+    route: "court" as const,
+    width: 9.8,
+    share: "9.8% of recorded offences",
+  },
+  {
+    stage: "Resolved out of court",
+    detail: "Of which 181,700 community resolutions, 80% of the total",
+    figure: "226,300",
+    route: "oocd" as const,
+    width: 4.3,
+    share: "4.3% of recorded offences",
+  },
+  {
+    stage: "Offenders sentenced",
+    detail:
+      "The counting unit changes here, from offences to people, and the period to the year ending December 2025",
+    figure: "1,200,000",
+    route: null,
+    width: 0,
+    share: "No comparable share. This becomes the denominator for the two rows below.",
+  },
+  {
+    stage: "Given a fine",
+    detail: "Derived from the published 77% share",
+    figure: "~924,000",
+    route: "court" as const,
+    width: 77,
+    share: "77% of those sentenced",
+  },
+  {
+    stage: "Given immediate custody",
+    detail: "58% of custodial sentences were under 12 months",
+    figure: "88,100",
+    route: "court" as const,
+    width: 7.3,
+    share: "7.3% of those sentenced",
+  },
+  {
+    stage: "In prison on 30 June 2026",
+    detail:
+      "A stock on one day, not a flow over a year. This becomes the denominator for the two rows below.",
+    figure: "85,858",
+    route: null,
+    width: 0,
+    share: "No comparable share",
+  },
+  {
+    stage: "Of whom sentenced",
+    detail: "The remainder is 15,386 on remand and 469 non-criminal",
+    figure: "70,003",
+    route: "court" as const,
+    width: 81.5,
+    share: "81.5% of the prison population",
+  },
+  {
+    stage: "Sentenced for violence, sexual offences or drugs",
+    detail: "Violence against the person 34%, sexual offences 23%, drug offences 12%",
+    figure: "~49,000",
+    route: "court" as const,
+    width: 57,
+    share: "About 57% of the prison population, about 70% of the sentenced population",
+  },
+];
+
+/** The five parameters, with the status of each stated beside it. */
+const PARAMETERS = [
+  {
+    id: "c",
+    label:
+      "Share of the additionally diverted cases whose sentence would have been immediate custody",
+    badge: "No published value",
+    unsourced: true,
+    note: "Nobody records the counterfactual sentence for a diverted case. The fines share of sentencing, 77%, is the reason to expect a low number.",
+    min: 0,
+    max: 20,
+    step: 0.5,
+    value: DEFAULTS.c,
+    display: `${DEFAULTS.c.toFixed(1)}%`,
+  },
+  {
+    id: "t",
+    label: "Time actually served on each averted custodial sentence",
+    badge: "Derived",
+    unsourced: false,
+    note: "A six month sentence released at the one third point under the Sentencing Act 2026 occupies a place for two months.",
+    min: 0.5,
+    max: 18,
+    step: 0.5,
+    value: DEFAULTS.t,
+    display: `${DEFAULTS.t.toFixed(1)} months`,
+  },
+  {
+    id: "dr",
+    label: "Reduction in the proportion who reoffend, diversion against prosecution",
+    badge: "No published value",
+    unsourced: true,
+    note: "No causal estimate exists for England and Wales. Observed differences are confounded by selection, because disposals go to lower risk people facing less serious allegations.",
+    min: 0,
+    max: 30,
+    step: 0.5,
+    value: DEFAULTS.dr,
+    display: `${DEFAULTS.dr.toFixed(1)} pp`,
+  },
+  {
+    id: "c2",
+    label: "Custody rate applied to the reoffences thereby averted",
+    badge: "Anchored",
+    unsourced: false,
+    note: "The custody rate for indictable offences is 33.5%. Most reoffences by this group are summary, so the applicable rate is lower.",
+    min: 0,
+    max: 35,
+    step: 0.5,
+    value: DEFAULTS.c2,
+    display: `${DEFAULTS.c2.toFixed(1)}%`,
+  },
+  {
+    id: "t2",
+    label: "Time served on each averted future custodial sentence",
+    badge: "Derived",
+    unsourced: false,
+    note: "Same basis as above.",
+    min: 0.5,
+    max: 24,
+    step: 0.5,
+    value: DEFAULTS.t2,
+    display: `${DEFAULTS.t2.toFixed(1)} months`,
+  },
+];
+
+const SOURCES = [
+  "Home Office (2026) <em>Crime outcomes in England and Wales 2025 to 2026</em>. Recorded offences and charge or summons volumes, year ending March 2026.",
+  "Ministry of Justice (2026) <em>Criminal justice statistics quarterly: December 2025</em>. Out of court resolutions, offenders sentenced, sentence type shares, immediate custody volumes and custody rates.",
+  "Ministry of Justice (2026) <em>Offender management statistics quarterly: January to March 2026</em>. Prison population at 30 June 2026 by custody type, sentence length band and offence group.",
+  "Ministry of Justice (2026) <em>Prison population weekly estate figures 2026</em>. Transparency data, published Mondays, read by this page through the GOV.UK Content API.",
+  "Ministry of Justice (2025) <em>Prison population projections 2025 to 2030, England and Wales</em>. Determinate, remand and recall paths. The model takes defendants proceeded against at court as its input and contains no out of court disposal term.",
+  "Ministry of Justice (2025) <em>Sentencing Bill impact assessment</em>, 1 September. Prison places attributed to five sentencing measures, totalling 7,500 after interactions. No out of court measure is modelled.",
+  "Ministry of Justice (2026) <em>Proven reoffending statistics: July to September 2024</em>. Adult proven reoffending 29.7%; 68.2% for custodial sentences under 12 months; 22.9% for 12 months or more. Rates for cautions are not separately reported in the bulletin.",
+  "House of Commons Library (2026) <em>Changes to automatic prisoner release dates in England and Wales</em>, CBP-10974. Release at the one third point for most standard determinate sentences from 1 October 2026.",
+  "National Audit Office (2024) <em>Increasing the capacity of the prison estate to meet demand</em>, HC 376. Staffing constraint at paragraph 3.8; cells out of use at paragraph 1.25.",
+  "HM Prison and Probation Service (2026) <em>Costs per place and costs per prisoner 2024-25</em>. Direct and overall resource cost per place.",
+  "Mueller-Smith, M. and Schnepel, K.T. (2021) 'Diversion in the criminal justice system', <em>Review of Economic Studies</em>, 88(2), pp. 883-936.",
+  "Agan, A., Doleac, J.L. and Harvey, A. (2023) 'Misdemeanor prosecution', <em>Quarterly Journal of Economics</em>, 138(3), pp. 1453-1505.",
+  "Neyroud, P. (2018) <em>Out of court disposals managed by the police: a review of the evidence</em>. National Police Chiefs' Council.",
+];
+
+const title = "Prison capacity and diversion";
+const description =
+  "A working model of where prison demand comes from, and what out of court resolution can and cannot do about it. The calculator runs backwards: it derives the diversion volume a place target implies, and produces no forecast.";
+---
+
+<Layout title={title} description={description} wide>
+  <article class="capacity-page">
+    <header class="cap-mast">
+      <p class="eyebrow">Working model, version 0.1</p>
+      <h1>Prison demand and the front end of the system</h1>
+      <p class="standfirst">
+        A recurring claim holds that increasing out of court resolution by some
+        proportion reduces prison demand by some other proportion. No published
+        estimate of that relationship exists. This page sets out what is measured,
+        then lets you test for yourself what would have to be true for the claim to
+        hold.
+      </p>
+
+      <div class="key">
+        <div>
+          <b><span class="swatch swatch--ink"></span>Ink means measured</b>
+          <span>
+            Every figure set in ink comes from a published statistical source,
+            named in the sources below with its date and price year.
+          </span>
+        </div>
+        <div class="key__modelled">
+          <b><span class="swatch swatch--modelled"></span>Rust means modelled</b>
+          <span>
+            Every figure set in rust is produced by the calculator below from
+            parameters you set. None of it is a forecast, and none of it is
+            evidence.
+          </span>
+        </div>
+        <div>
+          <b>Why the distinction is on the page</b>
+          <span>
+            A health warning in a banner gets separated from the number it
+            qualifies. A warning built into the colour system travels with it.
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <section id="constraint" aria-labelledby="h-constraint">
+      <p class="secnum">01 / The constraint</p>
+      <h2 id="h-constraint">How full the estate is now</h2>
+      <p class="lede">
+        The Ministry of Justice publishes weekly estate figures every Monday. This
+        panel reads the most recent bulletin. Cells are only part of the
+        constraint: the National Audit Office states that the ability to
+        accommodate additional prisoners is limited by staffing as well as by
+        places, and thousands of cells are out of use through dilapidation,
+        maintenance and fire safety non-compliance.
+      </p>
+
+      <div class="panel">
+        <div class="panel__stats">
+          <div class="stat">
+            <p class="stat__label">Prison population</p>
+            <p class="stat__value figure" id="c-pop">{n0(initial.population ?? 0)}</p>
+            <p class="stat__note" id="c-pop-sub">At {seedDate(initial.as_at)}</p>
+          </div>
+          <div class="stat">
+            <p class="stat__label">Useable operational capacity</p>
+            <p class="stat__value figure" id="c-cap">
+              {n0(initial.useable_operational_capacity ?? 0)}
+            </p>
+            <p class="stat__note">
+              The population the estate can safely hold, after the operating margin
+            </p>
+          </div>
+          <div class="stat">
+            <p class="stat__label">Headroom</p>
+            <p class="stat__value figure" id="c-head">{n0(initial.headroom ?? 0)}</p>
+            <p class="stat__note" id="c-head-sub">
+              {
+                initial.headroom_derived
+                  ? "Capacity less population. Derived here from two figures of different dates, so it is not itself a published statistic."
+                  : "Capacity less population, as published"
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="panel__gauge">
+          <div class="gauge" role="img" aria-labelledby="gauge-desc">
+            <span class="gauge__fill" id="c-fill" style={`width:${occupancy ?? 0}%`}
+            ></span>
+            <span class="gauge__line" id="c-line" style="left:100%"></span>
+          </div>
+          <p class="gauge__legend" id="gauge-desc">
+            <span><i class="swatch swatch--court"></i>Occupied places</span>
+            <span><i class="swatch swatch--ink"></i>Useable operational capacity</span>
+            <span id="c-occ">
+              {occupancy === null ? "Occupancy not available" : `Occupancy ${occupancy.toFixed(1)}%`}
+            </span>
+          </p>
+        </div>
+
+        <p class="panel__provenance">
+          <span class="badge" id="c-badge">
+            {
+              initial.parser_status === "ok"
+                ? "Weekly ingest"
+                : initial.parser_status === "needs_review"
+                  ? "Ingest needs review"
+                  : "Seed figures"
+            }
+          </span>
+          <span id="c-source">
+            {
+              initial.parser_status === "seed" ? (
+                <Fragment>
+                  Entered by hand from{" "}
+                  <a href={initial.source_url ?? "#"}>{initial.source_title}</a>. These
+                  are replaced automatically once the weekly ingest has run
+                  successfully.
+                </Fragment>
+              ) : initial.parser_status === "needs_review" ? (
+                "The weekly file was downloaded but its layout did not match the expected labels, so the last verified figures are shown instead."
+              ) : (
+                <Fragment>
+                  Read from <a href={initial.source_url ?? "#"}>{initial.source_title}</a>.
+                </Fragment>
+              )
+            }
+          </span>
+        </p>
+      </div>
+    </section>
+
+    <section id="cascade" aria-labelledby="h-cascade">
+      <p class="secnum">02 / The shape of demand</p>
+      <h2 id="h-cascade">Where cases go, and where prisoners come from</h2>
+      <p class="lede">
+        Out of court resolution and the sentenced prison population are two ends of
+        a cascade that barely touch. Each bar is a share of a denominator named
+        explicitly in the table, because the three sources count different things
+        and a single running percentage would be false precision.
+      </p>
+
+      <div class="table-scroll">
+        <p class="cascade-legend">
+          <span><i class="swatch swatch--oocd"></i>Resolved without prosecution</span>
+          <span><i class="swatch swatch--court"></i>Prosecuted, sentenced, imprisoned</span>
+          <span><i class="swatch swatch--total"></i>All recorded offences</span>
+        </p>
+        <table class="cascade">
+          <caption>
+            The three stages come from three separate collections with different
+            counting units and reference periods: offences (Home Office, year to
+            March 2026), offenders and defendants (Ministry of Justice, year to
+            December 2025) and people in custody on a single day (Ministry of
+            Justice, 30 June 2026). They are not a single reconciled flow and the
+            percentages are indicative of scale, not exact transfers.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Stage</th>
+              <th scope="col">Volume</th>
+              <th scope="col" class="cascade__barcol">Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              CASCADE.map((row) => (
+                <tr>
+                  <th scope="row" class="cascade__stage">
+                    {row.stage}
+                    <small>{row.detail}</small>
+                  </th>
+                  <td class="figure">{row.figure}</td>
+                  <td class="cascade__barcol">
+                    {row.route && (
+                      <span class="bar">
+                        <span class={`bar__fill bar__fill--${row.route}`} style={`width:${row.width}%`} />
+                      </span>
+                    )}
+                    <span class="bar__label">{row.share}</span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="after-table">
+        Two features of that cascade decide everything below. Prosecution ends in a
+        fine more than three quarters of the time, so the sentence an out of court
+        resolution displaces is usually financial. And the sentenced population is
+        composed overwhelmingly of offences that no gravity matrix would route out
+        of court.
+      </p>
+    </section>
+
+    <section id="calculator" aria-labelledby="h-calculator">
+      <p class="secnum">03 / The calculator</p>
+      <h2 id="h-calculator">What would have to be true</h2>
+      <p class="lede">
+        This tool refuses to answer the question in the direction it is usually
+        asked. It will not tell you how many places a given increase in diversion
+        would save, because nobody can source the parameters that would make such a
+        figure meaningful. Instead you set a target, and the tool derives the
+        diversion volume that target implies. Then you can judge whether that volume
+        is available.
+      </p>
+
+      <div class="model">
+        <div class="model__head">
+          <p>
+            <strong>Read this as a constraint check, not a forecast.</strong>
+            Two of the five parameters below have no published value anywhere in
+            England and Wales. They are marked. The tool works because an
+            unsourceable parameter still has a range, and some targets turn out to be
+            unreachable across the whole of it.
+          </p>
+        </div>
+
+        <div class="model__body">
+          <div class="controls">
+            <div class="target">
+              <label for="p-target">
+                Prison places you want out of court resolution to remove
+              </label>
+              <output id="out-target" class="figure" for="p-target">
+                {n0(DEFAULTS.target)}<span class="unit">place-years, each year</span>
+              </output>
+              <input
+                type="range"
+                id="p-target"
+                min="100"
+                max="10000"
+                step="100"
+                value={DEFAULTS.target}
+              />
+            </div>
+
+            {
+              PARAMETERS.map((parameter) => (
+                <div class="param">
+                  <div class="param__row">
+                    <label for={`p-${parameter.id}`}>{parameter.label}</label>
+                    <span class="param__value figure" id={`v-${parameter.id}`}>
+                      {parameter.display}
+                    </span>
+                  </div>
+                  <p class="param__note">
+                    <span class={parameter.unsourced ? "badge badge--unsourced" : "badge"}>
+                      {parameter.badge}
+                    </span>
+                    <span>{parameter.note}</span>
+                  </p>
+                  <input
+                    type="range"
+                    id={`p-${parameter.id}`}
+                    min={parameter.min}
+                    max={parameter.max}
+                    step={parameter.step}
+                    value={parameter.value}
+                  />
+                </div>
+              ))
+            }
+
+            <button class="reset" id="reset" type="button">Reset to defaults</button>
+          </div>
+
+          <div class="results" aria-live="polite">
+            <div class="result">
+              <p class="result__label">
+                Additional out of court resolutions required, every year
+              </p>
+              <p class="result__value figure" id="out-n">{n0(start.n)}</p>
+              <p class="result__caption" id="out-n-cap">
+                To remove {n0(DEFAULTS.target)} places on these assumptions, sustained
+                year on year.
+              </p>
+            </div>
+
+            <div class="check" id="chk1">
+              <span class="check__mark" aria-hidden="true">1</span>
+              <p class="check__text">
+                That is <b class="modelled" id="k-pct">{n0(start.uplift)}%</b> on top of
+                the <b>226,300</b> out of court resolutions issued in the year to
+                December 2025.
+              </p>
+            </div>
+            <div class="check" id="chk2">
+              <span class="check__mark" aria-hidden="true">2</span>
+              <p class="check__text">
+                It requires <b class="modelled" id="k-cust">{n0(start.custodyCases)}</b>
+                cases a year that would have received immediate custody to be resolved
+                out of court instead, which is
+                <b class="modelled" id="k-custpct">{n0(start.custodyShare, 1)}%</b> of every
+                immediate custodial sentence passed in England and Wales.
+              </p>
+            </div>
+            <div class="check" id="chk3">
+              <span class="check__mark" aria-hidden="true">3</span>
+              <p class="check__text">
+                The target represents
+                <b class="modelled" id="k-poppct">{n0(start.populationShare, 1)}%</b> of the
+                prison population, against a projected central path that adds roughly
+                <b>{n0(MEASURED.projectedRise)}</b> determinate places by 2029.
+              </p>
+            </div>
+            <div class="check" id="chk4">
+              <span class="check__mark" aria-hidden="true">4</span>
+              <p class="check__text">
+                Of the places removed, <b class="modelled" id="k-split">{n0(start.immediateShare)}%</b>
+                come from the displaced sentence and the remainder from averted
+                reoffending, which is the only channel with any causal evidence behind
+                it.
+              </p>
+            </div>
+
+            <p class="verdict" id="verdict">
+              <strong>This target requires out of court resolution volume to more than
+                double.</strong> Total volume has been broadly flat since 2019, at
+              209,217 resolutions then and 226,318 in 2025, with the change in
+              composition rather than quantity.
+            </p>
+
+            <h3>On the same assumptions, what the existing volume buys</h3>
+            <div class="check">
+              <span class="check__mark" aria-hidden="true">&rarr;</span>
+              <p class="check__text">
+                All <b>226,300</b> out of court resolutions issued in the year to
+                December 2025 account for
+                <b class="modelled" id="k-current">{n0(start.currentPlaces)}</b> places, or
+                <b class="modelled" id="k-currentpct">
+                  {n0((start.currentPlaces / MEASURED.population) * 100, 1)}%
+                </b> of the prison population. Section 05 sets out why that is not
+                turned into a money figure.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>How the arithmetic works</h3>
+      <p class="prose">
+        Places removed per additional diverted case equal the immediate effect, that
+        is the counterfactual custody share multiplied by time served, plus the
+        downstream effect, that is the reoffending reduction multiplied by the
+        custody rate for averted reoffences multiplied by time served on them. The
+        number of cases needed is the target divided by that per-case figure. Every
+        quantity is stated in place-years per year, so a result of 1,000 means 1,000
+        fewer occupied places at any given moment, sustained.
+      </p>
+    </section>
+
+    <section id="evidence" aria-labelledby="h-evidence">
+      <p class="secnum">04 / The evidence that does exist</p>
+      <h2 id="h-evidence">The downstream channel</h2>
+      <p class="lede">
+        Two quasi-experimental studies come closest to the question. Both are from
+        the United States, both find substantial benefits from diversion, and
+        neither supports a prison places claim as usually stated. The second finding
+        in each card is the one that tends to be left out.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <h3>Felony diversion and the second chance</h3>
+          <p class="card__where">Harris County, Texas. Mueller-Smith and Schnepel, 2021</p>
+          <p>
+            A regression discontinuity on first-time felony defendants, using a 1994
+            penal code reform and a 2007 failed jail expansion ballot as two natural
+            experiments, with a ten year follow-up.
+          </p>
+          <p class="card__finding">
+            Diversion cut the probability of any future conviction by around 45%, cut
+            total future convictions by around 75%, and raised quarterly employment by
+            around 49%.
+          </p>
+          <p class="card__counter">
+            On custody it found no significant difference in time served in the initial
+            follow-up, and in the second sample only temporal displacement, with no
+            cumulative difference after four months.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Non-prosecution of minor offences</h3>
+          <p class="card__where">
+            Suffolk County, Massachusetts. Agan, Doleac and Harvey, 2023
+          </p>
+          <p>
+            Sixty-seven thousand nonviolent misdemeanour cases, identified through the
+            as-if random assignment of cases to prosecutors of differing leniency, over
+            a two year window.
+          </p>
+          <p class="card__finding">
+            For the marginal defendant, non-prosecution produced a 29 percentage point
+            fall in the likelihood of a new criminal complaint, a reduction of 53%, and
+            1.7 fewer complaints.
+          </p>
+          <p class="card__counter">
+            The outcome measured is subsequent contact with the system, not prison
+            places. The jurisdiction, the offence definitions and the prosecutorial
+            structure are not those of England and Wales.
+          </p>
+        </div>
+        <div class="card">
+          <h3>What the domestic evaluations measured</h3>
+          <p class="card__where">England and Wales, 2018 to 2024</p>
+          <p>
+            The Checkpoint randomised controlled trial, Operation Turning Point, the
+            two-tier pilot evaluations and the Ministry of Justice reoffending analyses
+            all examine reoffending, process and cost at the point of resolution.
+          </p>
+          <p class="card__finding">
+            A conditional caution saves around 33 minutes of officer time against a
+            charge, roughly 6%. The saving comes from resolving without arrest, not
+            from the conditions attached.
+          </p>
+          <p class="card__counter">
+            None of them measured prison demand. The Ministry of Justice appraised out
+            of court reform once under Green Book rules and returned a ten year net
+            present value of minus £109.19 million in 2019/20 prices.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="method" aria-labelledby="h-method">
+      <p class="secnum">05 / Method and limits</p>
+      <h2 id="h-method">What this page is not</h2>
+
+      <div class="gaps">
+        <h3>Three parameters the public evidence base does not contain</h3>
+        <ul>
+          <li>
+            The unit cost of a caution, a community resolution or a magistrates' court
+            case. The most recent published court unit costs are National Audit Office
+            figures in 2015/16 prices, and the Ministry of Justice states in both 2026
+            Courts and Tribunals Bill impact assessments that per-case costs for HMCTS,
+            the Crown Prosecution Service and legal aid are not disclosed.
+          </li>
+          <li>
+            The counterfactual disposal for cases resolved out of court. Forces do not
+            systematically record cases assessed and refused, with coded reasons, which
+            is the module that would let anyone estimate selection.
+          </li>
+          <li>
+            A causal estimate of the reoffending difference between out of court
+            resolution and prosecution for comparable cases in England and Wales.
+          </li>
+        </ul>
+      </div>
+
+      <p class="prose">
+        A closing note on money. A prison place cost £39,454 in direct resource terms
+        and £59,026 overall in 2024-25 prices. Neither figure is cash-realisable at
+        the margin: staffing, maintenance and estate costs fall in steps, and the
+        saving is only banked at the scale of closing an establishment. A page of
+        this kind could easily carry a ticking savings counter. It would be the
+        weakest thing on it, so there is not one.
+      </p>
+
+      <div class="sources">
+        <h3>Sources</h3>
+        <ol>
+          {SOURCES.map((source) => <li set:html={source} />)}
+        </ol>
+      </div>
+
+      <p class="prose colophon">
+        Built for the De Montfort University out of court disposals review. Figures
+        update weekly from published Ministry of Justice transparency data; the model
+        is a reasoning aid and produces no forecast. Comments and corrections are
+        welcome, particularly on the three parameters above.
+      </p>
+    </section>
+  </article>
+
+  <script>
+    /**
+     * Progressive enhancement, in two parts.
+     *
+     * The capacity panel and the calculator are both already correct in the
+     * markup: the panel carries whatever the ingest had produced at build time,
+     * or the seed figures, and the calculator carries the result for the default
+     * parameters, computed by the same arithmetic on the server. This script
+     * refreshes the panel against the live file and recomputes the calculator
+     * when a slider moves. With scripting off the page is static and honest
+     * rather than empty.
+     */
+    interface CapacityRecord {
+      as_at: string | null;
+      population: number | null;
+      useable_operational_capacity: number | null;
+      headroom: number | null;
+      headroom_derived?: boolean;
+      source_title: string | null;
+      source_url: string | null;
+      fetched_at?: string | null;
+      parser_status: "ok" | "needs_review" | "seed";
+    }
+
+    const fmt = (value: number, dp = 0) =>
+      value.toLocaleString("en-GB", {
+        minimumFractionDigits: dp,
+        maximumFractionDigits: dp,
+      });
+
+    const byId = (id: string) => document.getElementById(id);
+    const setText = (id: string, text: string) => {
+      const node = byId(id);
+      if (node) node.textContent = text;
+    };
+
+    /* ---------- the capacity panel ---------- */
+
+    function renderCapacity(record: CapacityRecord) {
+      const population = record.population;
+      const capacity = record.useable_operational_capacity;
+      const headroom =
+        record.headroom ?? (population !== null && capacity !== null ? capacity - population : null);
+
+      setText("c-pop", population === null ? "not published" : fmt(population));
+      setText("c-cap", capacity === null ? "not published" : fmt(capacity));
+      setText("c-head", headroom === null ? "not published" : fmt(headroom));
+
+      const when = record.as_at
+        ? new Date(`${record.as_at}T00:00:00Z`).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "UTC",
+          })
+        : "date not stated";
+      setText("c-pop-sub", `At ${when}`);
+      setText(
+        "c-head-sub",
+        record.headroom_derived
+          ? "Capacity less population. Derived here from two figures of different dates, so it is not itself a published statistic."
+          : "Capacity less population, as published"
+      );
+
+      if (population !== null && capacity !== null && capacity > 0) {
+        const occupancy = population / capacity;
+        // Keep the capacity line on screen if the estate ever exceeds it.
+        const scale = Math.max(1, occupancy);
+        const fill = byId("c-fill");
+        const line = byId("c-line");
+        if (fill) fill.style.width = `${((occupancy / scale) * 100).toFixed(2)}%`;
+        if (line) line.style.left = `${((1 / scale) * 100).toFixed(2)}%`;
+        setText("c-occ", `Occupancy ${fmt(occupancy * 100, 1)}%`);
+      }
+
+      const badge = byId("c-badge");
+      const source = byId("c-source");
+      if (!badge || !source) return;
+
+      if (record.parser_status === "ok") {
+        badge.textContent = "Weekly ingest";
+        const link = record.source_url
+          ? `<a href="${record.source_url}">${record.source_title ?? "the weekly bulletin"}</a>`
+          : (record.source_title ?? "the weekly bulletin");
+        const fetched = record.fetched_at
+          ? `, fetched ${new Date(record.fetched_at).toLocaleString("en-GB")}`
+          : "";
+        source.innerHTML = `Read from ${link}${fetched}.`;
+      } else if (record.parser_status === "needs_review") {
+        badge.textContent = "Ingest needs review";
+        source.textContent =
+          "The weekly file was downloaded but its layout did not match the expected labels, so the last verified figures are shown instead.";
+      } else {
+        badge.textContent = "Seed figures";
+      }
+    }
+
+    // A failure leaves the server rendered figures in place. They are the last
+    // thing known to be right, which beats dashes or a thrown error.
+    fetch("/data/prison-capacity.json", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error(String(response.status));
+        return response.json();
+      })
+      .then((record: CapacityRecord) => renderCapacity(record))
+      .catch(() => {});
+
+    /* ---------- the reverse-solve calculator ---------- */
+
+    const MEASURED = {
+      oocr: 226300,
+      custodySentences: 88100,
+      population: 85858,
+    };
+    const DEFAULTS: Record<string, number> = {
+      target: 1000,
+      c: 2,
+      t: 2,
+      dr: 5,
+      c2: 10,
+      t2: 2,
+    };
+    const IDS = ["target", "c", "t", "dr", "c2", "t2"];
+
+    const inputs = new Map<string, HTMLInputElement>();
+    for (const id of IDS) {
+      const node = byId(`p-${id}`);
+      if (node instanceof HTMLInputElement) inputs.set(id, node);
+    }
+
+    function value(id: string): number {
+      return Number(inputs.get(id)?.value ?? DEFAULTS[id]);
+    }
+
+    function compute() {
+      const target = value("target");
+      const c = value("c") / 100;
+      const t = value("t") / 12;
+      const dr = value("dr") / 100;
+      const c2 = value("c2") / 100;
+      const t2 = value("t2") / 12;
+
+      const immediate = c * t;
+      const downstream = dr * c2 * t2;
+      const perCase = immediate + downstream;
+
+      const targetOut = byId("out-target");
+      if (targetOut) {
+        targetOut.innerHTML = `${fmt(target)}<span class="unit">place-years, each year</span>`;
+      }
+      setText("v-c", `${fmt(value("c"), 1)}%`);
+      setText("v-t", `${fmt(value("t"), 1)} months`);
+      setText("v-dr", `${fmt(value("dr"), 1)} pp`);
+      setText("v-c2", `${fmt(value("c2"), 1)}%`);
+      setText("v-t2", `${fmt(value("t2"), 1)} months`);
+
+      const verdict = byId("verdict");
+
+      // Both channels off is a real state of the model, not an error. It has an
+      // answer, and the answer is that no volume of diversion removes a place.
+      if (perCase <= 0) {
+        setText("out-n", "no finite answer");
+        setText(
+          "out-n-cap",
+          "With both channels set to zero, no volume of diversion removes any places at all."
+        );
+        for (const id of [
+          "k-pct",
+          "k-cust",
+          "k-custpct",
+          "k-poppct",
+          "k-split",
+          "k-current",
+          "k-currentpct",
+        ]) {
+          setText(id, "not defined");
+        }
+        byId("chk1")?.classList.remove("check--impossible");
+        byId("chk2")?.classList.remove("check--impossible");
+        if (verdict) {
+          verdict.innerHTML =
+            "<strong>Both channels are switched off.</strong> Raise the counterfactual " +
+            "custody share or the reoffending reduction to give the model something to " +
+            "work with.";
+        }
+        return;
+      }
+
+      const n = target / perCase;
+      const uplift = (n / MEASURED.oocr) * 100;
+      const custodyCases = n * c;
+      const custodyShare = (custodyCases / MEASURED.custodySentences) * 100;
+      const populationShare = (target / MEASURED.population) * 100;
+      const immediateShare = (immediate / perCase) * 100;
+      const currentPlaces = MEASURED.oocr * perCase;
+
+      setText("out-n", fmt(n));
+      setText(
+        "out-n-cap",
+        `To remove ${fmt(target)} places on these assumptions, sustained year on year.`
+      );
+      setText("k-pct", `${fmt(uplift, uplift >= 100 ? 0 : 1)}%`);
+      setText("k-cust", fmt(custodyCases));
+      setText("k-custpct", `${fmt(custodyShare, 1)}%`);
+      setText("k-poppct", `${fmt(populationShare, 1)}%`);
+      setText("k-split", `${fmt(immediateShare)}%`);
+      setText("k-current", fmt(currentPlaces));
+      setText("k-currentpct", `${fmt((currentPlaces / MEASURED.population) * 100, 1)}%`);
+
+      byId("chk1")?.classList.toggle("check--impossible", uplift > 100);
+      byId("chk2")?.classList.toggle("check--impossible", custodyShare > 100);
+
+      let message: string;
+      if (custodyShare > 100) {
+        message =
+          "<strong>This target cannot be reached at any volume.</strong> It requires " +
+          "more cases with a custodial counterfactual than there are immediate " +
+          "custodial sentences passed in England and Wales in a year, before any " +
+          "question of whether those cases would pass a gravity matrix.";
+      } else if (custodyShare > 10) {
+        message =
+          "<strong>The binding assumption is the counterfactual, not the volume.</strong> " +
+          `You are assuming ${fmt(custodyShare, 1)}% of all immediate custodial ` +
+          "sentences could instead have been resolved by the police out of court. The " +
+          "gravity matrix and the admission requirement both work against that.";
+      } else if (uplift > 100) {
+        message =
+          "<strong>This target requires out of court resolution volume to more than " +
+          "double.</strong> Total volume has been broadly flat since 2019, at 209,217 " +
+          "resolutions then and 226,318 in 2025, with the change in composition rather " +
+          "than quantity.";
+      } else if (immediateShare < 40) {
+        message =
+          "<strong>Most of this target now comes from the downstream channel.</strong> " +
+          "That is the channel with causal evidence behind it, from Harris County and " +
+          "Suffolk County, and it is also the one where the strongest study found no " +
+          "reduction in time served. Treat the result as an upper bound.";
+      } else {
+        message =
+          "<strong>Within reach on these parameters, and worth stating what that " +
+          "costs.</strong> The result holds only if the two unsourced parameters are " +
+          "close to the values you have set, and neither has a published estimate to " +
+          "check them against.";
+      }
+      if (verdict) verdict.innerHTML = message;
+    }
+
+    for (const input of inputs.values()) {
+      input.addEventListener("input", compute);
+    }
+    byId("reset")?.addEventListener("click", () => {
+      for (const [id, input] of inputs) input.value = String(DEFAULTS[id]);
+      compute();
+    });
+  </script>
+</Layout>
+
+<style>
+  .capacity-page {
+    --gap: 1.35rem;
+  }
+
+  .cap-mast {
+    padding-top: 0.5rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 1rem;
+  }
+
+  h1 {
+    font-family: var(--font-text);
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.5em;
+    max-width: 18ch;
+  }
+
+  .standfirst {
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    color: var(--ink-2);
+    max-width: 58ch;
+    margin: 0 0 2.4rem;
+  }
+
+  /* The epistemic key. It is the first thing on the page because every figure
+     below is read through it. */
+  .key {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .key > div {
+    padding: 0.95rem 1.1rem;
+    border-right: 1px solid var(--rule);
+  }
+
+  .key > div:last-child {
+    border-right: 0;
+  }
+
+  .key b {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+
+  .key__modelled b {
+    color: var(--modelled-text);
+  }
+
+  .key span {
+    display: block;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.45rem;
+    border-radius: 1px;
+    vertical-align: baseline;
+  }
+
+  .swatch--ink { background: var(--ink-1); }
+  .swatch--modelled { background: var(--modelled); }
+  .swatch--oocd { background: var(--route-oocd); }
+  .swatch--court { background: var(--route-court); }
+  .swatch--total { background: var(--ink-2); }
+
+  section {
+    margin-bottom: 4.5rem;
+    scroll-margin-top: 1rem;
+  }
+
+  .secnum {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.85rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h2 {
+    font-family: var(--font-text);
+    font-size: clamp(1.4rem, 2.4vw, 1.95rem);
+    line-height: 1.15;
+    margin: 0 0 0.4em;
+  }
+
+  h3 {
+    font-family: var(--font-text);
+    font-size: 1.08rem;
+    margin: 2rem 0 0.6rem;
+  }
+
+  .lede {
+    font-size: 1rem;
+    color: var(--ink-2);
+    max-width: 64ch;
+    margin: 0 0 1.8rem;
+  }
+
+  .prose {
+    font-size: 0.94rem;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+
+  .after-table {
+    font-size: 0.94rem;
+    color: var(--ink-2);
+    max-width: 68ch;
+    margin-top: 1.2rem;
+  }
+
+  /* Every figure on this page is tabular, so a column of them reads as a
+     column and a figure that changes under a slider does not reflow. */
+  .figure {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- the capacity panel ---------- */
+
+  .panel {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+  }
+
+  .panel__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .stat {
+    padding: 1.2rem 1.3rem;
+    border-right: 1px solid var(--rule);
+  }
+
+  .stat:last-child { border-right: 0; }
+
+  .stat__label {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.5rem;
+  }
+
+  .stat__value {
+    font-size: clamp(1.7rem, 3.6vw, 2.4rem);
+    line-height: 1;
+    margin: 0;
+    color: var(--ink-1);
+  }
+
+  .stat__note {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    line-height: 1.45;
+    margin: 0.5rem 0 0;
+  }
+
+  .panel__gauge { padding: 1.3rem; }
+
+  .gauge {
+    position: relative;
+    height: 2.5rem;
+    background: var(--surface-3);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .gauge__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--route-court);
+  }
+
+  .gauge__line {
+    position: absolute;
+    top: -0.3rem;
+    bottom: -0.3rem;
+    width: 2px;
+    background: var(--ink-1);
+  }
+
+  .gauge__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin: 0.7rem 0 0;
+    font-size: 0.79rem;
+    color: var(--ink-2);
+  }
+
+  .gauge__legend i {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.4rem;
+    border-radius: 1px;
+  }
+
+  .panel__provenance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: baseline;
+    border-top: 1px solid var(--rule);
+    padding: 0.8rem 1.3rem;
+    margin: 0;
+    font-size: 0.79rem;
+    color: var(--ink-3);
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    padding: 0.15rem 0.4rem;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  /* An unsourced parameter is marked in the modelled colour, because the value
+     in the box beside it is the reader's guess and nothing else. */
+  .badge--unsourced {
+    border-color: var(--modelled-rule);
+    background: var(--modelled-wash);
+    color: var(--modelled-text);
+  }
+
+  /* ---------- the cascade ---------- */
+
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+  }
+
+  .cascade-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin: 0;
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.79rem;
+    color: var(--ink-2);
+  }
+
+  .cascade-legend i {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.4rem;
+    border-radius: 1px;
+  }
+
+  table.cascade {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 41rem;
+  }
+
+  table.cascade caption {
+    text-align: left;
+    padding: 1rem 1.2rem 0.3rem;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    max-width: 74ch;
+  }
+
+  table.cascade th,
+  table.cascade td {
+    padding: 0.75rem 1.2rem;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  table.cascade thead th {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  table.cascade tbody tr:last-child td,
+  table.cascade tbody tr:last-child th { border-bottom: 0; }
+
+  .cascade__stage {
+    font-weight: 600;
+    max-width: 26rem;
+  }
+
+  .cascade__stage small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    line-height: 1.45;
+    margin-top: 0.2rem;
+  }
+
+  td.figure { white-space: nowrap; font-size: 0.98rem; }
+
+  .cascade__barcol { width: 34%; min-width: 12rem; }
+
+  .bar {
+    display: block;
+    height: 0.7rem;
+    background: var(--surface-3);
+    border: 1px solid var(--rule);
+    border-radius: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar__fill { position: absolute; inset: 0 auto 0 0; display: block; }
+  .bar__fill--oocd { background: var(--route-oocd); }
+  .bar__fill--court { background: var(--route-court); }
+  .bar__fill--total { background: var(--ink-2); }
+
+  /* Colour is never the only channel: every bar states its own share. */
+  .bar__label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-2);
+    margin-top: 0.3rem;
+  }
+
+  /* ---------- the calculator ---------- */
+
+  .model {
+    border: 1px solid var(--modelled-rule);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+  }
+
+  .model__head {
+    padding: 1.1rem 1.3rem;
+    border-bottom: 1px solid var(--modelled-rule);
+    background: var(--modelled-wash);
+  }
+
+  .model__head p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    max-width: 76ch;
+  }
+
+  .model__head strong { color: var(--modelled-text); }
+
+  .model__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+
+  @media (max-width: 60rem) {
+    .model__body { grid-template-columns: 1fr; }
+  }
+
+  .controls {
+    padding: 1.3rem;
+    border-right: 1px solid var(--rule);
+  }
+
+  @media (max-width: 60rem) {
+    .controls { border-right: 0; border-bottom: 1px solid var(--rule); }
+  }
+
+  .target {
+    padding-bottom: 1.1rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .target label,
+  .param label {
+    display: block;
+  }
+
+  .target label {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.6rem;
+  }
+
+  .target output {
+    display: block;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    line-height: 1;
+    margin-bottom: 0.8rem;
+    color: var(--ink-1);
+  }
+
+  .unit {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    letter-spacing: 0;
+    margin-left: 0.5rem;
+  }
+
+  .param { padding: 0.8rem 0; border-bottom: 1px solid var(--rule); }
+  .param:last-of-type { border-bottom: 0; }
+
+  .param__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .param__row label { font-size: 0.88rem; font-weight: 500; line-height: 1.4; }
+
+  /* The parameter's own value is the reader's setting, so it is modelled. */
+  .param__value { font-size: 0.92rem; white-space: nowrap; color: var(--modelled-text); }
+
+  .param__note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.76rem;
+    color: var(--ink-3);
+    line-height: 1.5;
+    margin: 0.4rem 0 0.55rem;
+  }
+
+  .param__note > span:last-child { flex: 1 1 14rem; }
+
+  input[type="range"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  input[type="range"]:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 5px;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: var(--rule-strong);
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 3px;
+    background: var(--rule-strong);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: -0.53rem;
+    background: var(--modelled);
+    border: 2px solid var(--surface-1);
+    border-radius: 50%;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 1.15rem;
+    height: 1.15rem;
+    background: var(--modelled);
+    border: 2px solid var(--surface-1);
+    border-radius: 50%;
+  }
+
+  .results { padding: 1.3rem; background: var(--surface-inset); }
+
+  .result {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .result__label {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.5rem;
+  }
+
+  /* The headline result is modelled, and is the largest modelled thing on the
+     page. That is deliberate: it is the number a reader will take away. */
+  .result__value {
+    font-size: clamp(1.9rem, 4.4vw, 2.8rem);
+    line-height: 1;
+    margin: 0;
+    color: var(--modelled-text);
+  }
+
+  .result__caption {
+    font-size: 0.86rem;
+    color: var(--ink-2);
+    margin: 0.55rem 0 0;
+    max-width: 46ch;
+  }
+
+  .check {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .check:last-of-type { border-bottom: 0; }
+
+  .check__mark {
+    flex: 0 0 auto;
+    width: 1.4em;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--ink-3);
+  }
+
+  .check--impossible .check__mark { color: var(--modelled-text); }
+
+  .check__text {
+    margin: 0;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .check__text b {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    color: var(--ink-1);
+  }
+
+  .check__text b.modelled { color: var(--modelled-text); }
+
+  .verdict {
+    margin: 1.1rem 0 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--modelled-rule);
+    border-radius: var(--radius);
+    background: var(--modelled-wash);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink-1);
+  }
+
+  .verdict strong { color: var(--modelled-text); }
+
+  .reset {
+    margin-top: 1rem;
+    background: transparent;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
+  }
+
+  .reset:hover { border-color: var(--modelled); color: var(--modelled-text); }
+  .reset:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* ---------- evidence ---------- */
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card {
+    padding: 1.2rem 1.3rem;
+    border-right: 1px solid var(--rule);
+    background: var(--surface-1);
+  }
+
+  .card:last-child { border-right: 0; }
+
+  @media (max-width: 52rem) {
+    .card { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .card:last-child { border-bottom: 0; }
+  }
+
+  .card h3 { margin: 0 0 0.2rem; font-size: 1rem; }
+
+  .card__where {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.8rem;
+  }
+
+  .card p { font-size: 0.87rem; color: var(--ink-2); margin: 0 0 0.8em; }
+
+  .card p.card__finding {
+    border-left: 2px solid var(--route-court);
+    padding-left: 0.7rem;
+    color: var(--ink-1);
+  }
+
+  /* The counter-finding is the one that tends to be left out, so it is marked
+     rather than buried. It is not modelled, so it is not in the rust colour. */
+  .card p.card__counter {
+    border-left: 2px solid var(--rule-strong);
+    padding-left: 0.7rem;
+    color: var(--ink-1);
+    margin-bottom: 0;
+  }
+
+  /* ---------- method ---------- */
+
+  .gaps {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .gaps h3 { margin-top: 0; }
+  .gaps ul { margin: 0; padding-left: 1.2em; }
+  .gaps li { font-size: 0.88rem; color: var(--ink-2); margin-bottom: 0.45em; }
+
+  .sources { border-top: 1px solid var(--rule-strong); margin-top: 2rem; padding-top: 1.2rem; }
+  .sources ol { padding-left: 1.3em; max-width: 76ch; }
+  .sources li { font-size: 0.86rem; color: var(--ink-2); margin-bottom: 0.6em; line-height: 1.55; }
+
+  .colophon { margin-top: 1.8rem; color: var(--ink-3); font-size: 0.86rem; }
+
+  @media print {
+    input[type="range"],
+    .reset { display: none; }
+
+    section { break-inside: avoid; }
+    .panel, .model, .cards, .gaps { break-inside: avoid; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>

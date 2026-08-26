@@ -29,5 +29,18 @@
   Cache-Control: public, max-age=3600
   Access-Control-Allow-Origin: *
 
+# The weekly prison figures, read by /capacity at runtime.
+#
+# This has to come after the /data/*.json rule above, because both match and
+# the last matching rule sets the value. The derived out of court tables change
+# quarterly and an hour of edge cache is right for them. This file changes
+# every Tuesday morning, and an hour of cache after a successful ingest is an
+# hour of the panel showing last week's figure under this week's date.
+#
+# Only Cache-Control is restated. Content-Type and the CORS header come from
+# the rule above, so there is no chance of either being set twice.
+/data/prison-capacity.json
+  Cache-Control: public, max-age=300, must-revalidate
+
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
