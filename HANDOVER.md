@@ -140,7 +140,7 @@ and year is named in the validation report and on the force's own page.
 
 **Greater Manchester 2019/20 is missing data with no marker.** The force could
 not supply data from July 2019 after a records system change, and those
-quarters simply carry almost nothing. Disposals fall from 8,376 to 2,107 and
+quarters simply carry almost nothing. Resolutions fall from 8,376 to 2,107 and
 recover to 7,435. Nothing in the file signals it. It has its own annotation
 because anyone reading that chart without one concludes the opposite of the
 truth.

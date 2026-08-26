@@ -118,7 +118,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
 
 <Layout
   title="Compare forces"
-  description="A sortable, filterable table of out of court resolution measures for all 44 forces, with the measure, financial year, count basis, fraud treatment and disposal subset under your control."
+  description="A sortable, filterable table of out of court resolution measures for all 44 forces, with the measure, financial year, count basis, fraud treatment and resolution subset under your control."
   wide
 >
   <TexturePatterns />
@@ -184,7 +184,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
 
     <div class="control" style="grid-column: 1 / -1">
       <fieldset>
-        <legend>Disposal types counted</legend>
+        <legend>Resolution types counted</legend>
         <div class="checks">
           {DISPOSAL_SERIES.map((series) => (
             <label>
@@ -203,7 +203,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
   <p class="no-js-note" id="controls-note">
     With JavaScript turned off the controls do nothing and the table below shows the
     default view: {measureMeta.label.toLowerCase()}, {latestYear},
-    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six disposal types. The
+    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six resolution types. The
     <a href="/data">data page</a> has the same figures as CSV.
   </p>
 
@@ -486,7 +486,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           const subset =
             types.length === 6
               ? ""
-              : ` Counting ${types.length} of the six disposal types.`;
+              : ` Counting ${types.length} of the six resolution types.`;
           summary.textContent = `${meta.label}, ${year}. ${meta.question}${subset}${excluded}`;
         }
 

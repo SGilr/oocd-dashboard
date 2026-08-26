@@ -216,7 +216,7 @@ suspect identified, which is largely a function of offence mix.
 crime in the force area, multiplied by a thousand. Volume normalised for force
 size.
 
-When a subset of the six disposal types is selected, the numerator narrows and
+When a subset of the six resolution types is selected, the numerator narrows and
 the denominator does not. The share for each type therefore adds up to the share
 for all six together. Narrowing the denominator with the numerator would make
 every subset look larger than it is.
@@ -273,7 +273,7 @@ and in full here. The numbering is stable across the site.
 This section is the point of the dashboard as much as the charts are.
 
 **Nothing about conditions.** There is no national record of what condition was
-attached to a disposal. A conditional caution with a rehabilitative requirement
+attached to a resolution. A conditional caution with a rehabilitative requirement
 and one with no requirement at all are the same row in this data.
 
 **Nothing about engagement or completion.** There is no national record of
@@ -287,15 +287,15 @@ code, nothing about the person's history, and nothing about the reasoning behind
 the decision. Two forces with the same share may be making very different
 decisions on very similar cases, and this data cannot separate those.
 
-**Not every disposal reaches the Police National Computer.** Recording practice
-varies, and informal disposals in particular are not reliably held on the Police
-National Computer. A disposal counted here may leave no trace in the record that
+**Not every resolution reaches the Police National Computer.** Recording practice
+varies, and informal resolutions in particular are not reliably held on the Police
+National Computer. A resolution counted here may leave no trace in the record that
 a later decision maker sees.
 
 **No published outcome measure per force.** Ministry of Justice proven
 reoffending statistics are built from court disposals and cautions, and exclude
 the out of court resolutions that are not cautions. There is therefore no published
-reoffending measure that covers the disposals shown here, and no way to attach an
+reoffending measure that covers the resolutions shown here, and no way to attach an
 effectiveness figure to a force from published data.
 
 **Recorded crime is not crime.** The denominator for the rate measure is
@@ -305,7 +305,7 @@ happening in the world.
 
 **Comparison across the series is comparison across changing definitions.**
 Offence codes are added and retired. Outcome 22 changed from voluntary to
-compulsory recording. Some forces have withdrawn disposal types by policy. Each
+compulsory recording. Some forces have withdrawn resolution types by policy. Each
 of these is noted above, and each of them means a line on a chart can move for
 reasons that have nothing to do with decision making.
 

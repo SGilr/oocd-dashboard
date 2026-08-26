@@ -108,7 +108,7 @@ ESSENTIAL_TYPES: tuple[int, ...] = (1, 2, 3, 6, 7, 8, 22)
 
 # The six out of court resolution types. Outcome 4, taken into consideration, is
 # deliberately absent: it is an admission recorded alongside a prosecution, not
-# a disposal made instead of one.
+# a resolution made instead of one.
 OOCD_TYPES: tuple[int, ...] = (2, 3, 6, 7, 8, 22)
 
 # The comparator: the case went to court.

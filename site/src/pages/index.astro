@@ -132,7 +132,7 @@ const trendPlot = renderPlot(
   }
 );
 
-// --- Disposal mix over time ----------------------------------------------
+// --- Resolution mix over time ----------------------------------------------
 const mix = nationalQuarter.rows.flatMap((row) =>
   DISPOSAL_SERIES.map((series) => ({
     date: quarterDate(row.fy, row.q as number),
@@ -208,7 +208,7 @@ const mixTableRows = financialYears.map((fy) => {
     It shows volume, share, mix and change over time. It says nothing about whether
     those decisions were right, consistent, proportionate or effective, because no
     published national dataset supports that claim. There is no record of what
-    condition was attached to a disposal, whether the person engaged with it, or
+    condition was attached to a resolution, whether the person engaged with it, or
     whether they completed it. The
     <a href="/methodology#what-this-dashboard-cannot-tell-you">methodology page sets out what this data cannot tell you</a>,
     and that section is worth reading before the charts.
@@ -264,9 +264,9 @@ const mixTableRows = financialYears.map((fy) => {
     title="The mix of out of court resolutions"
     subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
     plot={mixPlot}
-    description="Each band is one disposal type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
+    description="Each band is one resolution type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
     legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
-    legendTitle="Disposal type"
+    legendTitle="Resolution type"
     annotationIds={["outcome-22-recording-change", "published-corrections-are-negative"]}
     table={{
       caption: `National out of court resolutions by type and financial year, ${firstYear} to ${latestYear}`,
@@ -298,14 +298,14 @@ const mixTableRows = financialYears.map((fy) => {
     Outcome 22 is the type to treat with most care. It was available for voluntary
     recording from April 2019 and compulsory from April 2021, so any comparison across
     forces before {OUTCOME_22_COMPULSORY_FROM} is comparing forces that recorded it
-    with forces that did not. Some forces also restrict which disposals they use as a
+    with forces that did not. Some forces also restrict which resolutions they use as a
     matter of policy, which shows up as a fall in a series without any change in what
     officers are doing.
   </p>
 
   <h2>Forces</h2>
   <p>
-    There is a page for each of the {forces.length} forces, showing its disposal mix,
+    There is a page for each of the {forces.length} forces, showing its resolution mix,
     its trend against the national distribution and the notes that apply to it.
   </p>
   <ul class="force-index">

@@ -103,7 +103,7 @@ export function compute(id: MeasureId, row: CountRow, options: MeasureOptions): 
     return (oocd / recordedCrime) * 1000;
   }
 
-  // The denominator is fixed and does not follow the disposal subset control.
+  // The denominator is fixed and does not follow the resolution subset control.
   // Positive outcomes are charge or summons plus all six out of court types,
   // whichever types are selected, so the shares for the six types add up to the
   // share for all six together. Narrowing the denominator with the numerator

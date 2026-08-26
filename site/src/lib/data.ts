@@ -113,7 +113,7 @@ export function value(row: CountRow, basis: Basis, variant: FraudVariant, name: 
   return (row[column(basis, variant, name)] as number) ?? 0;
 }
 
-/** Sum the selected disposal types, so the disposal subset control works. */
+/** Sum the selected resolution types, so the resolution subset control works. */
 export function oocdSum(
   row: CountRow,
   basis: Basis,

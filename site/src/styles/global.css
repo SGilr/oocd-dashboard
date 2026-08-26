@@ -43,7 +43,7 @@
   --scroll-shadow: rgba(20, 19, 15, 0.16);
   --band-fill: rgba(31, 78, 121, 0.16);
 
-  /* Categorical palette for the six disposal types, plus the charge
+  /* Categorical palette for the six resolution types, plus the charge
      comparator. Validated for colour vision deficiency separation, chroma and
      lightness band against this surface. Texture carries the same identity in
      greyscale, see TexturePatterns.astro. */
@@ -69,7 +69,7 @@
   --modelled-rule: rgba(180, 68, 27, 0.32);
 
   /* The two routes through the system, for the demand cascade. These are
-     deliberately not drawn from the disposal type palette above: --series-8 is
+     deliberately not drawn from the resolution type palette above: --series-8 is
      community resolution, so reusing it for the prosecution route would make
      one hue mean diversion on four pages and prosecution on a fifth. */
   --route-oocd: #12906a;

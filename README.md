@@ -16,7 +16,7 @@ change over time, force by force.
 
 It is not an assessment of whether those decisions were right, consistent,
 proportionate or effective. No published national dataset supports that claim.
-There is no national record of what condition was attached to a disposal, whether
+There is no national record of what condition was attached to a resolution, whether
 the person engaged with it or whether they completed it, and Ministry of Justice
 proven reoffending statistics exclude the out of court resolutions that are not
 cautions, so there is no published outcome measure per force.
@@ -74,7 +74,7 @@ footnote marker on every chart it touches and in full on the methodology page.
 
 1. Outcome 22 was recorded voluntarily from April 2019 and became compulsory from
    April 2021. Charts shade the period before 2021/22.
-2. Some forces restrict which disposals they use as a matter of policy, so a fall
+2. Some forces restrict which resolutions they use as a matter of policy, so a fall
    in a series can be a policy decision rather than a change in behaviour.
 3. Fraud recorded centrally by Action Fraud, Cifas and Financial Fraud UK is
    attributed to force areas and distorts offence mix. Every measure has an
