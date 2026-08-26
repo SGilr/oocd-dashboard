@@ -46,7 +46,7 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: west-yorkshire-restricted-disposals
     scope:
@@ -70,7 +70,7 @@ annotations:
       Office of the Police and Crime Commissioner for West Yorkshire (2024)
       Out of court disposals. Wakefield: West Yorkshire Police and Crime
       Commissioner.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: centrally-recorded-fraud
     scope: national
@@ -100,7 +100,7 @@ annotations:
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
       London: Home Office. Section 1.1 and Table 1.1,
       note 1.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: btp-no-resident-population
     scope:
@@ -137,7 +137,7 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: caution-types-not-separable
     scope: national
@@ -161,7 +161,7 @@ annotations:
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026,
       Table 1.1, grouping the outcomes framework from April 2013 onwards.
       London: Home Office.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: not-yet-assigned-excluded
     scope: national
@@ -181,7 +181,7 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: out-of-court-framework-reform
     scope: national
@@ -203,7 +203,7 @@ annotations:
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
       London: Home Office. Section 1.6, future changes to
       the outcomes framework.
-    source_url_verified: null
+    source_url_verified: true
 
   - id: bulletin-force-coverage-varies
     scope: national
@@ -224,4 +224,4 @@ annotations:
     source_citation: >-
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
       London: Home Office. Notes to tables 1.2, 3.1 and 3.2.
-    source_url_verified: null
+    source_url_verified: true

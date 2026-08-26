@@ -442,13 +442,18 @@ def _write_back_verification(document: dict) -> None:
 def _resolve_annotation_urls(document: dict, report: Report) -> None:
     """Resolve every annotation source URL and write the result back.
 
-    Three outcomes, and the difference between the last two matters. A URL that
-    answers is true. A URL that answers with an error status is false, and fails
-    the build, because the source has moved or gone. A URL that cannot be
-    reached at all, because the network is blocked or down, stays unknown: it
-    must not be recorded as false, or a run from a machine without access would
-    silently condemn every source.
+    Only evidence that a page is gone marks a source false. Everything else
+    that is not a clean answer stays unknown, because a check that cannot tell
+    "this source has moved" from "something refused me" is worse than no check.
+
+      2xx or 3xx            true, the source is there
+      404 or 410            false, the source has gone, and the build fails
+      403, 429, 5xx         unknown, we were refused or the server faltered.
+                            Many public sites answer 403 to a script and 200 to
+                            a browser, so this needs a person to look.
+      no response at all    unknown, the network is blocked or down
     """
+    GONE = {404, 410}
     import requests
 
     session = requests.Session()
@@ -464,7 +469,6 @@ def _resolve_annotation_urls(document: dict, report: Report) -> None:
             response = session.head(url, allow_redirects=True, timeout=30)
             if response.status_code >= 400:
                 response = session.get(url, timeout=30, stream=True)
-            resolved = response.status_code < 400
             status = response.status_code
         except Exception as error:  # noqa: BLE001
             unreachable += 1
@@ -477,17 +481,28 @@ def _resolve_annotation_urls(document: dict, report: Report) -> None:
             )
             continue
 
-        annotation["source_url_verified"] = resolved
-        if resolved:
+        if status < 400:
+            annotation["source_url_verified"] = True
             report.note(
                 "annotation_urls", f"{annotation['id']}: resolved, {status}. {url}"
             )
-        else:
+        elif status in GONE:
+            annotation["source_url_verified"] = False
             report.fail(
                 "annotation_urls",
-                f"{annotation['id']}: the source URL returned {status}. Find the "
-                "correct source rather than substituting another.",
+                f"{annotation['id']}: the source URL returned {status}, so the "
+                "source has gone. Find the correct source rather than "
+                "substituting another.",
                 source_url=url,
+            )
+        else:
+            unreachable += 1
+            annotation["source_url_verified"] = None
+            report.flag(
+                "annotation_urls",
+                f"{annotation['id']}: the source URL returned {status}, which is "
+                "a refusal or a server fault rather than proof the page has "
+                f"gone. Open it in a browser and confirm it loads. {url}",
             )
 
     _write_back_verification(document)
