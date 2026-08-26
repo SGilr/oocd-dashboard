@@ -6,7 +6,9 @@
     "build": "astro build",
     "dev": "node scripts/stage-data.mjs && astro dev",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "a11y": "node scripts/a11y.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
