@@ -463,7 +463,13 @@ def _read_outcome_rows(
         offence_subgroup = cell(row, "offence_subgroup")
         fraud = is_fraud_group(offence_group, offence_subgroup)
 
-        aggregator.outcome_type_years[outcome_type].add(financial_year)
+        if any(counts.values()):
+            # A row exists for every outcome type in every year, because the
+            # published tables are a dense cross product. Recording the year
+            # only when a count is present makes "first appears in" mean
+            # something: outcome 22 has rows from the start and counts only
+            # from the year it was introduced.
+            aggregator.outcome_type_years[outcome_type].add(financial_year)
 
         if outcome_type == NOT_ASSIGNED_TYPE:
             # Outcome type 0 counts offences that have not been given an outcome
