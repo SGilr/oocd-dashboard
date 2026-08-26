@@ -1,0 +1,486 @@
+---
+import Layout from "../components/Layout.astro";
+import TexturePatterns from "../components/TexturePatterns.astro";
+import { DISPOSAL_SERIES } from "../lib/palette";
+import {
+  BASIS_LABELS,
+  NO_DENOMINATOR_FORCES,
+  OOCD_TYPES,
+  defaultBasis,
+  denominators,
+  financialYears,
+  forceYear,
+  forces,
+  latestYear,
+  value,
+} from "../lib/data";
+import { DEFAULT_MEASURE, MEASURES, compute, formatMeasure } from "../lib/measures";
+import { annotationNumber, annotations, forForce } from "../lib/annotations";
+
+const basis = defaultBasis;
+const variant = "all" as const;
+const measure = DEFAULT_MEASURE;
+
+const COLUMNS = ["t1", "t2", "t3", "t6", "t7", "t8", "t22", "positive", "assigned"] as const;
+const BASES = ["closed", "recorded"] as const;
+const VARIANTS = ["all", "ex_fraud"] as const;
+
+const rowIndex = new Map(
+  forceYear.rows.map((row) => [`${row.slug}|${row.fy}`, row])
+);
+const crimeIndex = new Map(
+  denominators.rows.map((row) => [`${row.slug}|${row.fy}`, row.recorded_crime])
+);
+
+// One compact payload, embedded in the page. The controls recompute from it in
+// the browser. Nothing is fetched: the page carries everything it needs.
+const payload = {
+  years: financialYears,
+  cols: COLUMNS,
+  bases: BASES,
+  variants: VARIANTS,
+  defaults: { measure, basis, variant, year: latestYear, types: OOCD_TYPES },
+  forces: forces.map((force) => ({
+    name: force.name,
+    slug: force.slug,
+    noDenominator: NO_DENOMINATOR_FORCES.has(force.name),
+    notes: forForce(force.name).map((annotation) => annotationNumber.get(annotation.id)),
+  })),
+  data: forces.map((force) =>
+    financialYears.map((fy) => {
+      const row = rowIndex.get(`${force.slug}|${fy}`);
+      return BASES.map((b) =>
+        VARIANTS.map((v) => COLUMNS.map((name) => (row ? value(row, b, v, name) : 0)))
+      );
+    })
+  ),
+  crime: forces.map((force) =>
+    financialYears.map((fy) => crimeIndex.get(`${force.slug}|${fy}`) ?? 0)
+  ),
+};
+
+/** Server rendered default view: the measure, year and basis the site opens on. */
+function seriesFor(slug: string) {
+  return financialYears.map((fy) => {
+    const row = rowIndex.get(`${slug}|${fy}`);
+    if (!row) return 0;
+    return compute(measure, row, {
+      basis,
+      variant,
+      recordedCrime: crimeIndex.get(`${slug}|${fy}`) ?? null,
+    }) ?? 0;
+  });
+}
+
+function sparkPath(values: number[]): string {
+  const width = 88;
+  const height = 24;
+  const max = Math.max(...values, 0.0001);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
+  return values
+    .map((v, index) => {
+      const x = (index / Math.max(values.length - 1, 1)) * width;
+      const y = height - ((v - min) / span) * (height - 4) - 2;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+const initialRows = forces
+  .map((force) => {
+    const row = rowIndex.get(`${force.slug}|${latestYear}`);
+    const crime = crimeIndex.get(`${force.slug}|${latestYear}`) ?? null;
+    const measureValue = row
+      ? compute(measure, row, { basis, variant, recordedCrime: crime, force: force.name })
+      : null;
+    const series = seriesFor(force.slug);
+    return {
+      ...force,
+      measureValue,
+      display: formatMeasure(measure, measureValue),
+      oocd: row ? OOCD_TYPES.reduce((total, type) => total + value(row, basis, variant, `t${type}`), 0) : 0,
+      positive: row ? value(row, basis, variant, "positive") : 0,
+      assigned: row ? value(row, basis, variant, "assigned") : 0,
+      spark: sparkPath(series),
+      notes: forForce(force.name).map((annotation) => annotationNumber.get(annotation.id)!),
+    };
+  })
+  .sort((a, b) => {
+    if (a.measureValue === null) return 1;
+    if (b.measureValue === null) return -1;
+    return b.measureValue - a.measureValue;
+  });
+
+const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
+---
+
+<Layout
+  title="Compare forces"
+  description="A sortable, filterable table of out of court disposal measures for all 44 forces, with the measure, financial year, count basis, fraud treatment and disposal subset under your control."
+  wide
+>
+  <TexturePatterns />
+
+  <h1>Compare forces</h1>
+
+  <p class="lede">
+    Every force, on one measure at a time. The measure on screen is always named,
+    and the notes that apply to a force are shown beside it. There is no composite
+    score and no overall league position on this site, because the data does not
+    support one.
+  </p>
+
+  <p>
+    Ranking here means rank within the measure you have selected, in the year you
+    have selected, on the count basis you have selected. Change any of those and the
+    order changes. A force near the top is not doing better or worse than a force
+    near the bottom, and the
+    <a href="/methodology#what-this-dashboard-cannot-tell-you">limits of what this data can tell you</a>
+    apply to every row.
+  </p>
+
+  <form class="controls" id="compare-controls" aria-label="Table controls">
+    <div class="control">
+      <label for="measure">Measure</label>
+      <select id="measure" name="measure">
+        {MEASURES.map((entry) => (
+          <option value={entry.id} selected={entry.id === measure}>{entry.label}</option>
+        ))}
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="year">Financial year</label>
+      <select id="year" name="year">
+        {[...financialYears].reverse().map((fy) => (
+          <option value={fy} selected={fy === latestYear}>{fy}</option>
+        ))}
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="basis">Count basis</label>
+      <select id="basis" name="basis">
+        {BASES.map((b) => (
+          <option value={b} selected={b === basis}>{BASIS_LABELS[b]}</option>
+        ))}
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="fraud">Fraud offences</label>
+      <select id="fraud" name="fraud">
+        <option value="all" selected>Included</option>
+        <option value="ex_fraud">Excluded</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label for="search">Find a force</label>
+      <input id="search" name="search" type="search" placeholder="Type a force name" autocomplete="off" />
+    </div>
+
+    <div class="control" style="grid-column: 1 / -1">
+      <fieldset>
+        <legend>Disposal types counted</legend>
+        <div class="checks">
+          {DISPOSAL_SERIES.map((series) => (
+            <label>
+              <input type="checkbox" name="type" value={series.type} checked />
+              <svg class="legend__swatch" viewBox="0 0 20 14" aria-hidden="true" focusable="false" style="width:1rem;height:0.75rem">
+                <rect width="20" height="14" fill={`url(#tex-${series.type})`} />
+              </svg>
+              {series.short}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  </form>
+
+  <p class="no-js-note" id="controls-note">
+    With JavaScript turned off the controls do nothing and the table below shows the
+    default view: {measureMeta.label.toLowerCase()}, {latestYear},
+    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six disposal types. The
+    <a href="/data">data page</a> has the same figures as CSV.
+  </p>
+
+  <p id="table-summary" class="small" aria-live="polite">
+    {measureMeta.label}, {latestYear}. {measureMeta.question}
+  </p>
+
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Forces ranked within the selected measure">
+    <table id="compare-table">
+      <caption id="table-caption">
+        All {forces.length} forces, ranked by {measureMeta.label.toLowerCase()} in {latestYear},
+        on the basis {BASIS_LABELS[basis].toLowerCase()}, fraud included.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col" class="rank">Rank</th>
+          <th scope="col">Force</th>
+          <th scope="col">Notes</th>
+          <th scope="col" class="numeric" id="measure-heading">{measureMeta.short}</th>
+          <th scope="col">Trend, {financialYears[0]} to {latestYear}</th>
+          <th scope="col" class="numeric">Out of court disposals</th>
+          <th scope="col" class="numeric">Positive outcomes</th>
+          <th scope="col" class="numeric">All assigned outcomes</th>
+        </tr>
+      </thead>
+      <tbody id="compare-body">
+        {initialRows.map((row, index) => (
+          <tr data-slug={row.slug}>
+            <td class="rank">{row.measureValue === null ? "" : index + 1}</td>
+            <th scope="row"><a href={`/force/${row.slug}`}>{row.name}</a></th>
+            <td>
+              {row.notes.map((note) => (
+                <a class="marker" href={`/methodology#annotation-${annotations[note - 1].id}`}>
+                  <span class="visually-hidden">Note </span>{note}
+                </a>
+              ))}
+            </td>
+            <td class="numeric">{row.display}</td>
+            <td>
+              <svg class="sparkline" viewBox="0 0 88 24" aria-hidden="true" focusable="false" preserveAspectRatio="none">
+                <path d={row.spark} fill="none" stroke="var(--series-national)" stroke-width="1.5" />
+              </svg>
+              <span class="visually-hidden">
+                Trend from {financialYears[0]} to {latestYear} is shown in the force page.
+              </span>
+            </td>
+            <td class="numeric">{row.oocd.toLocaleString("en-GB")}</td>
+            <td class="numeric">{row.positive.toLocaleString("en-GB")}</td>
+            <td class="numeric">{row.assigned.toLocaleString("en-GB")}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Notes on this table</h2>
+  <ol class="small">
+    {annotations.map((annotation, index) => (
+      <li style="max-width:none">
+        <a href={`/methodology#annotation-${annotation.id}`}>{annotation.label}</a>.
+        {" "}
+        {annotation.scope === "national"
+          ? "Applies to every force."
+          : `Applies to ${(annotation.scope as string[]).join(", ")}.`}
+      </li>
+    ))}
+  </ol>
+
+  <script type="application/json" id="compare-data" set:html={JSON.stringify(payload)} is:inline></script>
+
+  <script>
+    // Progressive enhancement. The table above is already correct for the
+    // default view; this recomputes it when a control changes. All the data is
+    // in the page, so nothing is fetched.
+    interface Payload {
+      years: string[];
+      cols: string[];
+      bases: string[];
+      variants: string[];
+      forces: { name: string; slug: string; noDenominator: boolean; notes: number[] }[];
+      data: number[][][][][];
+      crime: number[][];
+    }
+
+    const node = document.getElementById("compare-data");
+    const body = document.getElementById("compare-body");
+    const form = document.getElementById("compare-controls") as HTMLFormElement | null;
+    if (node && body && form) {
+      const payload = JSON.parse(node.textContent || "{}") as Payload;
+      const colIndex = new Map(payload.cols.map((name, index) => [name, index]));
+      const measureLabels: Record<string, { short: string; label: string; question: string; unit: string; needsDenominator: boolean }> = {
+        share_positive: {
+          short: "Share of positive outcomes",
+          label: "Share of positive outcomes",
+          question:
+            "Of the cases where somebody was held to account, by a charge or by an out of court disposal, how many were dealt with outside court?",
+          unit: "percentage",
+          needsDenominator: false,
+        },
+        share_assigned: {
+          short: "Share of all outcomes",
+          label: "Share of all assigned outcomes",
+          question:
+            "Of everything the force closed, including the cases where nobody was held to account, how much ran through an out of court route?",
+          unit: "percentage",
+          needsDenominator: false,
+        },
+        rate_per_1000_recorded_crime: {
+          short: "Per 1,000 recorded crimes",
+          label: "Rate per 1,000 recorded crimes",
+          question:
+            "How many out of court disposals does the force issue for every thousand crimes it records?",
+          unit: "rate",
+          needsDenominator: true,
+        },
+        volume: {
+          short: "Volume",
+          label: "Absolute volume",
+          question: "How many out of court disposals did the force issue?",
+          unit: "count",
+          needsDenominator: false,
+        },
+      };
+
+      const cell = (f: number, y: number, b: number, v: number, name: string) =>
+        payload.data[f][y][b][v][colIndex.get(name) as number];
+
+      function selectedTypes(): number[] {
+        return Array.from(form!.querySelectorAll<HTMLInputElement>('input[name="type"]:checked')).map(
+          (input) => Number(input.value)
+        );
+      }
+
+      function oocd(f: number, y: number, b: number, v: number, types: number[]): number {
+        let total = 0;
+        for (const type of types) total += cell(f, y, b, v, `t${type}`);
+        return total;
+      }
+
+      function compute(
+        id: string,
+        f: number,
+        y: number,
+        b: number,
+        v: number,
+        types: number[]
+      ): number | null {
+        const numerator = oocd(f, y, b, v, types);
+        if (id === "volume") return numerator;
+        if (id === "rate_per_1000_recorded_crime") {
+          if (payload.forces[f].noDenominator) return null;
+          const crime = payload.crime[f][y];
+          if (!crime) return null;
+          return (numerator / crime) * 1000;
+        }
+        const denominator = id === "share_positive" ? cell(f, y, b, v, "positive") : cell(f, y, b, v, "assigned");
+        if (!denominator) return null;
+        return (numerator / denominator) * 100;
+      }
+
+      function format(id: string, value: number | null): string {
+        if (value === null || Number.isNaN(value)) return "not available";
+        const unit = measureLabels[id].unit;
+        if (unit === "percentage") return `${value.toFixed(1)}%`;
+        if (unit === "rate") return value.toFixed(1);
+        return Math.round(value).toLocaleString("en-GB");
+      }
+
+      function sparkPath(values: (number | null)[]): string {
+        const clean = values.map((v) => (v === null ? 0 : v));
+        const width = 88;
+        const height = 24;
+        const max = Math.max(...clean, 0.0001);
+        const min = Math.min(...clean, 0);
+        const span = max - min || 1;
+        return clean
+          .map((v, index) => {
+            const x = (index / Math.max(clean.length - 1, 1)) * width;
+            const y = height - ((v - min) / span) * (height - 4) - 2;
+            return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+          })
+          .join(" ");
+      }
+
+      const annotationIds = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>("#compare-body .marker")
+      ).reduce((map, anchor) => {
+        map.set(anchor.textContent?.trim().replace(/^Note\s*/, "") ?? "", anchor.getAttribute("href") ?? "#");
+        return map;
+      }, new Map<string, string>());
+
+      function render() {
+        const data = new FormData(form!);
+        const id = String(data.get("measure"));
+        const year = String(data.get("year"));
+        const basis = String(data.get("basis"));
+        const fraud = String(data.get("fraud"));
+        const search = String(data.get("search") ?? "").trim().toLowerCase();
+        const types = selectedTypes();
+
+        const y = payload.years.indexOf(year);
+        const b = payload.bases.indexOf(basis);
+        const v = payload.variants.indexOf(fraud);
+        const meta = measureLabels[id];
+
+        const rows = payload.forces
+          .map((force, f) => ({
+            force,
+            f,
+            value: types.length ? compute(id, f, y, b, v, types) : null,
+            oocd: types.length ? oocd(f, y, b, v, types) : 0,
+            positive: cell(f, y, b, v, "positive"),
+            assigned: cell(f, y, b, v, "assigned"),
+            spark: sparkPath(payload.years.map((_, yi) => compute(id, f, yi, b, v, types))),
+          }))
+          .filter((row) => !search || row.force.name.toLowerCase().includes(search))
+          .sort((a, b2) => {
+            if (a.value === null && b2.value === null) return a.force.name.localeCompare(b2.force.name);
+            if (a.value === null) return 1;
+            if (b2.value === null) return -1;
+            return b2.value - a.value;
+          });
+
+        body!.replaceChildren(
+          ...rows.map((row, index) => {
+            const tr = document.createElement("tr");
+            tr.dataset.slug = row.force.slug;
+            const rank = row.value === null ? "" : String(index + 1);
+            tr.innerHTML =
+              `<td class="rank">${rank}</td>` +
+              `<th scope="row"><a href="/force/${row.force.slug}">${row.force.name}</a></th>` +
+              `<td>${row.force.notes
+                .map(
+                  (note) =>
+                    `<a class="marker" href="${annotationIds.get(String(note)) ?? "/methodology"}">` +
+                    `<span class="visually-hidden">Note </span>${note}</a>`
+                )
+                .join("")}</td>` +
+              `<td class="numeric">${format(id, row.value)}</td>` +
+              `<td><svg class="sparkline" viewBox="0 0 88 24" aria-hidden="true" focusable="false" preserveAspectRatio="none">` +
+              `<path d="${row.spark}" fill="none" stroke="var(--series-national)" stroke-width="1.5"/></svg></td>` +
+              `<td class="numeric">${row.oocd.toLocaleString("en-GB")}</td>` +
+              `<td class="numeric">${row.positive.toLocaleString("en-GB")}</td>` +
+              `<td class="numeric">${row.assigned.toLocaleString("en-GB")}</td>`;
+            return tr;
+          })
+        );
+
+        const heading = document.getElementById("measure-heading");
+        if (heading) heading.textContent = meta.short;
+
+        const summary = document.getElementById("table-summary");
+        if (summary) {
+          const excluded = meta.needsDenominator
+            ? " British Transport Police is excluded from this measure, because it has no resident population and a distinct offence profile."
+            : "";
+          const subset =
+            types.length === 6
+              ? ""
+              : ` Counting ${types.length} of the six disposal types.`;
+          summary.textContent = `${meta.label}, ${year}. ${meta.question}${subset}${excluded}`;
+        }
+
+        const caption = document.getElementById("table-caption");
+        if (caption) {
+          caption.textContent =
+            `${rows.length} force${rows.length === 1 ? "" : "s"}, ranked by ` +
+            `${meta.label.toLowerCase()} in ${year}, on the basis ` +
+            `${basis === "closed" ? "outcomes for investigations closed in the quarter" : "outcomes for offences recorded in the quarter"}, ` +
+            `fraud ${fraud === "all" ? "included" : "excluded"}.`;
+        }
+      }
+
+      form.addEventListener("input", render);
+      form.addEventListener("submit", (event) => event.preventDefault());
+
+      const note = document.getElementById("controls-note");
+      if (note) note.remove();
+    }
+  </script>
+</Layout>

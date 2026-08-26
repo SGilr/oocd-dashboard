@@ -1,0 +1,386 @@
+---
+import type { GetStaticPaths } from "astro";
+import Layout from "../../components/Layout.astro";
+import TexturePatterns from "../../components/TexturePatterns.astro";
+import Figure from "../../components/Figure.astro";
+import DataTable from "../../components/DataTable.astro";
+import { renderPlot, PLOT_BASE } from "../../lib/plot";
+import * as Plot from "@observablehq/plot";
+import { quantile } from "d3-array";
+import { DISPOSAL_SERIES } from "../../lib/palette";
+import {
+  BASIS_LABELS,
+  NO_DENOMINATOR_FORCES,
+  OOCD_TYPES,
+  defaultBasis,
+  denominators,
+  financialYears,
+  forceOffenceYear,
+  forceQuarter,
+  forceYear,
+  forces,
+  latestYear,
+  oocdSum,
+  quarterDate,
+  value,
+} from "../../lib/data";
+import { compute, formatMeasure } from "../../lib/measures";
+import { OUTCOME_22_COMPULSORY_FROM, annotationNumber, forForce } from "../../lib/annotations";
+
+export const getStaticPaths = (() =>
+  forces.map((force) => ({ params: { slug: force.slug }, props: { force } }))) satisfies GetStaticPaths;
+
+const { force } = Astro.props;
+const basis = defaultBasis;
+const variant = "all" as const;
+
+const crime = new Map(denominators.rows.map((row) => [`${row.slug}|${row.fy}`, row.recorded_crime]));
+
+const yearRows = financialYears
+  .map((fy) => forceYear.rows.find((row) => row.slug === force.slug && row.fy === fy))
+  .filter(Boolean) as (typeof forceYear.rows)[number][];
+
+const latestRow = yearRows.find((row) => row.fy === latestYear)!;
+const firstRow = yearRows[0];
+
+const latestShare = compute("share_positive", latestRow, { basis, variant });
+const firstShare = compute("share_positive", firstRow, { basis, variant });
+const latestVolume = oocdSum(latestRow, basis, variant);
+const latestRate = compute("rate_per_1000_recorded_crime", latestRow, {
+  basis,
+  variant,
+  recordedCrime: crime.get(`${force.slug}|${latestYear}`) ?? null,
+  force: force.name,
+});
+
+// --- The national distribution, so the force can be placed in it ----------
+const distribution = financialYears.map((fy) => {
+  const shares = forceYear.rows
+    .filter((row) => row.fy === fy)
+    .map((row) => compute("share_positive", row, { basis, variant }))
+    .filter((share): share is number => share !== null)
+    .sort((a, b) => a - b);
+  return {
+    fy,
+    year: Number(fy.slice(0, 4)),
+    q1: quantile(shares, 0.25) ?? 0,
+    median: quantile(shares, 0.5) ?? 0,
+    q3: quantile(shares, 0.75) ?? 0,
+  };
+});
+
+const forceSeries = financialYears.map((fy) => {
+  const row = yearRows.find((entry) => entry.fy === fy);
+  return {
+    fy,
+    year: Number(fy.slice(0, 4)),
+    share: row ? compute("share_positive", row, { basis, variant }) ?? 0 : 0,
+  };
+});
+
+const compulsoryYear = Number(OUTCOME_22_COMPULSORY_FROM.slice(0, 4));
+
+// Fit the axis to the data with headroom, rather than always drawing to 100 per
+// cent. A fixed ceiling flattens every force into the bottom third of the plot.
+const shareCeiling = Math.min(
+  100,
+  Math.max(
+    20,
+    Math.ceil(
+      Math.max(...distribution.map((point) => point.q3), ...forceSeries.map((point) => point.share)) / 10
+    ) * 10 + 10
+  )
+);
+
+const positionPlot = renderPlot(
+  {
+    ...PLOT_BASE,
+    width: 1120,
+    height: 340,
+    x: { label: null, tickFormat: (d: number) => `${d}/${(d + 1) % 100}`, ticks: financialYears.length },
+    y: { label: null, grid: true, tickFormat: (d: number) => `${d}%`, domain: [0, shareCeiling] },
+    marks: [
+      Plot.rect([{ x1: distribution[0].year - 0.5, x2: compulsoryYear - 0.5 }], {
+        x1: "x1",
+        x2: "x2",
+        y1: 0,
+        y2: shareCeiling,
+        fill: "var(--shade-band)",
+      }),
+      Plot.areaY(distribution, {
+        x: "year",
+        y1: "q1",
+        y2: "q3",
+        fill: "var(--band-fill)",
+        curve: "monotone-x",
+      }),
+      Plot.line(distribution, {
+        x: "year",
+        y: "median",
+        stroke: "var(--ink-3)",
+        strokeWidth: 1.75,
+        strokeDasharray: "5 3",
+        curve: "monotone-x",
+      }),
+      Plot.line(forceSeries, {
+        x: "year",
+        y: "share",
+        stroke: "var(--accent)",
+        strokeWidth: 2.5,
+        curve: "monotone-x",
+      }),
+      Plot.dot(forceSeries, {
+        x: "year",
+        y: "share",
+        r: 3.5,
+        fill: "var(--accent)",
+        stroke: "var(--surface-1)",
+        strokeWidth: 2,
+      }),
+      Plot.text([forceSeries[forceSeries.length - 1]], {
+        x: "year",
+        y: "share",
+        text: () => force.name,
+        dy: -14,
+        fill: "var(--ink-1)",
+        fontWeight: 600,
+        textAnchor: "end",
+      }),
+      Plot.ruleY([0], { stroke: "var(--rule-strong)" }),
+    ],
+  },
+  {
+    title: `${force.name} out of court share of positive outcomes against the national distribution`,
+    description:
+      "The shaded band is the interquartile range across all 44 forces, the dashed line is the national median, and the solid line is this force.",
+  }
+);
+
+// --- Disposal mix ---------------------------------------------------------
+const quarterRows = forceQuarter.rows.filter((row) => row.slug === force.slug);
+const mix = quarterRows.flatMap((row) =>
+  DISPOSAL_SERIES.map((series) => ({
+    date: quarterDate(row.fy, row.q as number),
+    type: series.type,
+    count: value(row, basis, variant, `t${series.type}`),
+  }))
+);
+const mixTotal = mix.reduce((total, point) => total + point.count, 0);
+
+const mixPlot = renderPlot(
+  {
+    ...PLOT_BASE,
+    width: 1120,
+    height: 320,
+    marginLeft: 64,
+    x: { type: "utc", label: null, ticks: 6 },
+    y: { label: null, grid: true, tickFormat: (d: number) => d.toLocaleString("en-GB") },
+    color: {
+      domain: DISPOSAL_SERIES.map((series) => series.type),
+      range: DISPOSAL_SERIES.map((series) => `url(#tex-${series.type})`),
+      legend: false,
+    },
+    marks: [
+      Plot.areaY(mix, {
+        x: "date",
+        y: "count",
+        z: "type",
+        fill: "type",
+        order: DISPOSAL_SERIES.map((series) => series.type),
+        stroke: "var(--surface-1)",
+        strokeWidth: 1,
+      }),
+      Plot.ruleY([0], { stroke: "var(--rule-strong)" }),
+    ],
+  },
+  {
+    title: `${force.name} out of court disposals by type and quarter`,
+    description: "A stacked area chart of the six disposal types.",
+  }
+);
+
+// --- Offence mix ----------------------------------------------------------
+const offenceRows = forceOffenceYear.rows
+  .filter((row) => row.slug === force.slug && row.fy === latestYear)
+  .map((row) => ({
+    group: row.offence_group,
+    oocd: basis === "closed" ? row.closed_oocd : row.recorded_oocd,
+    charge: basis === "closed" ? row.closed_charge : row.recorded_charge,
+  }))
+  .map((row) => ({
+    ...row,
+    share: row.oocd + row.charge > 0 ? (row.oocd / (row.oocd + row.charge)) * 100 : null,
+  }))
+  .sort((a, b) => b.oocd + b.charge - (a.oocd + a.charge));
+
+const notes = forForce(force.name);
+const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
+---
+
+<Layout
+  title={force.name}
+  description={`Out of court disposal volume, share, mix and trend for ${force.name}, from ${financialYears[0]} to ${latestYear}, with the caveats that apply to this force.`}
+  wide
+>
+  <TexturePatterns />
+
+  <p class="small"><a href="/compare">Back to the comparison table</a></p>
+  <h1>{force.name}</h1>
+
+  <p class="lede">
+    Out of court disposals from {financialYears[0]} to {latestYear}, on the count basis
+    {BASIS_LABELS[basis].toLowerCase()}, with fraud offences included and all six
+    disposal types counted.
+  </p>
+
+  <div class="tiles">
+    <div class="tile">
+      <p class="tile__label">Share of positive outcomes</p>
+      <p class="tile__value">{formatMeasure("share_positive", latestShare)}</p>
+      <p class="tile__note">
+        {latestYear}. The national figure is
+        {formatMeasure("share_positive", distribution[distribution.length - 1].median)} at the median.
+      </p>
+    </div>
+    <div class="tile">
+      <p class="tile__label">Out of court disposals</p>
+      <p class="tile__value">{latestVolume.toLocaleString("en-GB")}</p>
+      <p class="tile__note">{latestYear}, all six types.</p>
+    </div>
+    <div class="tile">
+      <p class="tile__label">Change since {financialYears[0]}</p>
+      <p class="tile__value">
+        {latestShare !== null && firstShare !== null
+          ? `${latestShare - firstShare >= 0 ? "+" : ""}${(latestShare - firstShare).toFixed(1)} pts`
+          : "not available"}
+      </p>
+      <p class="tile__note">Change in the share of positive outcomes.</p>
+    </div>
+    <div class="tile">
+      <p class="tile__label">Per 1,000 recorded crimes</p>
+      <p class="tile__value">
+        {noDenominator ? "n/a" : formatMeasure("rate_per_1000_recorded_crime", latestRate)}
+      </p>
+      <p class="tile__note">
+        {noDenominator
+          ? "Excluded from measures that normalise for force size, because the force polices the railway network rather than a resident population."
+          : `${latestYear}, against recorded crime in the force area.`}
+      </p>
+    </div>
+  </div>
+
+  {
+    notes.length > 0 && (
+      <div class="banner">
+        <strong>
+          {notes.length === 1
+            ? "One note applies to this force"
+            : `${notes.length} notes apply to this force`}
+        </strong>
+        <ol style="margin:0.35rem 0 0;padding-left:1.3rem">
+          {notes.map((annotation) => (
+            <li value={annotationNumber.get(annotation.id)} style="max-width:none">
+              <a href={`/methodology#annotation-${annotation.id}`}>{annotation.label}</a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )
+  }
+
+  <Figure
+    title={`Where ${force.name} sits in the national distribution`}
+    subtitle={`Out of court share of positive outcomes, ${financialYears[0]} to ${latestYear}.`}
+    plot={positionPlot}
+    description="The shaded band is the interquartile range across all 44 forces, so half of forces sit inside it in any year. The dashed line is the national median. The solid line is this force."
+    notes={[
+      "Position in the distribution is not a rank and not a judgement. A force above the band is not doing better or worse than one below it.",
+    ]}
+    annotationIds={notes.map((annotation) => annotation.id)}
+    table={{
+      caption: `${force.name} against the national distribution, out of court share of positive outcomes`,
+      columns: [
+        { key: "fy", label: "Financial year" },
+        { key: "force", label: force.name, numeric: true },
+        { key: "median", label: "National median", numeric: true },
+        { key: "q1", label: "Lower quartile", numeric: true },
+        { key: "q3", label: "Upper quartile", numeric: true },
+      ],
+      rows: distribution.map((point, index) => ({
+        fy: point.fy,
+        force: `${forceSeries[index].share.toFixed(1)}%`,
+        median: `${point.median.toFixed(1)}%`,
+        q1: `${point.q1.toFixed(1)}%`,
+        q3: `${point.q3.toFixed(1)}%`,
+      })),
+    }}
+  />
+
+  <Figure
+    title={`The mix of out of court disposals in ${force.name}`}
+    subtitle={`By quarter, ${financialYears[0]} to ${latestYear}.`}
+    plot={mixPlot}
+    description={
+      mixTotal === 0
+        ? "This force records no out of court disposals of any type in the period covered."
+        : "Each band is one disposal type, filled with both a colour and a texture so the six stay distinguishable in greyscale."
+    }
+    legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
+    legendTitle="Disposal type"
+    annotationIds={notes.map((annotation) => annotation.id)}
+    table={{
+      caption: `${force.name} out of court disposals by type and financial year`,
+      columns: [
+        { key: "fy", label: "Financial year" },
+        ...DISPOSAL_SERIES.map((series) => ({ key: `t${series.type}`, label: series.short, numeric: true })),
+        { key: "oocd", label: "All six types", numeric: true },
+        { key: "t1", label: "Charge or summons", numeric: true },
+      ],
+      rows: yearRows.map((row) => {
+        const record: Record<string, string | number> = { fy: row.fy as string };
+        for (const series of DISPOSAL_SERIES) {
+          record[`t${series.type}`] = value(row, basis, variant, `t${series.type}`).toLocaleString("en-GB");
+        }
+        record.oocd = oocdSum(row, basis, variant).toLocaleString("en-GB");
+        record.t1 = value(row, basis, variant, "t1").toLocaleString("en-GB");
+        return record;
+      }),
+    }}
+  />
+
+  <h2>Offence mix</h2>
+  <p>
+    The share of positive outcomes dealt with outside court, by offence group, in
+    {latestYear}. Forces record very different offence mixes, so part of any
+    difference between forces on the headline measure is a difference in what they
+    are dealing with rather than in how they deal with it.
+  </p>
+  <DataTable
+    caption={`${force.name} out of court and charge outcomes by offence group, ${latestYear}`}
+    columns={[
+      { key: "group", label: "Offence group" },
+      { key: "oocd", label: "Out of court disposals", numeric: true },
+      { key: "charge", label: "Charge or summons", numeric: true },
+      { key: "share", label: "Out of court share", numeric: true },
+    ]}
+    rows={offenceRows.map((row) => ({
+      group: row.group,
+      oocd: row.oocd.toLocaleString("en-GB"),
+      charge: row.charge.toLocaleString("en-GB"),
+      share: row.share === null ? "not available" : `${row.share.toFixed(1)}%`,
+    }))}
+  />
+
+  <h2>Other forces</h2>
+  <ul class="force-index">
+    {forces.map((entry) => (
+      <li>
+        {entry.slug === force.slug ? (
+          <strong>{entry.name}</strong>
+        ) : (
+          <a href={`/force/${entry.slug}`}>{entry.name}</a>
+        )}
+      </li>
+    ))}
+  </ul>
+</Layout>

@@ -1,0 +1,33 @@
+# Cloudflare Pages headers.
+#
+# The site is static, self contained and loads nothing from another origin: no
+# third party fonts, no analytics library, no trackers. The Content Security
+# Policy below says so, and will break the build's own pages if that ever stops
+# being true, which is the point.
+#
+# Cloudflare Web Analytics, if it is enabled on the project, is injected by
+# Cloudflare at the edge from static.cloudflareinsights.com and reports to
+# cloudflareinsights.com. Both are named below. It sets no cookies. Remove those
+# two entries if analytics is turned off.
+
+/*
+  Content-Security-Policy: default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; font-src 'self'; manifest-src 'self'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), usb=(), xr-spatial-tracking=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Frame-Options: DENY
+
+/data/*.csv
+  Content-Type: text/csv; charset=utf-8
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
+/data/*.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

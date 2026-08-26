@@ -1,0 +1,220 @@
+---
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import Layout from "../components/Layout.astro";
+import DataTable from "../components/DataTable.astro";
+import { buildInfo, coverage, financialYears, manifest } from "../lib/data";
+
+/**
+ * Everything the site is built from, downloadable, with checksums. Anyone who
+ * disagrees with a figure can take the same files and check it.
+ */
+const DESCRIPTIONS: Record<string, string> = {
+  "force_year.csv": "Counts by force and financial year, both count bases, with and without fraud.",
+  "force_year.json": "The same table as JSON, used by the site build.",
+  "force_quarter.csv": "Counts by force, financial year and quarter, both count bases.",
+  "force_quarter.json": "The same table as JSON.",
+  "national_year.csv": "Counts for all 44 forces combined, by financial year.",
+  "national_year.json": "The same table as JSON.",
+  "national_quarter.csv": "Counts for all 44 forces combined, by quarter.",
+  "national_quarter.json": "The same table as JSON.",
+  "force_offence_year.csv":
+    "Out of court and charge counts by force, financial year and offence group, so mix can be controlled for offence type.",
+  "force_offence_year.json": "The same table as JSON.",
+  "denominators.csv": "Recorded crime per force per financial year, used for the rate measure.",
+  "denominators.json": "The same table as JSON, with a note on why population is absent.",
+  "coverage.json": "What the extract read: row counts, outcome type coverage, unmatched force names, the extract log.",
+  "manifest.json": "Every source file, with its resolved URL, retrieval timestamp, size and SHA256.",
+  "validation-report.json": "The result of every validation check for this build.",
+  "build-info.json": "Provenance, build timestamp and the checksums shown on this page.",
+};
+
+function bytes(size: number): string {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(0)} kB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+const downloads = buildInfo.downloads
+  .slice()
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((file) => ({
+    name: file.name,
+    description: DESCRIPTIONS[file.name] ?? "",
+    size: bytes(file.bytes),
+    sha256: file.sha256,
+  }));
+
+const sourceFiles = ((manifest.files ?? []) as any[]).map((file) => ({
+  filename: file.filename,
+  year: file.financial_year ?? "",
+  kind: file.kind,
+  retrieved: (file.retrieved_at ?? "").replace("T", " ").replace("+00:00", " UTC"),
+  sha256: file.sha256,
+  url: file.url,
+}));
+
+let report: any = null;
+try {
+  report = JSON.parse(readFileSync(join(process.cwd(), "public", "data", "validation-report.json"), "utf8"));
+} catch {
+  report = null;
+}
+---
+
+<Layout
+  title="Data"
+  description="Every derived table as CSV and JSON, the source manifest with checksums, the validation report and the licence terms."
+  wide
+>
+  <h1>Data</h1>
+
+  <p class="lede">
+    Every figure on this site comes from the files below. They are published so
+    that anyone can reproduce the charts or challenge them. Nothing is shown on a
+    page that is not in one of these tables.
+  </p>
+
+  <h2>Derived tables</h2>
+  <p>
+    Both count bases and both fraud treatments are carried in every table, in
+    columns named <code>basis_variant_measure</code>, for example
+    <code>closed_all_oocd</code> or <code>recorded_ex_fraud_t22</code>. Counts are
+    integers. Percentages are not stored, they are computed at render time, so the
+    rounding happens in one place and you can do it differently.
+  </p>
+
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Derived tables available for download">
+    <table>
+      <caption>
+        {downloads.length} files, provenance {buildInfo.provenance}, built {buildInfo.builtAt}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">File</th>
+          <th scope="col">What it holds</th>
+          <th scope="col" class="numeric">Size</th>
+          <th scope="col">SHA256</th>
+        </tr>
+      </thead>
+      <tbody>
+        {downloads.map((file) => (
+          <tr>
+            <th scope="row"><a href={`/data/${file.name}`} download>{file.name}</a></th>
+            <td style="white-space:normal;min-width:22rem">{file.description}</td>
+            <td class="numeric">{file.size}</td>
+            <td><code style="font-size:0.75rem">{file.sha256.slice(0, 16)}…</code></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Source manifest</h2>
+  <p>
+    The raw Home Office files are not committed to the repository. They are
+    rebuilt from this manifest, and the checksums confirm that a rebuild produced
+    the same bytes. Every derived figure traces back to one of these files.
+  </p>
+
+  {
+    sourceFiles.length === 0 ? (
+      <p>No source files are recorded in the manifest for this build.</p>
+    ) : (
+      <DataTable
+        caption={`${sourceFiles.length} source files recorded in the manifest`}
+        columns={[
+          { key: "filename", label: "File" },
+          { key: "year", label: "Financial year" },
+          { key: "kind", label: "Series" },
+          { key: "retrieved", label: "Retrieved" },
+          { key: "sha256", label: "SHA256" },
+        ]}
+        rows={sourceFiles.map((file) => ({
+          filename: file.filename,
+          year: file.year,
+          kind: file.kind,
+          retrieved: file.retrieved,
+          sha256: file.sha256.slice(0, 16) + "…",
+        }))}
+      />
+    )
+  }
+
+  <h2>Validation report</h2>
+  {
+    report ? (
+      <>
+        <p>
+          The last run {report.passed ? "passed" : "failed"}, with {report.failures.length}{" "}
+          failures and {report.flags.length} items flagged for a person to review, on{" "}
+          {report.generated_at}. The build stops on a failure, so a published site has
+          none.
+        </p>
+        <p>
+          <a href="/data/validation-report.json" download>Download the full report</a>. It
+          covers {Object.keys(report.row_counts ?? {}).length} derived tables,{" "}
+          {report.forces} forces and {(report.financial_years ?? []).length} financial
+          years.
+        </p>
+        {report.flags.length > 0 && (
+          <>
+            <h3>Flagged for review</h3>
+            <ul class="small">
+              {report.flags.map((flag: any) => (
+                <li style="max-width:none">{flag.detail}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        {report.failures.length > 0 && (
+          <>
+            <h3>Failures</h3>
+            <ul class="small">
+              {report.failures.map((failure: any) => (
+                <li style="max-width:none">{failure.detail}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </>
+    ) : (
+      <p>No validation report was available when this site was built.</p>
+    )
+  }
+
+  <h2>Coverage</h2>
+  <p>
+    The extract read {Number(coverage.rows_read ?? 0).toLocaleString("en-GB")} source
+    rows across {financialYears.length} financial years and used{" "}
+    {Number(coverage.rows_used ?? 0).toLocaleString("en-GB")} of them. Rows attributed
+    to central fraud reporting bodies rather than to a police force were dropped:{" "}
+    {Number(coverage.central_fraud_body_rows_dropped ?? 0).toLocaleString("en-GB")}.
+    Rows carrying an expired offence code:{" "}
+    {Number(coverage.expired_offence_code_rows ?? 0).toLocaleString("en-GB")}.
+    <a href="/data/coverage.json" download>Download the coverage file</a>.
+  </p>
+
+  <h2>Licence and citation</h2>
+  <p>
+    The derived tables are Crown copyright, reused under the
+    <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">
+      Open Government Licence v3.0</a
+    >. Any reuse must carry this statement:
+  </p>
+  <blockquote>
+    Contains public sector information licensed under the Open Government Licence
+    v3.0. Source: Home Office, police recorded crime and outcomes open data tables.
+  </blockquote>
+  <p>
+    The code that produced them is MIT licensed. The Home Office has not reviewed,
+    approved or endorsed this dashboard or any measure on it. Errors in the derived
+    tables are the responsibility of Oxon Advisory.
+  </p>
+  <p>To cite the dashboard itself:</p>
+  <blockquote>
+    Oxon Advisory ({buildInfo.builtAt.slice(0, 4)}) <em>Out of court disposals dashboard</em>.
+    Built {buildInfo.builtAt.slice(0, 10)}. Derived from Home Office police recorded
+    crime and outcomes open data tables.
+  </blockquote>
+</Layout>

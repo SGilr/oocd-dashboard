@@ -1,0 +1,204 @@
+---
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { marked } from "marked";
+import Layout from "../components/Layout.astro";
+import { OUTCOME_SHORT_LABELS, buildInfo, coverage, financialYears, manifest } from "../lib/data";
+import { OOCD_TYPES } from "../lib/data";
+import { annotations, annotationNumber, annotationsLastReviewed, annotationVersion } from "../lib/annotations";
+
+/**
+ * The methodology page renders from docs/METHODOLOGY.md, so there is one
+ * canonical text and the page cannot drift from it. The generated sections are
+ * injected at build time from the manifest, from etl/annotations.yml and from
+ * the validation report, so the figures quoted here are the figures that were
+ * built.
+ */
+const source = readFileSync(join(process.cwd(), "..", "docs", "METHODOLOGY.md"), "utf8");
+
+const outcomeTypeTable = [
+  "| Outcome type | Description | Treated as |",
+  "| --- | --- | --- |",
+  ...[1, 2, 3, 4, 6, 7, 8, 22].map((type) => {
+    const role =
+      type === 1
+        ? "Charge comparator, and part of positive outcomes"
+        : (OOCD_TYPES as readonly number[]).includes(type)
+          ? "Out of court disposal, and part of positive outcomes"
+          : "Excluded from out of court disposals and from positive outcomes";
+    return `| ${type} | ${OUTCOME_SHORT_LABELS[type] ?? ""} | ${role} |`;
+  }),
+].join("\n");
+
+const files = (manifest.files ?? []) as { filename: string; url: string | null; retrieved_at: string; sha256: string }[];
+const retrieved = files.map((file) => file.retrieved_at).sort();
+
+const manifestBlock = [
+  `**Extraction.** ${files.length} source files, covering ${financialYears.length} financial years from ${financialYears[0]} to ${financialYears[financialYears.length - 1]}.`,
+  retrieved.length
+    ? `They were retrieved between ${retrieved[0]} and ${retrieved[retrieved.length - 1]}.`
+    : "",
+  `Manifest generated ${buildInfo.manifestGeneratedAt ?? "not recorded"}. Site built ${buildInfo.builtAt}.`,
+  `Data provenance recorded in the manifest: \`${buildInfo.provenance}\`.`,
+  buildInfo.isFixture
+    ? "\n> This build was made from synthetic fixture data. The figures on every page are invented and must not be cited."
+    : "",
+  `\nThe extract read ${Number(coverage.rows_read ?? 0).toLocaleString("en-GB")} source rows and used ${Number(coverage.rows_used ?? 0).toLocaleString("en-GB")} of them. Rows attributed to central fraud reporting bodies rather than to a police force: ${Number(coverage.central_fraud_body_rows_dropped ?? 0).toLocaleString("en-GB")}. Rows carrying an expired offence code: ${Number(coverage.expired_offence_code_rows ?? 0).toLocaleString("en-GB")}.`,
+].filter(Boolean).join(" ");
+
+const annotationBlocks = annotations
+  .map((annotation) => {
+    const number = annotationNumber.get(annotation.id);
+    const scope =
+      annotation.scope === "national"
+        ? "Applies to every force"
+        : `Applies to ${(annotation.scope as string[]).join(", ")}`;
+    const years =
+      annotation.financial_years === "all"
+        ? "all financial years"
+        : (annotation.financial_years as string[]).join(", ");
+    const verified =
+      annotation.source_url_verified === true
+        ? "Source URL checked and resolving."
+        : annotation.source_url_verified === false
+          ? "**The source URL did not resolve when it was last checked.**"
+          : "**The source URL has not yet been checked.** Run `python etl/validate.py --check-urls` from somewhere with network access to the sources.";
+    return [
+      `<h3 id="annotation-${annotation.id}">${number}. ${annotation.label}</h3>`,
+      "",
+      `*${scope}, ${years}.*`,
+      "",
+      annotation.text,
+      "",
+      `${annotation.source_citation} Available at: ${annotation.source_url}`,
+      "",
+      verified,
+      "",
+    ].join("\n");
+  })
+  .join("\n");
+
+const annotationHeader = `Notes file version ${annotationVersion}, last reviewed ${annotationsLastReviewed}.\n\n`;
+
+let report: any = null;
+try {
+  report = JSON.parse(readFileSync(join(process.cwd(), "public", "data", "validation-report.json"), "utf8"));
+} catch {
+  report = null;
+}
+
+const validationBlock = report
+  ? [
+      `**Last validation run.** ${report.passed ? "Passed" : "Failed"}, with ${report.failures.length} failures and ${report.flags.length} items flagged for review, on ${report.generated_at}.`,
+      "",
+      report.flags.length
+        ? "Flagged for review:\n\n" + report.flags.map((flag: any) => `- ${flag.detail}`).join("\n")
+        : "Nothing was flagged for review.",
+      "",
+      report.failures.length
+        ? "Failures:\n\n" + report.failures.map((failure: any) => `- ${failure.detail}`).join("\n")
+        : "",
+      "",
+      "The full report is on the [data page](/data).",
+    ].filter(Boolean).join("\n")
+  : "No validation report was available at build time.";
+
+const filled = source
+  .replace("<!-- INJECT:MANIFEST -->", manifestBlock)
+  .replace("<!-- INJECT:OUTCOME-TYPES -->", outcomeTypeTable)
+  .replace("<!-- INJECT:ANNOTATIONS -->", annotationHeader + annotationBlocks)
+  .replace("<!-- INJECT:VALIDATION -->", validationBlock);
+
+// Every injection point must have been filled. A silently unfilled marker would
+// leave a hole in the published methodology.
+const leftover = filled.match(/<!-- INJECT:[A-Z-]+ -->/g);
+if (leftover) {
+  throw new Error(`docs/METHODOLOGY.md has unfilled injection points: ${leftover.join(", ")}`);
+}
+
+/** Stable, readable anchors, so a link into the methodology keeps working. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/<[^>]+>/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+marked.use({
+  gfm: true,
+  breaks: false,
+  renderer: {
+    heading({ tokens, depth }) {
+      const text = this.parser.parseInline(tokens);
+      if (depth === 3 && /\bid="annotation-/.test(text)) return `<h3>${text}</h3>`;
+      return `<h${depth} id="${slugify(text)}">${text}</h${depth}>\n`;
+    },
+  },
+});
+const body = await marked.parse(filled);
+
+// The first heading becomes the page h1, so it is not repeated in the body.
+const html = String(body).replace(/^\s*<h1[^>]*>.*?<\/h1>/s, "");
+
+const headings = Array.from(filled.matchAll(/^## (.+)$/gm)).map((match) => {
+  const text = match[1].trim();
+  return { text, id: slugify(text) };
+});
+
+// The overview and compare pages link straight to the limitations section, so
+// that anchor must exist. Fail the build rather than shipping a dead link.
+const CANNOT_TELL_ANCHOR = "what-this-dashboard-cannot-tell-you";
+if (!headings.some((heading) => heading.id === CANNOT_TELL_ANCHOR)) {
+  throw new Error(
+    `docs/METHODOLOGY.md no longer has a heading that slugs to #${CANNOT_TELL_ANCHOR}, ` +
+      "which other pages link to."
+  );
+}
+---
+
+<Layout
+  title="Methodology and limitations"
+  description="The source, the extraction date, every definition, both count bases, every denominator, every note on the series, and what this data cannot tell you."
+>
+  <h1>Methodology and Limitations</h1>
+
+  <nav aria-label="On this page" class="small">
+    <h2 class="visually-hidden">On this page</h2>
+    <ul>
+      {headings.map((heading) => (
+        <li><a href={`#${heading.id}`}>{heading.text}</a></li>
+      ))}
+    </ul>
+  </nav>
+
+  <div class="prose" set:html={html} />
+</Layout>
+
+<style is:global>
+  .prose h2[id],
+  .prose h3[id] {
+    scroll-margin-top: 1rem;
+  }
+  .prose pre {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  .prose pre code {
+    font-size: inherit;
+  }
+  .prose :not(pre) > code {
+    background: var(--surface-2);
+    border-radius: 2px;
+    padding: 0.05em 0.3em;
+  }
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+</style>

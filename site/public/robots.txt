@@ -1,0 +1,5 @@
+# This dashboard is published to be read, cited and challenged.
+User-agent: *
+Allow: /
+
+Sitemap: https://oocd-dashboard.pages.dev/sitemap-index.xml

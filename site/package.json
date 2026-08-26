@@ -1,0 +1,24 @@
+{
+  "name": "oocd-dashboard-site",
+  "version": "1.0.0",
+  "scripts": {
+    "prebuild": "node scripts/stage-data.mjs",
+    "build": "astro build",
+    "dev": "node scripts/stage-data.mjs && astro dev",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@observablehq/plot": "^0.6.17",
+    "astro": "^5.18.2",
+    "axe-core": "^4.13.0",
+    "d3-array": "^3.2.4",
+    "js-yaml": "^5.4.0",
+    "jsdom": "^30.0.1",
+    "marked": "^18.0.11",
+    "playwright": "^1.62.1"
+  },
+  "private": true,
+  "type": "module"
+}

@@ -1,0 +1,31 @@
+---
+/**
+ * A legend is present whenever a chart draws more than one series, so identity
+ * is never carried by colour alone. Each swatch shows the series texture as
+ * well as its hue.
+ */
+interface Item {
+  type: number;
+  label: string;
+}
+
+interface Props {
+  items: Item[];
+  title?: string;
+}
+
+const { items, title = "Series" } = Astro.props;
+---
+
+<ul class="legend" aria-label={title}>
+  {
+    items.map((item) => (
+      <li>
+        <svg class="legend__swatch" viewBox="0 0 20 14" aria-hidden="true" focusable="false">
+          <rect width="20" height="14" fill={`url(#tex-${item.type})`} />
+        </svg>
+        <span>{item.label}</span>
+      </li>
+    ))
+  }
+</ul>

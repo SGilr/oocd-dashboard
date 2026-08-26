@@ -1,0 +1,313 @@
+---
+import Layout from "../components/Layout.astro";
+import TexturePatterns from "../components/TexturePatterns.astro";
+import Figure from "../components/Figure.astro";
+import { renderPlot, PLOT_BASE } from "../lib/plot";
+import * as Plot from "@observablehq/plot";
+import {
+  DISPOSAL_SERIES,
+} from "../lib/palette";
+import {
+  BASIS_LABELS,
+  OUTCOME_SHORT_LABELS,
+  defaultBasis,
+  financialYears,
+  forceYear,
+  forces,
+  latestYear,
+  nationalQuarter,
+  nationalYear,
+  oocdSum,
+  quarterDate,
+  value,
+} from "../lib/data";
+import { compute, formatMeasure } from "../lib/measures";
+import { OUTCOME_22_COMPULSORY_FROM } from "../lib/annotations";
+
+const basis = defaultBasis;
+const variant = "all" as const;
+
+const firstYear = financialYears[0];
+const latestRow = nationalYear.rows.find((row) => row.fy === latestYear)!;
+const firstRow = nationalYear.rows.find((row) => row.fy === firstYear)!;
+
+const latestShare = compute("share_positive", latestRow, { basis, variant })!;
+const firstShare = compute("share_positive", firstRow, { basis, variant })!;
+const latestVolume = oocdSum(latestRow, basis, variant);
+const latestOutcome22 = value(latestRow, basis, variant, "t22");
+const outcome22Share = (latestOutcome22 / latestVolume) * 100;
+
+// The spread across forces, reported as a range rather than as a ranking,
+// because a single national number hides how differently forces behave.
+const latestByForce = forceYear.rows
+  .filter((row) => row.fy === latestYear)
+  .map((row) => ({
+    force: row.force as string,
+    share: compute("share_positive", row, { basis, variant }),
+  }))
+  .filter((entry) => entry.share !== null)
+  .sort((a, b) => (a.share as number) - (b.share as number));
+const lowest = latestByForce[0];
+const highest = latestByForce[latestByForce.length - 1];
+
+const tiles = [
+  {
+    label: "Out of court share of positive outcomes",
+    value: formatMeasure("share_positive", latestShare),
+    note: `${latestYear}. Of every 100 cases closed with somebody held to account, ${latestShare.toFixed(0)} were dealt with outside court.`,
+  },
+  {
+    label: "Out of court disposals",
+    value: latestVolume.toLocaleString("en-GB"),
+    note: `${latestYear}, all 44 forces, on the ${BASIS_LABELS[basis].toLowerCase()} basis.`,
+  },
+  {
+    label: "Change since " + firstYear,
+    value: `${latestShare - firstShare >= 0 ? "+" : ""}${(latestShare - firstShare).toFixed(1)} pts`,
+    note: `The share moved from ${firstShare.toFixed(1)} per cent in ${firstYear} to ${latestShare.toFixed(1)} per cent in ${latestYear}.`,
+  },
+  {
+    label: "Range across the 44 forces",
+    value: `${(lowest.share as number).toFixed(1)}% to ${(highest.share as number).toFixed(1)}%`,
+    note: `Lowest ${lowest.force}, highest ${highest.force}, in ${latestYear}. The range is not a ranking, and the notes below apply.`,
+  },
+];
+
+// --- Trend of the out of court share of positive outcomes ----------------
+const trend = nationalQuarter.rows.map((row) => ({
+  date: quarterDate(row.fy, row.q as number),
+  fy: row.fy,
+  q: row.q as number,
+  share: compute("share_positive", row, { basis, variant }) ?? 0,
+  oocd: oocdSum(row, basis, variant),
+  positive: value(row, basis, variant, "positive"),
+}));
+
+const compulsoryFrom = quarterDate(OUTCOME_22_COMPULSORY_FROM, 1);
+const trendStart = trend[0].date;
+
+const trendPlot = renderPlot(
+  {
+    ...PLOT_BASE,
+    width: 1120,
+    height: 340,
+    x: { type: "utc", label: null, grid: false, ticks: 6 },
+    y: {
+      label: null,
+      grid: true,
+      domain: [0, Math.min(100, Math.ceil(Math.max(...trend.map((d) => d.share)) / 10) * 10 + 10)],
+      tickFormat: (d: number) => `${d}%`,
+    },
+    marks: [
+      Plot.rect([{ x1: trendStart, x2: compulsoryFrom }], {
+        x1: "x1",
+        x2: "x2",
+        y1: 0,
+        y2: 100,
+        fill: "var(--shade-band)",
+        clip: true,
+      }),
+      Plot.ruleY([0], { stroke: "var(--rule-strong)" }),
+      Plot.line(trend, {
+        x: "date",
+        y: "share",
+        stroke: "var(--series-national)",
+        strokeWidth: 2,
+        curve: "monotone-x",
+      }),
+      Plot.dot(trend.filter((_, index) => index % 4 === 3), {
+        x: "date",
+        y: "share",
+        r: 3,
+        fill: "var(--series-national)",
+        stroke: "var(--surface-1)",
+        strokeWidth: 2,
+      }),
+    ],
+  },
+  {
+    title: "National out of court share of positive outcomes by quarter",
+    description: `From ${firstYear} to ${latestYear}. The shaded period runs to the end of ${OUTCOME_22_COMPULSORY_FROM.slice(0, 4)}/${Number(OUTCOME_22_COMPULSORY_FROM.slice(0, 4)) % 100}, before outcome 22 recording became compulsory.`,
+  }
+);
+
+// --- Disposal mix over time ----------------------------------------------
+const mix = nationalQuarter.rows.flatMap((row) =>
+  DISPOSAL_SERIES.map((series) => ({
+    date: quarterDate(row.fy, row.q as number),
+    fy: row.fy,
+    q: row.q as number,
+    type: series.type,
+    label: series.short,
+    count: value(row, basis, variant, `t${series.type}`),
+  }))
+);
+
+const mixPlot = renderPlot(
+  {
+    ...PLOT_BASE,
+    width: 1120,
+    height: 360,
+    marginLeft: 68,
+    x: { type: "utc", label: null, ticks: 6 },
+    y: { label: null, grid: true, tickFormat: (d: number) => d.toLocaleString("en-GB") },
+    color: {
+      domain: DISPOSAL_SERIES.map((series) => series.type),
+      range: DISPOSAL_SERIES.map((series) => `url(#tex-${series.type})`),
+      legend: false,
+    },
+    marks: [
+      Plot.areaY(mix, {
+        x: "date",
+        y: "count",
+        z: "type",
+        fill: "type",
+        order: DISPOSAL_SERIES.map((series) => series.type),
+        stroke: "var(--surface-1)",
+        strokeWidth: 1,
+      }),
+      Plot.ruleY([0], { stroke: "var(--rule-strong)" }),
+    ],
+  },
+  {
+    title: "National out of court disposals by type and quarter",
+    description:
+      "A stacked area chart. Community resolutions are the largest type throughout. Outcome 22 appears from 2019/20 and grows after recording became compulsory in 2021/22.",
+  }
+);
+
+const mixTableRows = financialYears.map((fy) => {
+  const row = nationalYear.rows.find((entry) => entry.fy === fy)!;
+  const record: Record<string, string | number> = { fy };
+  for (const series of DISPOSAL_SERIES) {
+    record[`t${series.type}`] = value(row, basis, variant, `t${series.type}`).toLocaleString("en-GB");
+  }
+  record.total = oocdSum(row, basis, variant).toLocaleString("en-GB");
+  return record;
+});
+---
+
+<Layout
+  title="Overview"
+  description="How the 43 territorial police forces of England and Wales, and British Transport Police, distribute recorded crime outcomes, and how much of that runs through out of court routes."
+>
+  <TexturePatterns />
+
+  <h1>Out of court disposals in England and Wales</h1>
+
+  <p class="lede">
+    This dashboard shows how the 43 territorial police forces of England and Wales,
+    and British Transport Police, distribute their recorded crime outcomes, and how
+    much of that distribution runs through out of court routes. It covers
+    {firstYear} to {latestYear}, force by force, using one source: the Home Office
+    police recorded crime and outcomes open data tables.
+  </p>
+
+  <p>
+    It shows volume, share, mix and change over time. It says nothing about whether
+    those decisions were right, consistent, proportionate or effective, because no
+    published national dataset supports that claim. There is no record of what
+    condition was attached to a disposal, whether the person engaged with it, or
+    whether they completed it. The
+    <a href="/methodology#what-this-dashboard-cannot-tell-you">methodology page sets out what this data cannot tell you</a>,
+    and that section is worth reading before the charts.
+  </p>
+
+  <h2 class="visually-hidden">Headline figures</h2>
+  <div class="tiles">
+    {
+      tiles.map((tile) => (
+        <div class="tile">
+          <p class="tile__label">{tile.label}</p>
+          <p class="tile__value">{tile.value}</p>
+          <p class="tile__note">{tile.note}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <p class="small">
+    Every figure on this page uses the count basis
+    <strong>{BASIS_LABELS[basis].toLowerCase()}</strong>, includes fraud offences, and
+    counts all six out of court disposal types. The
+    <a href="/compare">compare page</a> lets you change each of those.
+  </p>
+
+  <Figure
+    title="The out of court share of positive outcomes"
+    subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
+    plot={trendPlot}
+    description="Positive outcomes are charge or summons plus the six out of court disposal types. The share is the part of those that were dealt with outside court."
+    notes={[
+      "The shaded period runs before outcome 22 recording became compulsory in 2021/22, so part of the rise after that point is forces recording an outcome they were already using.",
+    ]}
+    annotationIds={["outcome-22-recording-change"]}
+    table={{
+      caption: `National out of court share of positive outcomes by quarter, ${firstYear} to ${latestYear}`,
+      columns: [
+        { key: "period", label: "Quarter" },
+        { key: "oocd", label: "Out of court disposals", numeric: true },
+        { key: "positive", label: "Positive outcomes", numeric: true },
+        { key: "share", label: "Share", numeric: true },
+      ],
+      rows: trend.map((point) => ({
+        period: `${point.fy} Q${point.q}`,
+        oocd: point.oocd.toLocaleString("en-GB"),
+        positive: point.positive.toLocaleString("en-GB"),
+        share: `${point.share.toFixed(1)}%`,
+      })),
+    }}
+  />
+
+  <Figure
+    title="The mix of out of court disposals"
+    subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
+    plot={mixPlot}
+    description="Each band is one disposal type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
+    legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
+    legendTitle="Disposal type"
+    annotationIds={["outcome-22-recording-change", "offence-code-expiry"]}
+    table={{
+      caption: `National out of court disposals by type and financial year, ${firstYear} to ${latestYear}`,
+      columns: [
+        { key: "fy", label: "Financial year" },
+        ...DISPOSAL_SERIES.map((series) => ({
+          key: `t${series.type}`,
+          label: series.short,
+          numeric: true,
+        })),
+        { key: "total", label: "All six types", numeric: true },
+      ],
+      rows: mixTableRows,
+    }}
+  />
+
+  <h2>Reading these numbers</h2>
+  <p>
+    The share of positive outcomes is the default measure because it comes closest to
+    the decision under examination: given that somebody was going to be held to
+    account, was the case sent to court or dealt with outside it. It is not a measure
+    of how much crime a force resolves, and a higher share is not better or worse than
+    a lower one. Two forces with the same share may be doing very different things,
+    and the same force may be doing different things in different offence groups.
+  </p>
+  <p>
+    Outcome 22 is the type to treat with most care. It was available for voluntary
+    recording from April 2019 and compulsory from April 2021, so any comparison across
+    forces before {OUTCOME_22_COMPULSORY_FROM} is comparing forces that recorded it
+    with forces that did not. Some forces also restrict which disposals they use as a
+    matter of policy, which shows up as a fall in a series without any change in what
+    officers are doing.
+  </p>
+
+  <h2>Forces</h2>
+  <p>
+    There is a page for each of the {forces.length} forces, showing its disposal mix,
+    its trend against the national distribution and the notes that apply to it.
+  </p>
+  <ul class="force-index">
+    {forces.map((force) => (
+      <li><a href={`/force/${force.slug}`}>{force.name}</a></li>
+    ))}
+  </ul>
+</Layout>

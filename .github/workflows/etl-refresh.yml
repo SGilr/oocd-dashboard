@@ -1,0 +1,146 @@
+name: Quarterly data refresh
+
+# Reruns the extract, transform and validation against the published Home Office
+# files, and opens a pull request when the derived tables change.
+#
+# It never pushes to the default branch. A refresh is reviewed before it ships,
+# because a quarterly release can change a definition as easily as a number.
+
+on:
+  schedule:
+    # 07:15 UTC on the 5th of February, May, August and November, a fortnight
+    # after the usual quarterly release, so the files are settled.
+    - cron: "15 7 5 2,5,8,11 *"
+  workflow_dispatch:
+    inputs:
+      from_year:
+        description: "Earliest financial year start to download"
+        required: false
+        default: "2014"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: etl-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the ETL
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run the unit tests
+        run: pytest etl/tests -q
+
+      - name: Show what the landing page offers
+        run: python etl/fetch.py --dry-run --from "${{ inputs.from_year || '2014' }}"
+
+      - name: Fetch
+        run: python etl/fetch.py --from "${{ inputs.from_year || '2014' }}"
+
+      - name: Transform
+        run: python etl/transform.py
+
+      - name: Validate
+        id: validate
+        run: python etl/validate.py --check-urls
+
+      - name: Summarise the change
+        if: always()
+        id: summary
+        run: |
+          {
+            echo 'body<<PR_BODY'
+            echo 'The quarterly refresh ran against the published Home Office files.'
+            echo
+            echo '## Validation'
+            echo
+            python - <<'PY'
+          import json, pathlib
+          report = json.loads(pathlib.Path("data/validation-report.json").read_text())
+          print(f"Result: **{'passed' if report['passed'] else 'FAILED'}**, "
+                f"{len(report['failures'])} failures, "
+                f"{len(report['flags'])} items flagged for review.")
+          print()
+          print(f"Forces: {report['forces']}. "
+                f"Financial years: {', '.join(report['financial_years'])}.")
+          print()
+          if report["failures"]:
+              print("### Failures")
+              print()
+              for failure in report["failures"]:
+                  print(f"- **{failure['check']}**: {failure['detail']}")
+              print()
+          if report["flags"]:
+              print("### Flagged for review")
+              print()
+              for flag in report["flags"]:
+                  print(f"- **{flag['check']}**: {flag['detail']}")
+              print()
+          print("### Row counts")
+          print()
+          for name, count in sorted(report["row_counts"].items()):
+              print(f"- `{name}`: {count:,} rows")
+          PY
+            echo
+            echo '## Data diff'
+            echo
+            echo '```'
+            git diff --stat -- data/processed data/manifest.json || true
+            echo '```'
+            echo
+            echo 'Review the manifest first. A changed URL or checksum with an'
+            echo 'unchanged figure means the Home Office republished a file, and'
+            echo 'that is worth understanding before merging.'
+            echo 'PR_BODY'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload the validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-report
+          path: data/validation-report.json
+
+      - name: Check whether anything changed
+        id: changed
+        run: |
+          if git diff --quiet -- data/processed data/manifest.json etl/annotations.yml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request
+        if: steps.changed.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: data/quarterly-refresh
+          base: ${{ github.event.repository.default_branch }}
+          commit-message: "Refresh derived tables from the published open data"
+          title: "Quarterly data refresh"
+          body: ${{ steps.summary.outputs.body }}
+          labels: data-refresh
+          delete-branch: true
+          add-paths: |
+            data/processed
+            data/manifest.json
+            etl/annotations.yml
+
+      - name: Report when nothing changed
+        if: steps.changed.outputs.changed == 'false'
+        run: echo "The derived tables are unchanged. No pull request opened."

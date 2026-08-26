@@ -1,0 +1,72 @@
+---
+/**
+ * Pattern definitions for the six disposal types and the charge comparator.
+ *
+ * Colour carries identity for most readers. Texture carries the same identity
+ * in greyscale, in print, and for anyone who cannot separate the hues, so
+ * neither encoding is doing the work alone. Six hues cannot also be spread
+ * across six distinguishable greys and stay inside the lightness band the
+ * palette needs, which is why the second encoding is texture rather than
+ * lightness.
+ *
+ * Each pattern takes its ground colour from a CSS custom property, so the
+ * light and dark steps swap with the theme without redrawing anything.
+ *
+ * Included once per page. It paints nothing and takes no space.
+ */
+import { DISPOSAL_SERIES, CHARGE_STYLE } from "../lib/palette";
+
+const all = [...DISPOSAL_SERIES, CHARGE_STYLE];
+---
+
+<svg
+  width="0"
+  height="0"
+  aria-hidden="true"
+  focusable="false"
+  style="position:absolute;left:-9999px"
+>
+  <defs>
+    {
+      all.map((series) => (
+        <pattern
+          id={`tex-${series.type}`}
+          width="7"
+          height="7"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect width="7" height="7" fill={`var(--series-${series.type})`} />
+          {series.texture === "diagonal-right" && (
+            <path
+              d="M-1,1 l2,-2 M0,7 l7,-7 M6,8 l2,-2"
+              stroke="var(--surface-1)"
+              stroke-width="1.7"
+            />
+          )}
+          {series.texture === "diagonal-left" && (
+            <path
+              d="M8,1 l-2,-2 M7,7 l-7,-7 M1,8 l-2,-2"
+              stroke="var(--surface-1)"
+              stroke-width="1.7"
+            />
+          )}
+          {series.texture === "dots" && (
+            <>
+              <circle cx="1.75" cy="1.75" r="1.3" fill="var(--surface-1)" />
+              <circle cx="5.25" cy="5.25" r="1.3" fill="var(--surface-1)" />
+            </>
+          )}
+          {series.texture === "horizontal" && (
+            <path d="M0,1.75 h7 M0,5.25 h7" stroke="var(--surface-1)" stroke-width="1.5" />
+          )}
+          {series.texture === "vertical" && (
+            <path d="M1.75,0 v7 M5.25,0 v7" stroke="var(--surface-1)" stroke-width="1.5" />
+          )}
+          {series.texture === "grid" && (
+            <path d="M0,3.5 h7 M3.5,0 v7" stroke="var(--surface-1)" stroke-width="1.4" />
+          )}
+        </pattern>
+      ))
+    }
+  </defs>
+</svg>

@@ -1,0 +1,92 @@
+---
+/**
+ * A chart, its caption, the annotation markers that apply to it, and the
+ * numbers behind it.
+ *
+ * The numbers are in a details element rather than a dialog or a tab, so they
+ * work with JavaScript turned off, they are in the tab order, and a screen
+ * reader reaches them in document order rather than being told to skip an
+ * image it cannot read.
+ */
+import DataTable from "./DataTable.astro";
+import Legend from "./Legend.astro";
+import { annotationNumber, byIds } from "../lib/annotations";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  /** Pre-rendered SVG from src/lib/plot.ts. */
+  plot: string;
+  description: string;
+  legend?: { type: number; label: string }[];
+  legendTitle?: string;
+  notes?: string[];
+  annotationIds?: string[];
+  table: {
+    caption: string;
+    columns: { key: string; label: string; numeric?: boolean }[];
+    rows: Record<string, string | number>[];
+  };
+}
+
+const {
+  title,
+  subtitle,
+  plot,
+  description,
+  legend,
+  legendTitle,
+  notes = [],
+  annotationIds = [],
+  table,
+} = Astro.props;
+
+const applied = byIds(annotationIds);
+---
+
+<figure>
+  <div class="figure__head">
+    <p class="figure__title">
+      {title}
+      {
+        applied.map((annotation) => (
+          <a
+            class="marker"
+            href={`/methodology#annotation-${annotation.id}`}
+            title={annotation.label}
+          >
+            <span class="visually-hidden">Note </span>
+            {annotationNumber.get(annotation.id)}
+          </a>
+        ))
+      }
+    </p>
+    {subtitle && <p class="figure__subtitle">{subtitle}</p>}
+  </div>
+
+  <div class="figure__plot" set:html={plot} />
+
+  {legend && <Legend items={legend} title={legendTitle ?? "Series"} />}
+
+  <figcaption>
+    <p>{description}</p>
+    {notes.map((note) => <p>{note}</p>)}
+    {
+      applied.length > 0 && (
+        <ol class="small" style="margin:0;padding-left:1.2rem">
+          {applied.map((annotation) => (
+            <li value={annotationNumber.get(annotation.id)} style="max-width:none">
+              {annotation.label}.{" "}
+              <a href={`/methodology#annotation-${annotation.id}`}>Read the note in full</a>.
+            </li>
+          ))}
+        </ol>
+      )
+    }
+  </figcaption>
+
+  <details class="numbers">
+    <summary>Show the numbers</summary>
+    <DataTable caption={table.caption} columns={table.columns} rows={table.rows} />
+  </details>
+</figure>

@@ -19,3 +19,7 @@ data/validation-report.json
 
 # Synthetic fixtures, in full. Invented numbers must never reach data/processed/.
 data/fixture/
+
+# Staged copies of the derived tables, written by site/scripts/stage-data.mjs
+# before every build. The originals live in data/processed/.
+site/public/data/

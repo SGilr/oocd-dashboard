@@ -1,0 +1,52 @@
+---
+/**
+ * A plain HTML table. Every chart on the site has one, reachable by keyboard
+ * and exposed to screen readers rather than hidden from them.
+ */
+interface Column {
+  key: string;
+  label: string;
+  numeric?: boolean;
+}
+
+interface Props {
+  caption: string;
+  columns: Column[];
+  rows: Record<string, string | number>[];
+  id?: string;
+}
+
+const { caption, columns, rows, id } = Astro.props;
+---
+
+<div class="table-scroll" tabindex="0" role="region" aria-label={caption}>
+  <table id={id}>
+    <caption>{caption}</caption>
+    <thead>
+      <tr>
+        {
+          columns.map((column) => (
+            <th scope="col" class={column.numeric ? "numeric" : undefined}>
+              {column.label}
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <tr>
+            {columns.map((column, index) =>
+              index === 0 ? (
+                <th scope="row">{row[column.key]}</th>
+              ) : (
+                <td class={column.numeric ? "numeric" : undefined}>{row[column.key]}</td>
+              )
+            )}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
