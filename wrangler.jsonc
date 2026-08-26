@@ -26,6 +26,17 @@
     "not_found_handling": "404-page"
   },
 
+  // Stated explicitly because the first deploy warned that wrangler would
+  // otherwise pick them itself, and a deployment should not depend on a
+  // default that can change.
+  //
+  // workers_dev keeps https://oocd-dashboard.<account>.workers.dev serving the
+  // site. Once the custom domain is live this should be set to false: the same
+  // pages answering on two origins is a duplicate the canonical tags have to
+  // paper over, and there is no reason to keep the second one.
+  "workers_dev": true,
+  "preview_urls": true,
+
   "observability": {
     "enabled": true
   }
