@@ -94,16 +94,22 @@ that a rebuild produced the same bytes.
 
 ### A note on the term
 
-This dashboard says **out of court resolutions**. Until recently the same thing
-was called **out of court disposals**, and that is still the term in the
-legislation, in the National Police Chiefs' Council gravity matrix, and in most
-of the published literature and evaluation. The Ministry of Justice series now
-reports resolutions, and the two-tier framework in the Police, Crime, Sentencing
-and Courts Act 2023 is a framework of out of court resolutions.
+This dashboard says **out of court resolutions**. The same thing was until
+recently called **out of court disposals**, and that is still the term in the
+National Police Chiefs' Council gravity matrix and in most of the published
+literature and evaluation. The change is Ministry of Justice statistical usage,
+followed by the Crown Prosecution Service and the College of Policing.
 
-Nothing about what is counted changed with the word. The outcome types below are
-the same six either way, and anyone arriving here searching for out of court
-disposals is in the right place. Where a publication is cited by its title, the
+Neither phrase is the language of the statute. Part 6 of the Police, Crime,
+Sentencing and Courts Act 2022 (c. 32) is headed Cautions, and what it
+legislates for is cautions of two kinds, the diversionary caution and the
+community caution, governed by the Diversionary and Community Cautions Code of
+Practice. Both "disposals" and "resolutions" are administrative umbrella terms
+sitting above that. This is why the change of word needed no change in law and
+no change to what is counted.
+
+The outcome types below are the same six either way, and anyone arriving here
+searching for out of court disposals is in the right place. Where a publication is cited by its title, the
 title is left as published: the Neyroud review and the West Yorkshire Police and
 Crime Commissioner report both say disposals, and restating them would be a
 misquotation.
