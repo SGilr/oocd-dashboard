@@ -25,7 +25,9 @@ import {
   value,
 } from "../../lib/data";
 import { compute, formatMeasure } from "../../lib/measures";
-import { OUTCOME_22_COMPULSORY_FROM, annotationNumber, forForce } from "../../lib/annotations";
+import { OUTCOME_22_COMPULSORY_FROM, annotationNumber, markersFor } from "../../lib/annotations";
+import GeneralNotes from "../../components/GeneralNotes.astro";
+import { coverage } from "../../lib/data";
 
 export const getStaticPaths = (() =>
   forces.map((force) => ({ params: { slug: force.slug }, props: { force } }))) satisfies GetStaticPaths;
@@ -213,7 +215,13 @@ const offenceRows = forceOffenceYear.rows
   }))
   .sort((a, b) => b.oocd + b.charge - (a.oocd + a.charge));
 
-const notes = forForce(force.name);
+const notes = markersFor(force.name);
+
+// Data driven, not a claim: the years this force did not supply counts for.
+const notSupplied = Object.keys((coverage.data_not_provided ?? {}) as Record<string, number>)
+  .filter((key) => key.split("|")[0] === force.name)
+  .map((key) => key.split("|")[1])
+  .sort();
 const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
 ---
 
@@ -270,23 +278,38 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
   </div>
 
   {
-    notes.length > 0 && (
+    notSupplied.length > 0 && (
       <div class="banner">
         <strong>
-          {notes.length === 1
-            ? "One note applies to this force"
-            : `${notes.length} notes apply to this force`}
+          {force.name} did not supply counts for {notSupplied.join(", ")}
         </strong>
-        <ol style="margin:0.35rem 0 0;padding-left:1.3rem">
-          {notes.map((annotation) => (
-            <li value={annotationNumber.get(annotation.id)} style="max-width:none">
-              <a href={`/methodology#annotation-${annotation.id}`}>{annotation.label}</a>
-            </li>
-          ))}
-        </ol>
+        <p>
+          The published tables mark those counts as not provided rather than as
+          zero. They are read as zero here, so this force is understated in those
+          years and should not be compared with others across them.
+          {" "}
+          <a href="/methodology#annotation-counts-not-supplied">Read the note in full</a>.
+        </p>
       </div>
     )
   }
+
+  {
+    notes.length > 0 && (
+      <p class="small">
+        {notes.length === 1 ? "One note" : `${notes.length} notes`} change how the
+        figures for this force should be read:
+        {" "}
+        {notes.map((annotation, index) => (
+          <>
+            {index > 0 && "; "}
+            <a href={`/methodology#annotation-${annotation.id}`}>{annotation.label}</a>
+          </>
+        ))}.
+      </p>
+    )
+  }
+  <GeneralNotes />
 
   <Figure
     title={`Where ${force.name} sits in the national distribution`}
@@ -296,7 +319,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
     notes={[
       "Position in the distribution is not a rank and not a judgement. A force above the band is not doing better or worse than one below it.",
     ]}
-    annotationIds={notes.map((annotation) => annotation.id)}
+    annotationIds={["outcome-22-recording-change"]}
     table={{
       caption: `${force.name} against the national distribution, out of court share of positive outcomes`,
       columns: [
@@ -327,7 +350,9 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
     }
     legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
     legendTitle="Disposal type"
-    annotationIds={notes.map((annotation) => annotation.id)}
+    annotationIds={notes
+      .filter((annotation) => annotation.id !== "btp-no-resident-population")
+      .map((annotation) => annotation.id)}
     table={{
       caption: `${force.name} out of court disposals by type and financial year`,
       columns: [

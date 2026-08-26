@@ -1,0 +1,21 @@
+---
+/**
+ * One line naming the notes that apply to every figure on the site.
+ *
+ * These used to appear as a marker on every chart. Nine identical markers on
+ * every chart tell a reader nothing about which one to look at, so they are
+ * said once here and set out in full on the methodology page. The notes that
+ * change how a particular chart reads still carry their own marker.
+ */
+import { generalAnnotations, annotationNumber } from "../lib/annotations";
+
+const count = generalAnnotations.length;
+---
+
+<p class="small">
+  {count} further {count === 1 ? "note applies" : "notes apply"} to every figure on
+  this site, covering fraud, expired offence codes, offences with no outcome yet,
+  the coming change to the disposal framework, and what the published tables cover.
+  {" "}
+  <a href="/methodology#notes-on-the-series">Read them on the methodology page</a>.
+</p>

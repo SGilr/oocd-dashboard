@@ -9,6 +9,13 @@
 #   scope                 "national", or a list of canonical force names
 #   financial_years       list of financial years affected, or "all"
 #   measures              which measures the marker attaches to, or "all"
+#   chart_marker          true when the note changes how a particular chart is
+#                         read, so it earns a numbered marker on that chart.
+#                         Most notes are general and apply to every figure on
+#                         the site; those are listed once per page and in full
+#                         on the methodology page, rather than putting the same
+#                         nine markers on every chart, which tells a reader
+#                         nothing about which one to look at.
 #   label                 short text for the chart footnote
 #   text                  the full statement, shown on the methodology page
 #   source_url            where the claim can be checked
@@ -31,7 +38,7 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 8
+version: 10
 last_reviewed: 2026-08-26
 
 annotations:
@@ -42,6 +49,7 @@ annotations:
       - 2019/20
       - 2020/21
     measures: all
+    chart_marker: true
     label: Outcome 22 recording was voluntary before 2021/22
     text: >-
       Outcome 22, diversionary, educational or intervention activity, was
@@ -93,6 +101,7 @@ annotations:
     financial_years: all
     measures:
       - rate_per_1000_recorded_crime
+    chart_marker: true
     label: British Transport Police has no resident population
     text: >-
       British Transport Police polices the railway network across England,
@@ -133,6 +142,7 @@ annotations:
     scope: national
     financial_years: all
     measures: all
+    chart_marker: true
     label: Simple and conditional cautions cannot be told apart
     text: >-
       Outcome types 2 and 3 count cautions of youths and of adults. They do not
@@ -218,30 +228,57 @@ annotations:
 
   - id: counts-not-supplied
     scope: national
-    financial_years: all
+    financial_years:
+      - 2014/15
     measures: all
-    label: Some forces did not supply counts in some years
+    chart_marker: true
+    label: Some forces did not supply counts in 2014/15
     text: >-
       The published tables mark a count the force did not supply as "N/A - data
       not provided", which is different from a count that does not apply. It
       reads as zero here, because the arithmetic has to work, but a force year
-      carrying it is understated rather than genuinely low. Greater Manchester
-      is the main case: it could not supply data from July 2019 to March 2020
-      after an IT change, and the Home Office bulletin excludes the force from
-      several of its own tables for that reason. The validation report names
-      every force and year affected, and the data page carries the same list, so
-      an unexplained dip can be checked against it before it is read as a change
-      in behaviour.
+      carrying it is understated rather than genuinely low. Across the twelve
+      years to March 2026 this is confined to 2014/15, the first year of the
+      current outcomes framework, and affects eight forces: Bedfordshire,
+      British Transport Police, Cumbria, Dyfed-Powys, Hertfordshire,
+      Leicestershire, the Metropolitan Police and South Yorkshire. Each of
+      those force pages says so, and the validation report lists them, so a low
+      2014/15 figure can be checked before it is read as a change in behaviour.
+    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+    source_citation: >-
+      Home Office (2026) Police recorded crime and outcomes open data tables
+      user guide. London: Home Office.
+    source_url_verified: true
+
+  - id: greater-manchester-2019-20
+    scope:
+      - Greater Manchester
+    financial_years:
+      - 2019/20
+    measures: all
+    chart_marker: true
+    label: Greater Manchester could not supply data for much of 2019/20
+    text: >-
+      Greater Manchester Police introduced a new records system in July 2019 and
+      could not supply data to the Home Office Data Hub from then until March
+      2020. Unlike the 2014/15 gaps, those quarters are not marked as not
+      provided in the outcomes tables, they simply carry little or nothing, so
+      nothing in the data itself signals the problem. The force's out of court
+      disposals fall from 8,376 in 2018/19 to 2,107 in 2019/20 and recover to
+      7,435 in 2020/21. That fall is missing data, not a change in practice.
+      The Home Office bulletin excludes the force from several of its own tables
+      for the same period.
     source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
     source_citation: >-
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
-      London: Home Office. Notes to tables 1.2 and 3.2.
+      London: Home Office. Notes to table 1.2.
     source_url_verified: true
 
   - id: published-corrections-are-negative
     scope: national
     financial_years: all
     measures: all
+    chart_marker: true
     label: Corrections appear as negative counts
     text: >-
       Where a force cancels or reclassifies a crime it recorded in an earlier

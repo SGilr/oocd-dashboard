@@ -21,6 +21,8 @@ export interface Annotation {
   source_url_verified: boolean | null;
   /** Set when the note makes a claim not yet reconciled with the data. */
   needs_review?: boolean;
+  /** Set when the note changes how a particular chart is read. */
+  chart_marker?: boolean;
 }
 
 interface AnnotationFile {
@@ -51,6 +53,25 @@ export function appliesToMeasure(annotation: Annotation, measure: string): boole
 
 export function forForce(force: string): Annotation[] {
   return annotations.filter((entry) => appliesToForce(entry, force));
+}
+
+/**
+ * Notes that earn a numbered marker on a chart.
+ *
+ * Most notes apply to every figure on the site. Putting all of them on every
+ * chart tells a reader nothing about which one to look at, so the general ones
+ * are listed once per page and in full on the methodology page, and only the
+ * notes that change how this particular chart reads carry a marker.
+ */
+export const chartMarkerAnnotations = annotations.filter((entry) => entry.chart_marker);
+
+/** The rest: true of every figure, so said once rather than nine times. */
+export const generalAnnotations = annotations.filter((entry) => !entry.chart_marker);
+
+export function markersFor(force?: string): Annotation[] {
+  return chartMarkerAnnotations.filter(
+    (entry) => !force || appliesToForce(entry, force)
+  );
 }
 
 export function byIds(ids: string[]): Annotation[] {

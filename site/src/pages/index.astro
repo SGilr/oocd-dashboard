@@ -23,6 +23,7 @@ import {
 } from "../lib/data";
 import { compute, formatMeasure } from "../lib/measures";
 import { OUTCOME_22_COMPULSORY_FROM } from "../lib/annotations";
+import GeneralNotes from "../components/GeneralNotes.astro";
 
 const basis = defaultBasis;
 const variant = "all" as const;
@@ -266,7 +267,7 @@ const mixTableRows = financialYears.map((fy) => {
     description="Each band is one disposal type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
     legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
     legendTitle="Disposal type"
-    annotationIds={["outcome-22-recording-change", "offence-code-expiry"]}
+    annotationIds={["outcome-22-recording-change", "published-corrections-are-negative"]}
     table={{
       caption: `National out of court disposals by type and financial year, ${firstYear} to ${latestYear}`,
       columns: [
@@ -281,6 +282,8 @@ const mixTableRows = financialYears.map((fy) => {
       rows: mixTableRows,
     }}
   />
+
+  <GeneralNotes />
 
   <h2>Reading these numbers</h2>
   <p>

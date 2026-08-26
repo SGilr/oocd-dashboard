@@ -15,7 +15,8 @@ import {
   value,
 } from "../lib/data";
 import { DEFAULT_MEASURE, MEASURES, compute, formatMeasure } from "../lib/measures";
-import { annotationNumber, annotations, forForce } from "../lib/annotations";
+import { annotationNumber, chartMarkerAnnotations, markersFor } from "../lib/annotations";
+import GeneralNotes from "../components/GeneralNotes.astro";
 
 const basis = defaultBasis;
 const variant = "all" as const;
@@ -44,7 +45,7 @@ const payload = {
     name: force.name,
     slug: force.slug,
     noDenominator: NO_DENOMINATOR_FORCES.has(force.name),
-    notes: forForce(force.name).map((annotation) => annotationNumber.get(annotation.id)),
+    notes: markersFor(force.name).map((annotation) => annotationNumber.get(annotation.id)),
   })),
   data: forces.map((force) =>
     financialYears.map((fy) => {
@@ -103,7 +104,7 @@ const initialRows = forces
       positive: row ? value(row, basis, variant, "positive") : 0,
       assigned: row ? value(row, basis, variant, "assigned") : 0,
       spark: sparkPath(series),
-      notes: forForce(force.name).map((annotation) => annotationNumber.get(annotation.id)!),
+      notes: markersFor(force.name).map((annotation) => annotationNumber.get(annotation.id)!),
     };
   })
   .sort((a, b) => {
@@ -235,7 +236,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
             <th scope="row"><a href={`/force/${row.slug}`}>{row.name}</a></th>
             <td>
               {row.notes.map((note) => (
-                <a class="marker" href={`/methodology#annotation-${annotations[note - 1].id}`}>
+                <a class="marker" href={`/methodology#annotation-${chartMarkerAnnotations.find((a) => annotationNumber.get(a.id) === note)!.id}`}>
                   <span class="visually-hidden">Note </span>{note}
                 </a>
               ))}
@@ -260,8 +261,8 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
 
   <h2>Notes on this table</h2>
   <ol class="small">
-    {annotations.map((annotation, index) => (
-      <li style="max-width:none">
+    {chartMarkerAnnotations.map((annotation) => (
+      <li value={annotationNumber.get(annotation.id)} style="max-width:none">
         <a href={`/methodology#annotation-${annotation.id}`}>{annotation.label}</a>.
         {" "}
         {annotation.scope === "national"
@@ -270,6 +271,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
       </li>
     ))}
   </ol>
+  <GeneralNotes />
 
   <script type="application/json" id="compare-data" set:html={JSON.stringify(payload)} is:inline></script>
 

@@ -55,6 +55,9 @@ const annotationBlocks = annotations
       annotation.scope === "national"
         ? "Applies to every force"
         : `Applies to ${(annotation.scope as string[]).join(", ")}`;
+    const placement = annotation.chart_marker
+      ? "carries a numbered marker on the charts it affects"
+      : "applies to every figure on the site";
     const years =
       annotation.financial_years === "all"
         ? "all financial years"
@@ -73,7 +76,7 @@ const annotationBlocks = annotations
     return [
       `<h3 id="annotation-${annotation.id}">${number}. ${annotation.label}</h3>`,
       "",
-      `*${scope}, ${years}.*`,
+      `*${scope}, ${years}. This note ${placement}.*`,
       review,
       annotation.text,
       "",
