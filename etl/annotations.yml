@@ -151,11 +151,16 @@ annotations:
       that has withdrawn simple cautions as a matter of policy, but continues to
       issue conditional cautions, still shows a large caution count here. Any
       reading of these series as evidence about simple cautions specifically is
-      unsupported.
-    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+      unsupported. The framework does carry outcome types 2a and 3a, but those
+      are not conditional cautions: Table 1.1 of the bulletin defines them as
+      the subset of outcomes 2 and 3 where the outcome relates to an offence
+      other than the one recorded. They sit inside their parent type, so the
+      extract drops them rather than adding them, which would double count.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
     source_citation: >-
-      Home Office (2026) Police recorded crime and outcomes open data tables
-      user guide. London: Home Office.
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026,
+      Table 1.1, grouping the outcomes framework from April 2013 onwards.
+      London: Home Office.
     source_url_verified: null
 
   - id: not-yet-assigned-excluded
