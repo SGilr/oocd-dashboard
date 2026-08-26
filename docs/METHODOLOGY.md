@@ -92,6 +92,22 @@ that a rebuild produced the same bytes.
 
 ## Definitions
 
+### A note on the term
+
+This dashboard says **out of court resolutions**. Until recently the same thing
+was called **out of court disposals**, and that is still the term in the
+legislation, in the National Police Chiefs' Council gravity matrix, and in most
+of the published literature and evaluation. The Ministry of Justice series now
+reports resolutions, and the two-tier framework in the Police, Crime, Sentencing
+and Courts Act 2023 is a framework of out of court resolutions.
+
+Nothing about what is counted changed with the word. The outcome types below are
+the same six either way, and anyone arriving here searching for out of court
+disposals is in the right place. Where a publication is cited by its title, the
+title is left as published: the Neyroud review and the West Yorkshire Police and
+Crime Commissioner report both say disposals, and restating them would be a
+misquotation.
+
 ### Outcome types
 
 The published tables carry an outcome type code from 1 to 22. Six of them are
