@@ -54,10 +54,18 @@ against women and girls offences is also published on the same page. Nothing on
 this dashboard uses it, so it is not downloaded.
 
 ODS files are read by streaming the XML out of the zip rather than loading the
-document, because the force area file is 14.2 MB compressed and expands to far
-more. Each sheet gets its own header detection, so a file that splits its series
-across sheets does not have the first sheet's column order assumed for the
-rest. The police force area crime tables give
+document. The force area file is 14.2 MB compressed and its `content.xml`
+expands to 359 MB, so loading it was never an option. It holds one sheet per
+financial year, fourteen of them from 2012/13 to 2025/26, plus a cover sheet and
+a notes sheet which are skipped. Each sheet gets its own header detection rather
+than the first sheet's column order being assumed for the rest.
+
+Two things about that file bear on the measures. Action Fraud appears in it as
+though it were a police force, with its own offence code, in the years to
+2014/15; those rows are dropped, because it is not a force. And British
+Transport Police leaves the table after 2014/15, so from then on it has no
+recorded crime figure at all. That is the second reason it is excluded from the
+rate measure, alongside having no resident population. The police force area crime tables give
 recorded crime, which is the denominator for the rate measure.
 
 <!-- INJECT:MANIFEST -->

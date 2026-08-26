@@ -45,6 +45,7 @@ from common import (  # noqa: E402
     normalise_quarter,
     read_json,
     resolve_data_root,
+    text_of,
     to_int,
     truthy_flag,
     write_json_compact,
@@ -365,7 +366,7 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             aggregator.central_fraud_rows += 1
             continue
 
-        raw_outcome_type = str(cell(row, "outcome_type") or "").strip()
+        raw_outcome_type = text_of(cell(row, "outcome_type"))
         try:
             outcome_type = int(raw_outcome_type)
         except (TypeError, ValueError):
@@ -385,7 +386,7 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
         if truthy_flag(cell(row, "offence_code_expired")):
             aggregator.expired_code_rows += 1
 
-        offence_code = str(cell(row, "offence_code") or "").strip()
+        offence_code = text_of(cell(row, "offence_code"))
         packed = (
             force_index.setdefault(force, len(force_index)) << 40
             | offence_index.setdefault(offence_code, len(offence_index)) << 16
@@ -403,7 +404,7 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
         else:
             seen_keys.add(packed)
 
-        offence_group = str(cell(row, "offence_group") or "Unclassified").strip()
+        offence_group = text_of(cell(row, "offence_group"), "Unclassified")
         offence_subgroup = cell(row, "offence_subgroup")
         fraud = is_fraud_group(offence_group, offence_subgroup)
 

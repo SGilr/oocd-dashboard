@@ -257,3 +257,32 @@ class TestPublishedFileQuirks:
         # Type 19 is absent from the year ending March 2026 file, so it must not
         # be treated as essential or the build could never pass.
         assert 19 not in ESSENTIAL_TYPES
+
+
+class TestFalsyZero:
+    """Outcome type 0 is a real value, and zero is falsy.
+
+    `str(cell or "")` silently turned 32,384 rows of outcome type 0 into blanks
+    that then failed to parse and were dropped without a word. That is exactly
+    the silent drop this pipeline is built to prevent, so it is pinned here.
+    """
+
+    def test_zero_survives(self):
+        from common import text_of
+
+        assert text_of(0) == "0"
+        assert int(text_of(0)) == 0
+
+    def test_none_and_blank_give_the_default(self):
+        from common import text_of
+
+        assert text_of(None) == ""
+        assert text_of("   ") == ""
+        assert text_of(None, "Unclassified") == "Unclassified"
+        assert text_of("", "Unclassified") == "Unclassified"
+
+    def test_ordinary_values_are_stripped(self):
+        from common import text_of
+
+        assert text_of("  105A  ") == "105A"
+        assert text_of(22) == "22"

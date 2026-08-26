@@ -203,6 +203,12 @@ def generate_crime(year_start: int, rng: random.Random) -> list[list[object]]:
     financial_year = f"{year_start}/{(year_start + 1) % 100:02d}"
     rows: list[list[object]] = []
     for force in CANONICAL_FORCES:
+        # British Transport Police leaves the published force area tables after
+        # 2014/15, so from then on it has no recorded crime denominator at all.
+        # The fixture reproduces that, so the site's handling of a force with no
+        # denominator is exercised by the tests rather than only in production.
+        if force == "British Transport Police" and year_start >= 2015:
+            continue
         scale = FORCE_SCALE[force]
         for quarter in (1, 2, 3, 4):
             for _, _, group, subgroup, _ in OFFENCES:

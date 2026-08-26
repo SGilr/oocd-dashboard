@@ -530,6 +530,20 @@ def to_int(value: object) -> int:
         ) from error
 
 
+def text_of(value: object, default: str = "") -> str:
+    """Read a cell as text, treating only None and blank as absent.
+
+    Written because `str(cell or "")` silently turns an integer zero into an
+    empty string, zero being falsy. Outcome type 0 is a real value in the
+    published tables, and that idiom made 32,384 rows of it disappear without
+    a word.
+    """
+    if value is None:
+        return default
+    text = str(value).strip()
+    return text if text else default
+
+
 def truthy_flag(value: object) -> bool:
     """Read the offence code expired flag.
 

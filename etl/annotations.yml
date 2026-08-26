@@ -31,7 +31,7 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 5
+version: 6
 last_reviewed: 2026-08-26
 
 annotations:
@@ -98,8 +98,13 @@ annotations:
       British Transport Police polices the railway network across England,
       Wales and Scotland rather than a geographical area with residents. It has
       no resident population and a distinct offence profile, so it is excluded
-      by default from measures that normalise for force size. It remains in
-      share based measures, where the denominator is the force's own outcomes.
+      by default from measures that normalise for force size. There is also a
+      practical reason: it leaves the published police force area crime tables
+      after 2014/15, so from then on there is no recorded crime figure for it to
+      divide by. Where a measure needs a denominator the force does not have,
+      the dashboard shows "not available" rather than a zero or an invented
+      figure. It remains in the share based measures, where the denominator is
+      the force's own outcomes.
     source_url: https://www.btp.police.uk/police-forces/british-transport-police/areas/about-us/about-us/
     source_citation: >-
       British Transport Police (2026) About us. London: British Transport
