@@ -40,6 +40,7 @@ from common import (  # noqa: E402
     build_header_map,
     canonical_force,
     financial_year_start,
+    is_not_provided,
     force_slug,
     normalise_financial_year,
     normalise_quarter,
@@ -259,6 +260,7 @@ class Aggregator:
         self.duplicate_examples: list[str] = []
         self.not_assigned_rows = 0
         self.not_assigned_counts = {BASIS_CLOSED: 0, BASIS_RECORDED: 0}
+        self.not_provided: dict[tuple[str, str], int] = defaultdict(int)
         self.negative_counts_excluded = 0
         self.negative_examples: list[str] = []
         self.subset_type_rows: dict[str, int] = defaultdict(int)
@@ -423,9 +425,17 @@ def _read_outcome_rows(
                 aggregator.subset_type_rows[raw_outcome_type] += 1
             continue
 
+        raw_recorded = cell(row, "count_recorded")
+        raw_closed = cell(row, "count_closed")
+        if is_not_provided(raw_recorded) or is_not_provided(raw_closed):
+            # The force did not supply this count. It reads as zero so the
+            # arithmetic works, but the force year is understated and that has
+            # to be visible, not absorbed.
+            aggregator.not_provided[(force, financial_year)] += 1
+
         counts = {
-            BASIS_RECORDED: to_int(cell(row, "count_recorded")),
-            BASIS_CLOSED: to_int(cell(row, "count_closed")),
+            BASIS_RECORDED: to_int(raw_recorded),
+            BASIS_CLOSED: to_int(raw_closed),
         }
 
         if truthy_flag(cell(row, "offence_code_expired")):
@@ -961,6 +971,10 @@ def main() -> int:
         "subset_outcome_type_rows_dropped": dict(sorted(aggregator.subset_type_rows.items())),
         "duplicate_source_keys": aggregator.duplicate_source_keys,
         "duplicate_source_key_examples": aggregator.duplicate_examples,
+        "data_not_provided": {
+            f"{force}|{financial_year}": count
+            for (force, financial_year), count in sorted(aggregator.not_provided.items())
+        },
         "not_yet_assigned_rows_excluded": aggregator.not_assigned_rows,
         "not_yet_assigned_offences": dict(aggregator.not_assigned_counts),
         "central_fraud_body_rows_dropped": aggregator.central_fraud_rows,

@@ -31,7 +31,7 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 6
+version: 7
 last_reviewed: 2026-08-26
 
 annotations:
@@ -214,4 +214,26 @@ annotations:
     source_citation: >-
       Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
       London: Home Office. Notes to tables 1.2, 3.1 and 3.2.
+    source_url_verified: true
+
+  - id: counts-not-supplied
+    scope: national
+    financial_years: all
+    measures: all
+    label: Some forces did not supply counts in some years
+    text: >-
+      The published tables mark a count the force did not supply as "N/A - data
+      not provided", which is different from a count that does not apply. It
+      reads as zero here, because the arithmetic has to work, but a force year
+      carrying it is understated rather than genuinely low. Greater Manchester
+      is the main case: it could not supply data from July 2019 to March 2020
+      after an IT change, and the Home Office bulletin excludes the force from
+      several of its own tables for that reason. The validation report names
+      every force and year affected, and the data page carries the same list, so
+      an unexplained dip can be checked against it before it is read as a change
+      in behaviour.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
+    source_citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
+      London: Home Office. Notes to tables 1.2 and 3.2.
     source_url_verified: true

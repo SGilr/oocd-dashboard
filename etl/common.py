@@ -506,6 +506,18 @@ NOT_APPLICABLE_MARKERS = frozenset(
 # "N/A - Offence code expired".
 NOT_APPLICABLE_RE = re.compile(r"^(n/?\.?a\.?|not\s+(applicable|available))\b")
 
+# "N/A - data not provided" is a different thing from "not applicable". The
+# count is missing because a force did not supply it, not because the concept
+# does not apply. It still has to read as zero for the arithmetic to work, but
+# a force year carrying it is understated, and that must be visible rather than
+# absorbed. 45,220 rows carry it across the twelve years to March 2026.
+NOT_PROVIDED_RE = re.compile(r"not\s+provided", re.IGNORECASE)
+
+
+def is_not_provided(value: object) -> bool:
+    """True when a count cell says the force did not supply the data."""
+    return value is not None and bool(NOT_PROVIDED_RE.search(str(value)))
+
 
 def to_int(value: object) -> int:
     """Read a count cell as an integer. Blank and ':' mean zero, not missing."""

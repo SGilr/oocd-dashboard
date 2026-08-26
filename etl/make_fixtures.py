@@ -178,6 +178,15 @@ def generate_outcomes(year_start: int, rng: random.Random) -> list[list[object]]
                         # published files write this exact string.
                         recorded_cell = "N/A - Offence code expired"
 
+                    # Greater Manchester did not supply data for part of
+                    # 2019/20 after an IT change. The published files mark it
+                    # "N/A - data not provided", which means missing rather
+                    # than zero, and the fixture reproduces it so the handling
+                    # is exercised in the tests.
+                    if force == "Greater Manchester" and year_start == 2019 and quarter >= 2:
+                        recorded_cell = "N/A - data not provided"
+                        closed_cell = "N/A - data not provided"
+
                     rows.append(
                         [
                             financial_year,

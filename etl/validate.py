@@ -168,6 +168,30 @@ def check_outcome_type_coverage(coverage: dict, report: Report) -> None:
             )
 
 
+def check_data_not_provided(coverage: dict, report: Report) -> None:
+    """Report force years where a count was missing rather than zero."""
+    affected = coverage.get("data_not_provided", {})
+    if not affected:
+        report.note("data_not_provided", "Every force supplied every count")
+        return
+
+    by_force: dict[str, list[str]] = {}
+    for key, count in affected.items():
+        force, financial_year = key.split("|")
+        by_force.setdefault(force, []).append(financial_year)
+
+    for force, years in sorted(by_force.items()):
+        report.flag(
+            "data_not_provided",
+            f"{force} did not supply counts for {', '.join(sorted(years))}. "
+            "Those rows read as zero, so the force is understated in those "
+            "years and must not be compared with others across them.",
+            force=force,
+            financial_years=sorted(years),
+            rows=sum(count for key, count in affected.items() if key.startswith(f"{force}|")),
+        )
+
+
 def check_negative_counts(coverage: dict, tables: dict, report: Report) -> None:
     if coverage.get("negative_count_rows"):
         report.fail(
@@ -727,6 +751,7 @@ def main() -> int:
     check_forces(coverage, report)
     check_outcome_type_coverage(coverage, report)
     check_negative_counts(coverage, tables, report)
+    check_data_not_provided(coverage, report)
     check_duplicate_keys(coverage, tables, report)
     check_totals_reconcile(tables, report)
     check_year_on_year(tables, report)
