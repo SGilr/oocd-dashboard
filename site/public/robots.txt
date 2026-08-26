@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://oocd-dashboard.pages.dev/sitemap-index.xml
+Sitemap: https://oocd.howpreventionworks.com/sitemap-index.xml

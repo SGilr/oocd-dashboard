@@ -33,7 +33,7 @@ minutes.
 
    | Name | Value |
    | --- | --- |
-   | `SITE_URL` | the site's own origin, for example `https://oocd.example.org` |
+   | `SITE_URL` | `https://oocd.howpreventionworks.com` |
 
    It sets the canonical URL and the sitemap origin. Without it the build falls
    back to the `pages.dev` address, which is correct for a preview and wrong for
@@ -59,15 +59,24 @@ pointing a custom domain at it.
 
 ## Custom domain
 
-Add the domain in the Pages project under Custom domains. Cloudflare issues the
-certificate. The zone and subdomain have not been chosen: that decision is for
-whoever owns the zone.
+The site is served at **oocd.howpreventionworks.com**, a subdomain of the
+`howpreventionworks.com` zone, which is already on Cloudflare.
 
-Once the domain is live, update two things so the canonical URLs and the sitemap
-match it:
+In the Pages project, go to Custom domains, Set up a custom domain, and enter
+`oocd.howpreventionworks.com`. Because the zone is on the same Cloudflare
+account, the CNAME is created for you and the certificate is issued
+automatically. Nothing needs adding to DNS by hand.
 
-- The `SITE_URL` environment variable in the Pages project.
+The subdomain appears in exactly two places in this repository, and they must
+agree with what the Pages project serves:
+
+- `site` in `site/astro.config.mjs`, which sets the canonical URL and the
+  sitemap origin. It reads `SITE_URL` from the environment first, so the
+  variable in the Pages project wins.
 - The `Sitemap:` line in `site/public/robots.txt`.
+
+To move the site to a different subdomain, change those two and the `SITE_URL`
+variable.
 
 ## Headers
 

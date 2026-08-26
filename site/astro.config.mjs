@@ -6,7 +6,7 @@ import sitemap from "@astrojs/sitemap";
 // derived tables in data/processed, so the deployed site makes no data request
 // of its own and there is no runtime to secure.
 export default defineConfig({
-  site: process.env.SITE_URL || "https://oocd-dashboard.pages.dev",
+  site: process.env.SITE_URL || "https://oocd.howpreventionworks.com",
   output: "static",
   trailingSlash: "ignore",
   build: { format: "directory", inlineStylesheets: "auto" },

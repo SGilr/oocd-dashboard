@@ -148,8 +148,9 @@ be published.
 
 ## Deployment
 
-Cloudflare Pages, git integration, static output. `docs/DEPLOYMENT.md` has the
-build settings, the environment variable, the headers, the analytics choice and
+Cloudflare Pages, git integration, static output, served at
+oocd.howpreventionworks.com. `docs/DEPLOYMENT.md` has the build settings, the
+environment variable, the custom domain, the headers, the analytics choice and
 the four things to confirm before the first production deploy.
 
 ## If this directory sits inside a larger repository
