@@ -80,7 +80,11 @@ jobs:
       - name: Commit the figures
         if: success() && inputs.dry_run != true
         run: |
-          if git diff --quiet -- data/processed/prison-capacity.json; then
+          # git status, not git diff. On the first real run the file does not
+          # exist yet, and git diff reports no change for a path git has never
+          # tracked, so a diff check would decide the first week's figures were
+          # unchanged and commit nothing.
+          if [ -z "$(git status --porcelain data/processed/prison-capacity.json)" ]; then
             echo "The figures are unchanged. Nothing committed."
             exit 0
           fi
