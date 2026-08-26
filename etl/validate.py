@@ -410,14 +410,52 @@ def check_annotations(report: Report, check_urls: bool) -> None:
     report.note("annotations", f"{len(annotations)} annotations checked")
 
 
+def _write_back_verification(document: dict) -> None:
+    """Update only the source_url_verified lines, leaving the file otherwise as
+    it was.
+
+    Dumping the parsed document back would strip every comment in the file,
+    including the header that explains what each field is for. This edits the
+    one line per annotation that changed and touches nothing else.
+    """
+    lines = ANNOTATIONS_PATH.read_text(encoding="utf-8").splitlines(keepends=True)
+    states = {
+        annotation["id"]: annotation.get("source_url_verified")
+        for annotation in document.get("annotations", [])
+    }
+
+    current: str | None = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("- id:"):
+            current = stripped.split(":", 1)[1].strip()
+        elif current and stripped.startswith("source_url_verified:"):
+            value = states.get(current)
+            rendered = "null" if value is None else ("true" if value else "false")
+            indent = line[: len(line) - len(line.lstrip())]
+            lines[index] = f"{indent}source_url_verified: {rendered}\n"
+            current = None
+
+    ANNOTATIONS_PATH.write_text("".join(lines), encoding="utf-8")
+
+
 def _resolve_annotation_urls(document: dict, report: Report) -> None:
+    """Resolve every annotation source URL and write the result back.
+
+    Three outcomes, and the difference between the last two matters. A URL that
+    answers is true. A URL that answers with an error status is false, and fails
+    the build, because the source has moved or gone. A URL that cannot be
+    reached at all, because the network is blocked or down, stays unknown: it
+    must not be recorded as false, or a run from a machine without access would
+    silently condemn every source.
+    """
     import requests
 
     session = requests.Session()
     session.headers.update(
         {"User-Agent": "oocd-dashboard/1.0 annotation source check"}
     )
-    changed = False
+    unreachable = 0
     for annotation in document.get("annotations", []):
         url = annotation.get("source_url")
         if not url:
@@ -427,29 +465,40 @@ def _resolve_annotation_urls(document: dict, report: Report) -> None:
             if response.status_code >= 400:
                 response = session.get(url, timeout=30, stream=True)
             resolved = response.status_code < 400
+            status = response.status_code
         except Exception as error:  # noqa: BLE001
-            resolved = False
+            unreachable += 1
+            annotation["source_url_verified"] = None
             report.flag(
                 "annotation_urls",
-                f"{annotation['id']}: could not reach {url}: {error}",
+                f"{annotation['id']}: could not reach {url}. This is a network "
+                f"problem, not a bad source, so it stays unverified rather than "
+                f"being marked broken. {type(error).__name__}",
             )
+            continue
+
         annotation["source_url_verified"] = resolved
-        changed = True
-        report.note(
-            "annotation_urls",
-            f"{annotation['id']}: {'resolved' if resolved else 'did not resolve'} "
-            f"{url}",
-        )
-        if not resolved:
+        if resolved:
+            report.note(
+                "annotation_urls", f"{annotation['id']}: resolved, {status}. {url}"
+            )
+        else:
             report.fail(
                 "annotation_urls",
-                f"{annotation['id']}: the source URL did not resolve. Find the "
+                f"{annotation['id']}: the source URL returned {status}. Find the "
                 "correct source rather than substituting another.",
                 source_url=url,
             )
-    if changed:
-        with ANNOTATIONS_PATH.open("w", encoding="utf-8") as handle:
-            yaml.safe_dump(document, handle, sort_keys=False, allow_unicode=True)
+
+    _write_back_verification(document)
+
+    if unreachable:
+        report.flag(
+            "annotation_urls",
+            f"{unreachable} source URLs could not be reached from this machine. "
+            "Run this again from somewhere with access to gov.uk before "
+            "publishing.",
+        )
 
 
 def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
@@ -603,6 +652,12 @@ def main() -> int:
         help="resolve every annotation source URL and record the result",
     )
     parser.add_argument(
+        "--urls-only",
+        action="store_true",
+        help="check the annotation source URLs and nothing else. Needs no "
+        "derived tables, so it can be run on a fresh clone before any extract.",
+    )
+    parser.add_argument(
         "--data-root",
         default=None,
         help="data directory to validate, or 'fixture'. Defaults to data/.",
@@ -613,6 +668,31 @@ def main() -> int:
     report_path = args.report or paths.root / "validation-report.json"
 
     report = Report()
+
+    if args.urls_only:
+        # Deliberately does not touch the derived tables: this mode exists so
+        # the source URLs can be checked on a fresh clone, from a machine that
+        # can reach them, without running the extract first.
+        check_annotations(report, check_urls=True)
+        for note in report.notes:
+            print(f"  note  [{note['check']}] {note['detail']}")
+        for flag in report.flags:
+            print(f"  FLAG  [{flag['check']}] {flag['detail']}")
+        for failure in report.failures:
+            print(f"  FAIL  [{failure['check']}] {failure['detail']}")
+        if report.failures:
+            print(f"\n{len(report.failures)} source URLs returned an error. Find "
+                  "the correct source rather than substituting another.")
+            return 1
+        unreachable = [f for f in report.flags if "could not reach" in f["detail"]]
+        if unreachable:
+            print(f"\n{len(unreachable)} source URLs could not be reached from "
+                  "this machine, so they stay unverified. Nothing was marked "
+                  "broken. Run this again from somewhere with access.")
+            return 1
+        print("\nEvery annotation source URL resolved. etl/annotations.yml updated.")
+        return 0
+
     tables = load_tables(paths.processed)
     coverage = read_json(paths.processed / "coverage.json")
     manifest = read_json(paths.manifest)
