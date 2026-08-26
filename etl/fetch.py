@@ -74,6 +74,7 @@ class Asset:
     filename: str
     financial_year: str | None
     financial_years: tuple[str, ...] = ()
+    reason: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -90,30 +91,57 @@ def _nearest_heading(node) -> str:
     return ""
 
 
-def _classify(haystack: str) -> str:
-    """Decide what a discovered file is, from its title, section and filename."""
-    text = haystack.lower()
-    if "user guide" in text or "userguide" in text:
-        return KIND_USER_GUIDE
-    has_outcome = "outcome" in text
-    has_force_area = any(
-        token in text
-        for token in ("police force area", "force area", "pfa", "prc-pfa", "-pfa-")
-    )
-    if has_outcome and not has_force_area:
-        return KIND_OUTCOMES
-    if has_outcome and has_force_area:
-        # Outcomes tables are published per police force area, so a title that
-        # mentions both is still the outcomes series.
-        return KIND_OUTCOMES
-    if has_force_area:
-        # Anything on the page that names a police force area and is not the
-        # outcomes series is the recorded crime series, which is the only other
-        # thing we take. Being generous here is safe: a file that turns out not
-        # to carry recorded crime is skipped at transform time with a logged
-        # reason, whereas missing the denominator entirely is silent.
-        return KIND_FORCE_AREA_CRIME
-    return KIND_OTHER
+# Classification is led by the link title, not by the heading above it.
+#
+# The landing page lists a good deal more than the two series used here, and
+# several of the others sit under the same headings. An earlier version matched
+# on the heading as well as the title, and picked up the alternate offences
+# file, the firearms and knives subsets, two subcode files, a supplementary
+# metrics file and a geographical reference table. Taking the alternate offences
+# file in particular would have double counted, because it holds outcome types
+# 1a, 2a and 3a, which are already inside outcomes 1, 2 and 3.
+#
+# The two series are identified by a phrase that appears in their titles and in
+# no other title on the page.
+OUTCOMES_TITLE_RE = re.compile(r"\boutcomes\s+open\s+data\b", re.IGNORECASE)
+FORCE_AREA_TITLE_RE = re.compile(r"\bpolice\s+force\s+area\b", re.IGNORECASE)
+USER_GUIDE_TITLE_RE = re.compile(r"\buser\s*guide\b", re.IGNORECASE)
+
+# A second guard. If one of these appears in a title, the file is a subset, a
+# derived metric or a lookup, never one of the two series, whatever else the
+# title says. Each is a file seen on the page on 23 July 2026.
+NOT_THE_SERIES = (
+    ("alternate", "outcome types 1a, 2a and 3a, already inside outcomes 1, 2 and 3"),
+    ("alternative", "alternative offence subset"),
+    ("subcode", "offence subcode breakdown, not the main series"),
+    ("supplementary", "derived metrics, not the source series"),
+    ("firearm", "firearms subset of the outcomes series"),
+    ("knive", "knives subset of the outcomes series"),
+    ("knife", "knives subset of the outcomes series"),
+    ("sharp instrument", "knives subset of the outcomes series"),
+    ("geographical reference", "lookup table, carries no counts"),
+)
+
+
+def _classify(title: str) -> tuple[str, str]:
+    """Decide what a file is from its title. Returns (kind, reason).
+
+    The reason is reported for everything, including what was passed over, so a
+    file the page adds later is visible rather than silently ignored.
+    """
+    text = title.lower()
+
+    for token, reason in NOT_THE_SERIES:
+        if token in text:
+            return KIND_OTHER, reason
+
+    if USER_GUIDE_TITLE_RE.search(title):
+        return KIND_USER_GUIDE, "user guide"
+    if OUTCOMES_TITLE_RE.search(title):
+        return KIND_OUTCOMES, "outcomes open data series"
+    if FORCE_AREA_TITLE_RE.search(title):
+        return KIND_FORCE_AREA_CRIME, "police force area crime series"
+    return KIND_OTHER, "neither of the two series this dashboard uses"
 
 
 def discover_assets(html: str, base_url: str = LANDING_PAGE) -> list[Asset]:
@@ -141,18 +169,19 @@ def discover_assets(html: str, base_url: str = LANDING_PAGE) -> list[Asset]:
         title = re.sub(r"\s+", " ", anchor.get_text(" ", strip=True))
         section = _nearest_heading(anchor)
         filename = Path(urlparse(url).path).name
-        haystack = " | ".join([title, section, filename])
+        kind, reason = _classify(title or filename)
+        covered = financial_years_covered(title or filename)
 
-        covered = financial_years_covered(haystack)
         assets.append(
             Asset(
-                kind=_classify(haystack),
+                kind=kind,
                 url=url,
                 title=title or filename,
                 section=section,
                 filename=filename,
                 financial_year=covered[0] if len(covered) == 1 else None,
                 financial_years=covered,
+                reason=reason,
             )
         )
 
@@ -369,12 +398,20 @@ def main() -> int:
             print(f"  [{span}] {asset.title}")
             print(f"      {asset.url}")
 
+    passed_over = [a for a in assets if a.kind == KIND_OTHER]
+    if passed_over:
+        print(f"\nPassed over: {len(passed_over)} files")
+        for asset in sorted(passed_over, key=lambda a: a.title):
+            print(f"  {asset.title}")
+            print(f"      {asset.reason}")
+
     undated = [a for a in by_kind.get(KIND_OUTCOMES, []) if not a.financial_years]
     if undated:
         print(
             f"\nWARNING: {len(undated)} outcomes files carry no readable financial "
-            "year. They are included, and the year will be taken from the file "
-            "contents at transform time."
+            "year. Every published one is titled by the year it ends in, so this "
+            "means a title has changed. They are included, and the year will be "
+            "taken from the file contents at transform time."
         )
 
     if not by_kind.get(KIND_OUTCOMES):

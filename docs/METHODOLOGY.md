@@ -49,9 +49,17 @@ crime, which is the denominator for the rate measure. They are published as ODS,
 and the current file covers the year ending March 2013 onwards in one file
 rather than one file per year. Two older archives, covering March 2003 to March
 2007 and March 2008 to March 2012, fall before the period covered here and are
-not downloaded. A file of police recorded crime subcodes for selected violence
-against women and girls offences is also published on the same page. Nothing on
-this dashboard uses it, so it is not downloaded.
+not downloaded. The landing page carries a good deal more than these two series. As published on
+23 July 2026 it also offered a supplementary crime outcomes metrics file, three
+subcode breakdowns, firearms and knives subsets of the outcomes series, a
+geographical reference table, and an outcomes for alternate offences file.
+None of them is downloaded, and the extract prints what it passed over and why,
+so a file added later shows up rather than being ignored in silence.
+
+The alternate offences file is the one that matters most. It holds outcome types
+1a, 2a and 3a, which are the subsets of outcomes 1, 2 and 3 where the outcome
+relates to an offence other than the one recorded. Those sit inside their parent
+types, so adding that file to the totals would double count.
 
 ODS files are read by streaming the XML out of the zip rather than loading the
 document. The force area file is 14.2 MB compressed and its `content.xml`
