@@ -69,29 +69,42 @@ def resolve_data_root(value: str | Path | None) -> DataPaths:
 # docs/METHODOLOGY.md with the citation.
 
 OUTCOME_LABELS: dict[int, str] = {
-    1: "Charge or summons",
+    0: "Not yet assigned an outcome",
+    1: "Charged or summonsed",
     2: "Caution, youths",
     3: "Caution, adults",
     4: "Taken into consideration",
     5: "Offender died",
-    6: "Penalty notice for disorder",
+    6: "Penalty notices for disorder",
     7: "Cannabis or khat warning",
     8: "Community resolution",
-    9: "Prosecution not in the public interest, Crown Prosecution Service",
-    10: "Formal action not in the public interest, police",
-    11: "Suspect under the age of criminal responsibility",
-    12: "Suspect too ill or has died before charge",
-    13: "Victim or key witness has died or is too ill to give evidence",
-    14: "Victim does not support action, suspect not identified",
+    9: "Not in the public interest, Crown Prosecution Service",
+    10: "Not in the public interest, police",
+    11: "Prosecution prevented, suspect under age",
+    12: "Prosecution prevented, suspect too ill",
+    13: "Prosecution prevented, victim or key witness dead or too ill",
+    14: "Evidential difficulties, suspect not identified, victim does not support further action",
     15: "Evidential difficulties, suspect identified, victim supports action",
-    16: "Evidential difficulties, victim does not support action, suspect identified",
+    16: "Evidential difficulties, suspect identified, victim does not support further action",
     17: "Prosecution time limit expired",
     18: "Investigation complete, no suspect identified",
     19: "National Fraud Intelligence Bureau, fraud case",
-    20: "Another agency dealing with the case",
-    21: "Investigation not in the public interest, police",
+    20: "Responsibility for further investigation transferred to another body",
+    21: "Further investigation to support formal action not in the public interest, police decision",
     22: "Diversionary, educational or intervention activity",
 }
+
+# Outcome type 0 is not an outcome. It counts offences that have not yet been
+# assigned one, and it is present in the published tables as a row like any
+# other. It must never enter a total: including it in all assigned outcomes
+# would put offences with no decision into the denominator of a measure about
+# decisions. Confirmed present in the year ending March 2026 file, 32,384 rows.
+NOT_ASSIGNED_TYPE = 0
+
+# Types that must appear in the data, because the classification depends on
+# them. A type outside this set can legitimately be absent from a year: the
+# year ending March 2026 file carries no type 19, for instance.
+ESSENTIAL_TYPES: tuple[int, ...] = (1, 2, 3, 6, 7, 8, 22)
 
 # The six out of court disposal types. Outcome 4, taken into consideration, is
 # deliberately absent: it is an admission recorded alongside a prosecution, not
@@ -498,16 +511,35 @@ def to_int(value: object) -> int:
             raise ValueError(f"Count is not a whole number: {value!r}")
         return int(value)
     text = str(value).strip().replace(",", "")
-    if text in {"", ":", "-", "..", "n/a", "N/A"}:
+    if text in {"", ":", "-", "..", "*"}:
         return 0
-    return int(float(text))
+    # The published tables use several not applicable forms, including
+    # "N/A - Offence code expired" in the recorded column for retired codes and
+    # a bare "N/A" in the closed column against outcome type 0. All of them mean
+    # the count does not apply, which is zero for our purposes. Anything else
+    # that is not a number is an error and must not be quietly read as zero.
+    if text.lower().startswith(("n/a", "na -", "not applicable")):
+        return 0
+    try:
+        return int(float(text))
+    except ValueError as error:
+        raise ValueError(
+            f"Cannot read {text!r} as a count. If this is a new not applicable "
+            "marker, add it to to_int in etl/common.py rather than letting it "
+            "become a zero."
+        ) from error
 
 
 def truthy_flag(value: object) -> bool:
-    """Read an expired flag cell. Only explicit yes values count as true."""
+    """Read the offence code expired flag.
+
+    The published files mark an expired code with a lower case 'x' and leave the
+    cell empty otherwise. Other plausible markers are accepted so a change of
+    convention does not silently read every code as current.
+    """
     if value is None:
         return False
-    return str(value).strip().lower() in {"yes", "y", "true", "1", "expired"}
+    return str(value).strip().lower() in {"x", "yes", "y", "true", "1", "expired"}
 
 
 def write_json(path: Path, payload: object) -> None:

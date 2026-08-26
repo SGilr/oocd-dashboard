@@ -37,7 +37,11 @@ required attribution statement is in `DATA-LICENCE.md` and in the footer of ever
 page.
 
 Two series are used. The outcomes open data tables, one file per financial year
-from 2014/15, give the outcome counts. The police force area crime tables give
+from 2014/15, give the outcome counts. They are titled by the year the financial
+year ends in, so "Outcomes open data, year ending March 2026" is financial year
+2025/26. The archive covering the years ending March 2006 to March 2014 is
+published as an ODS file and falls wholly before the period covered here, so it
+is not downloaded. The police force area crime tables give
 recorded crime, which is the denominator for the rate measure.
 
 <!-- INJECT:MANIFEST -->
@@ -56,6 +60,19 @@ The published tables carry an outcome type code from 1 to 22. Six of them are
 out of court disposals.
 
 <!-- INJECT:OUTCOME-TYPES -->
+
+Outcome type 0, not yet assigned an outcome, is not an outcome at all. It counts
+offences still waiting for one, and it appears in the published tables as a row
+like any other. It is excluded from every figure here, including from all
+assigned outcomes. In the year ending March 2026 it covered 384,808 offences on
+the recorded basis, so including it would have inflated that denominator by
+about 8 per cent. It carries no counts on the closed basis, which is a further
+reason to prefer that basis.
+
+Outcome type 19, National Fraud Intelligence Bureau fraud case, does not appear
+in the year ending March 2026 file at all. A type can be legitimately absent
+from a year, so a missing one is reported for review rather than failing the
+build, except for the seven types the classification depends on.
 
 Outcome type 4, taken into consideration, is not an out of court disposal. It
 records an offence the person admitted and asked the court to take into account
@@ -139,16 +156,24 @@ share measures, where the denominator is the force's own outcomes.
 ## Fraud
 
 Fraud reported to Action Fraud, Cifas and Financial Fraud UK is recorded
-centrally and then attributed to police force areas. It appears in the force area
-tables without having been investigated by the force in the way other recorded
-crime is, and it falls unevenly across forces.
+centrally rather than by police forces.
 
-Every measure on the compare page has an exclude fraud control, which drops the
-whole fraud offence group. The published tables do not allow centrally recorded
-fraud to be separated from force recorded fraud, so the control removes both.
+The consequence for the outcomes tables is stronger than expected. In the year
+ending March 2026 the only fraud offence group present is "Fraud offences to
+2012/13", every code in it is expired, and it carries no counts. The outcomes
+tables therefore contain effectively no fraud, and excluding fraud changes
+nothing in any measure built on them: the all fraud and the exclude fraud totals
+for that year are identical to the unit.
+
+The exclude fraud control is kept so that this can be seen rather than assumed,
+and because fraud does affect the police force area crime tables, which supply
+the denominator for the rate per 1,000 recorded crimes. It matters for that
+measure and not for the share measures.
+
 Rows attributed to Action Fraud, Cifas and Financial Fraud UK as if they were
 forces are dropped at extract time and counted in `coverage.json`, so they are
-never treated as a forty fifth force.
+never treated as a forty fifth force. None appeared in the year ending March
+2026 outcomes file, which lists exactly 44 forces.
 
 ## Notes on the series
 
@@ -211,7 +236,11 @@ checks are:
 - All 44 forces are present, and any force name in the source files that does not
   match the canonical list is reported rather than dropped in silence.
 - Every outcome type from 1 to 22 appears in at least one financial year.
-- No count is negative.
+- No count that feeds a derived total is negative. A negative inside outcome type
+  0 is recorded as a note instead: a force can reclassify more offences in a
+  quarter than it records, which produces a small negative there, and that row
+  never enters a total. Humberside does this four times in the year ending March
+  2026, on distraction burglary.
 - No key of force, financial year, quarter, offence code and outcome type repeats
   in a source file, which would double count.
 - No derived table has more than one row for a key.

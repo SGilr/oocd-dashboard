@@ -26,6 +26,7 @@ from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
+    NOT_ASSIGNED_TYPE,
     BASIS_CLOSED,
     BASIS_RECORDED,
     CENTRAL_FRAUD_BODIES,
@@ -168,6 +169,10 @@ class Aggregator:
         self.negative_counts = 0
         self.duplicate_source_keys = 0
         self.duplicate_examples: list[str] = []
+        self.not_assigned_rows = 0
+        self.not_assigned_counts = {BASIS_CLOSED: 0, BASIS_RECORDED: 0}
+        self.negative_counts_excluded = 0
+        self.negative_examples: list[str] = []
 
     @staticmethod
     def _empty_cell() -> dict:
@@ -217,6 +222,17 @@ class Aggregator:
                     continue
                 key = "oocd" if outcome_type in OOCD_TYPES else "charge"
                 offence_cell[basis][key] += value
+
+
+def _note_negative(aggregator, path, force, financial_year, quarter, offence_code,
+                   outcome_type, counts) -> None:
+    """Record a negative count so a person can see exactly where it was."""
+    if len(aggregator.negative_examples) < 20:
+        aggregator.negative_examples.append(
+            f"{path.name}: {force}, {financial_year} Q{quarter}, offence "
+            f"{offence_code}, outcome type {outcome_type}, "
+            f"recorded {counts[BASIS_RECORDED]}, closed {counts[BASIS_CLOSED]}"
+        )
 
 
 def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) -> None:
@@ -271,9 +287,6 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             BASIS_RECORDED: to_int(cell(row, "count_recorded")),
             BASIS_CLOSED: to_int(cell(row, "count_closed")),
         }
-        if any(value < 0 for value in counts.values()):
-            aggregator.negative_counts += 1
-
         if truthy_flag(cell(row, "offence_code_expired")):
             aggregator.expired_code_rows += 1
 
@@ -300,6 +313,34 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
         fraud = is_fraud_group(offence_group, offence_subgroup)
 
         aggregator.outcome_type_years[outcome_type].add(financial_year)
+
+        if outcome_type == NOT_ASSIGNED_TYPE:
+            # Outcome type 0 counts offences that have not been given an outcome
+            # yet. It is not an outcome, so it cannot go into all assigned
+            # outcomes: doing so would put undecided cases into the denominator
+            # of every share measure. It is counted here so the volume is
+            # visible in coverage.json rather than simply disappearing.
+            aggregator.not_assigned_rows += 1
+            for basis in COUNT_BASES:
+                aggregator.not_assigned_counts[basis] += counts[basis]
+            if any(value < 0 for value in counts.values()):
+                # A small negative appears here when a force reclassifies more
+                # offences in a quarter than it recorded. It sits in outcome
+                # type 0, which never enters a derived total, so it is recorded
+                # for transparency rather than failing the build.
+                aggregator.negative_counts_excluded += 1
+                _note_negative(aggregator, path, force, financial_year, quarter,
+                               offence_code, outcome_type, counts)
+            aggregator.rows_used += 1
+            continue
+
+        if any(value < 0 for value in counts.values()):
+            # A negative in a row that does enter a total is a different matter,
+            # and stops the build.
+            aggregator.negative_counts += 1
+            _note_negative(aggregator, path, force, financial_year, quarter,
+                           offence_code, outcome_type, counts)
+
         aggregator.add(
             force=force,
             financial_year=financial_year,
@@ -583,8 +624,12 @@ def main() -> int:
         "rows_read": aggregator.rows_read,
         "rows_used": aggregator.rows_used,
         "negative_count_rows": aggregator.negative_counts,
+        "negative_count_rows_excluded": aggregator.negative_counts_excluded,
+        "negative_count_examples": aggregator.negative_examples,
         "duplicate_source_keys": aggregator.duplicate_source_keys,
         "duplicate_source_key_examples": aggregator.duplicate_examples,
+        "not_yet_assigned_rows_excluded": aggregator.not_assigned_rows,
+        "not_yet_assigned_offences": dict(aggregator.not_assigned_counts),
         "central_fraud_body_rows_dropped": aggregator.central_fraud_rows,
         "expired_offence_code_rows": aggregator.expired_code_rows,
         "unknown_force_names": dict(sorted(aggregator.unknown_forces.items())),

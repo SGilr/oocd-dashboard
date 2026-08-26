@@ -73,6 +73,7 @@ class Asset:
     section: str
     filename: str
     financial_year: str | None
+    financial_years: tuple[str, ...] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -105,9 +106,12 @@ def _classify(haystack: str) -> str:
         # Outcomes tables are published per police force area, so a title that
         # mentions both is still the outcomes series.
         return KIND_OUTCOMES
-    if has_force_area and any(
-        token in text for token in ("crime", "offence", "recorded")
-    ):
+    if has_force_area:
+        # Anything on the page that names a police force area and is not the
+        # outcomes series is the recorded crime series, which is the only other
+        # thing we take. Being generous here is safe: a file that turns out not
+        # to carry recorded crime is skipped at transform time with a logged
+        # reason, whereas missing the denominator entirely is silent.
         return KIND_FORCE_AREA_CRIME
     return KIND_OTHER
 
@@ -139,6 +143,7 @@ def discover_assets(html: str, base_url: str = LANDING_PAGE) -> list[Asset]:
         filename = Path(urlparse(url).path).name
         haystack = " | ".join([title, section, filename])
 
+        covered = financial_years_covered(haystack)
         assets.append(
             Asset(
                 kind=_classify(haystack),
@@ -146,8 +151,8 @@ def discover_assets(html: str, base_url: str = LANDING_PAGE) -> list[Asset]:
                 title=title or filename,
                 section=section,
                 filename=filename,
-                financial_year=normalise_financial_year(haystack)
-                or _year_from_compact(haystack),
+                financial_year=covered[0] if len(covered) == 1 else None,
+                financial_years=covered,
             )
         )
 
@@ -155,6 +160,37 @@ def discover_assets(html: str, base_url: str = LANDING_PAGE) -> list[Asset]:
 
 
 COMPACT_YEAR_RE = re.compile(r"(?<!\d)(20\d{2})[ _-]?(\d{2})(?!\d)")
+
+# The published link titles name the year the financial year ends in, as in
+# "Outcomes open data, year ending March 2026", which is financial year 2025/26.
+# A file can also cover a range: "year ending March 2006 to year ending March
+# 2014" is 2005/06 to 2013/14.
+YEAR_ENDING_RE = re.compile(r"years?\s+ending\s+March\s+(20\d{2})", re.IGNORECASE)
+
+
+def _financial_year_ending(calendar_year: int) -> str:
+    """'year ending March 2026' is financial year 2025/26."""
+    start = calendar_year - 1
+    return f"{start}/{calendar_year % 100:02d}"
+
+
+def financial_years_covered(text: str) -> tuple[str, ...]:
+    """Every financial year a title says the file covers, earliest first.
+
+    Handles the three forms the landing page uses: an explicit financial year,
+    a year ending March, and a range of years ending March.
+    """
+    ending = [int(match.group(1)) for match in YEAR_ENDING_RE.finditer(text)]
+    if ending:
+        first, last = min(ending), max(ending)
+        return tuple(_financial_year_ending(year) for year in range(first, last + 1))
+
+    explicit = normalise_financial_year(text)
+    if explicit:
+        return (explicit,)
+
+    compact = _year_from_compact(text)
+    return (compact,) if compact else ()
 
 
 def _year_from_compact(text: str) -> str | None:
@@ -174,11 +210,16 @@ def select_assets(assets: list[Asset], from_year: int) -> list[Asset]:
         if asset.kind == KIND_OTHER:
             continue
         if asset.kind == KIND_OUTCOMES:
-            if asset.financial_year is None:
-                # An outcomes file we cannot date is reported, not guessed at.
+            if not asset.financial_years:
+                # An outcomes file we cannot date is kept and reported, never
+                # guessed at. transform.py takes the year from the rows.
                 selected.append(asset)
                 continue
-            if int(asset.financial_year.split("/")[0]) < from_year:
+            latest = max(int(year.split("/")[0]) for year in asset.financial_years)
+            if latest < from_year:
+                # Wholly before the period we cover. The pre 2014/15 archive is
+                # one such file, and it is published as ODS, which the transform
+                # does not read.
                 continue
         selected.append(asset)
     return selected
@@ -244,6 +285,7 @@ def download(
         "title": asset.title,
         "section": asset.section,
         "financial_year": asset.financial_year,
+        "financial_years": list(asset.financial_years),
         "url": asset.url,
         "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "size_bytes": target.stat().st_size,
@@ -292,11 +334,17 @@ def main() -> int:
     for kind in (KIND_OUTCOMES, KIND_FORCE_AREA_CRIME, KIND_USER_GUIDE):
         group = by_kind.get(kind, [])
         print(f"\n{kind}: {len(group)}")
-        for asset in sorted(group, key=lambda a: (a.financial_year or "", a.filename)):
-            print(f"  [{asset.financial_year or 'no year'}] {asset.title}")
+        for asset in sorted(
+            group, key=lambda a: (a.financial_years[0] if a.financial_years else "", a.filename)
+        ):
+            if len(asset.financial_years) > 1:
+                span = f"{asset.financial_years[0]} to {asset.financial_years[-1]}"
+            else:
+                span = asset.financial_year or "no year"
+            print(f"  [{span}] {asset.title}")
             print(f"      {asset.url}")
 
-    undated = [a for a in by_kind.get(KIND_OUTCOMES, []) if a.financial_year is None]
+    undated = [a for a in by_kind.get(KIND_OUTCOMES, []) if not a.financial_years]
     if undated:
         print(
             f"\nWARNING: {len(undated)} outcomes files carry no readable financial "

@@ -21,6 +21,7 @@ export const OOCD_TYPES = [8, 22, 3, 2, 6, 7] as const;
 export type OocdType = (typeof OOCD_TYPES)[number];
 
 export const OUTCOME_SHORT_LABELS: Record<number, string> = {
+  0: "Not yet assigned an outcome",
   1: "Charge or summons",
   2: "Caution, youths",
   3: "Caution, adults",

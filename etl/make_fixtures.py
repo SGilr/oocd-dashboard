@@ -36,6 +36,9 @@ from common import (  # noqa: E402
 
 PATHS = resolve_data_root("fixture")
 
+# The published header wording and column order, taken from the year ending
+# March 2026 file. Nothing in the ETL is positional, but the fixture matching the
+# published file means a header change shows up in CI rather than in production.
 OUTCOMES_HEADERS = [
     "Financial Year",
     "Financial Quarter",
@@ -44,12 +47,12 @@ OUTCOMES_HEADERS = [
     "Offence Description",
     "Offence Group",
     "Offence Subgroup",
-    "Offence Code Expired",
+    "Offence code expired",
     "Outcome Type",
     "Outcome Description",
     "Outcome Group",
-    "Number of Outcomes for offences that were recorded in the quarter",
-    "Number of Outcomes for investigations that were closed in the quarter",
+    "Outcomes for offences that were recorded in the quarter",
+    "Outcomes for investigations closed in the quarter",
 ]
 
 CRIME_HEADERS = [
@@ -74,6 +77,7 @@ OFFENCES = [
 ]
 
 OUTCOME_GROUPS = {
+    0: "Not yet assigned an outcome",
     1: "Charged/Summonsed",
     11: "Evidential difficulties",
     12: "Evidential difficulties",
@@ -108,7 +112,13 @@ FORCE_SCALE["British Transport Police"] = 0.6
 
 def outcome_types_for(financial_year_start: int) -> list[int]:
     """Outcome 22 only exists from 2019/20, as in the real series."""
-    types = [t for t in range(1, 22) if t != 19 or financial_year_start >= 2016]
+    # Type 0, not yet assigned an outcome, is present in the published files and
+    # must never enter a total. Type 19 is absent from the year ending March
+    # 2026 file, so the fixture leaves it out of recent years too.
+    types = [0] + [t for t in range(1, 19)]
+    if financial_year_start < 2020:
+        types.append(19)
+    types += [20, 21]
     if financial_year_start >= 2019:
         types.append(22)
     return types
@@ -119,6 +129,7 @@ def generate_outcomes(year_start: int, rng: random.Random) -> list[list[object]]
     rows: list[list[object]] = []
     for force in CANONICAL_FORCES:
         scale = FORCE_SCALE[force]
+        published_name = "London, City of" if force == "City of London" else force
         for quarter in (1, 2, 3, 4):
             for code, description, group, subgroup, expired in OFFENCES:
                 if expired and year_start >= 2019:
@@ -135,6 +146,7 @@ def generate_outcomes(year_start: int, rng: random.Random) -> list[list[object]]
                         1: 260, 2: 22, 3: 34, 4: 18, 5: 6, 6: 12, 7: 9, 8: 74,
                         9: 30, 10: 26, 11: 2, 12: 3, 13: 2, 14: 120, 15: 210,
                         16: 190, 17: 4, 18: 640, 19: 5, 20: 14, 21: 8, 22: 40,
+                        0: 300,
                     }[outcome_type]
                     if outcome_type == 22 and year_start < 2021:
                         # Voluntary recording: most forces record nothing.
@@ -143,23 +155,45 @@ def generate_outcomes(year_start: int, rng: random.Random) -> list[list[object]]
                         base = int(base * 0.3)
                     closed = int(base * scale * rng.uniform(0.7, 1.3))
                     recorded = int(closed * rng.uniform(0.6, 0.95))
-                    if closed == 0 and recorded == 0:
-                        continue
+
+                    if outcome_type == 0:
+                        # Type 0 has no closed count: an offence with no outcome
+                        # yet cannot belong to a closed investigation. The
+                        # published files write N/A here.
+                        closed_cell: object = "N/A"
+                        # A force that reclassifies more offences in a quarter
+                        # than it records produces a small negative, as
+                        # Humberside does in the year ending March 2026.
+                        if force == "Humberside" and code == "049":
+                            recorded = -quarter
+                        recorded_cell: object = recorded
+                    else:
+                        closed_cell = closed
+                        recorded_cell = recorded
+                        if closed == 0 and recorded == 0:
+                            continue
+
+                    if expired:
+                        # An expired code cannot take new recordings. The
+                        # published files write this exact string.
+                        recorded_cell = "N/A - Offence code expired"
+
                     rows.append(
                         [
                             financial_year,
                             f"Q{quarter}",
-                            force,
+                            published_name,
                             code,
                             description,
                             group,
                             subgroup,
-                            "Yes" if expired else "No",
+                            # The published flag is a lower case x, not "Yes".
+                            "x" if expired else None,
                             outcome_type,
                             OUTCOME_LABELS[outcome_type],
                             OUTCOME_GROUPS.get(outcome_type, "Other"),
-                            recorded,
-                            closed,
+                            recorded_cell,
+                            closed_cell,
                         ]
                     )
     return rows

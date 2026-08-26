@@ -26,6 +26,8 @@ from common import (  # noqa: E402
     ANNOTATIONS_PATH,
     CANONICAL_FORCES,
     COUNT_BASES,
+    ESSENTIAL_TYPES,
+    NOT_ASSIGNED_TYPE,
     OOCD_TYPES,
     OUTCOME_LABELS,
     POSITIVE_TYPES,
@@ -116,17 +118,44 @@ def check_outcome_type_coverage(coverage: dict, report: Report) -> None:
         for outcome_type in sorted(OUTCOME_LABELS)
         if not seen.get(str(outcome_type))
     ]
-    if missing:
+
+    # A missing type the classification depends on means a column was misread,
+    # and the build must stop. A missing type it does not depend on can be
+    # genuine: the year ending March 2026 file carries no type 19 at all, so
+    # failing on that would mean the build could never pass.
+    essential_missing = [t for t in missing if t in ESSENTIAL_TYPES]
+    optional_missing = [t for t in missing if t not in ESSENTIAL_TYPES]
+
+    if essential_missing:
         report.fail(
             "outcome_type_coverage",
-            "Outcome types appear in no financial year at all, which usually "
-            "means a column was misread",
-            missing=[f"{t} {OUTCOME_LABELS[t]}" for t in missing],
+            "Outcome types the classification depends on appear in no financial "
+            "year at all, which usually means a column was misread",
+            missing=[f"{t} {OUTCOME_LABELS[t]}" for t in essential_missing],
         )
-    else:
+    if optional_missing:
+        report.flag(
+            "outcome_type_coverage",
+            "Outcome types appear in no financial year. This can be correct, "
+            "the published tables do not carry every type in every year, but "
+            "check it against the user guide before publishing.",
+            missing=[f"{t} {OUTCOME_LABELS[t]}" for t in optional_missing],
+        )
+    if not missing:
         report.note(
             "outcome_type_coverage",
             f"All {len(OUTCOME_LABELS)} outcome types appear in at least one year",
+        )
+
+    excluded = coverage.get("not_yet_assigned_rows_excluded")
+    if excluded:
+        counts = coverage.get("not_yet_assigned_offences", {})
+        report.note(
+            "outcome_type_coverage",
+            f"Outcome type {NOT_ASSIGNED_TYPE}, not yet assigned an outcome, "
+            f"excluded from every total: {excluded:,} source rows, "
+            f"{counts.get('closed', 0):,} on the closed basis and "
+            f"{counts.get('recorded', 0):,} on the recorded basis.",
         )
 
     for outcome_type in OOCD_TYPES:
@@ -143,8 +172,18 @@ def check_negative_counts(coverage: dict, tables: dict, report: Report) -> None:
     if coverage.get("negative_count_rows"):
         report.fail(
             "negative_counts",
-            f"{coverage['negative_count_rows']} source rows carried a negative "
-            "count",
+            f"{coverage['negative_count_rows']} source rows that feed a derived "
+            "total carried a negative count",
+            examples=coverage.get("negative_count_examples", []),
+        )
+    if coverage.get("negative_count_rows_excluded"):
+        report.note(
+            "negative_counts",
+            f"{coverage['negative_count_rows_excluded']} source rows carried a "
+            f"negative count in outcome type {NOT_ASSIGNED_TYPE}, which never "
+            "enters a derived total. A force can reclassify more offences in a "
+            "quarter than it records, which shows up here.",
+            examples=coverage.get("negative_count_examples", []),
         )
     for name, table in tables.items():
         for row in table["rows"]:
@@ -337,6 +376,15 @@ def check_annotations(report: Report, check_urls: bool) -> None:
                 "annotations",
                 f"{annotation_id} has scope '{scope}', expected 'national' or a "
                 "list of force names",
+            )
+
+        if annotation.get("needs_review"):
+            report.flag(
+                "annotations",
+                f"{annotation_id} is marked needs_review: it makes a claim that "
+                "has not been reconciled with the data or with a named source. "
+                "Settle it before publishing.",
+                label=annotation.get("label"),
             )
 
         verified = annotation.get("source_url_verified")

@@ -10,6 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import pytest  # noqa: E402
+
 from fetch import (  # noqa: E402
     KIND_FORCE_AREA_CRIME,
     KIND_OUTCOMES,
@@ -113,3 +115,58 @@ class TestSelection:
         selected = select_assets(discover_assets(page), from_year=2014)
         assert len(selected) == 1
         assert selected[0].financial_year is None
+
+
+class TestPublishedLinkTitles:
+    """The exact titles the landing page carried on 23 July 2026.
+
+    The published titles name the year a financial year ends in, which none of
+    the original parsing handled, so every outcomes file came back undated and
+    the earliest year filter silently did nothing.
+    """
+
+    REAL_TITLES = [
+        ("Outcomes open data, year ending March 2026", "2025/26"),
+        ("Outcomes open data, year ending March 2025", "2024/25"),
+        ("Outcomes open data year ending March 2018", "2017/18"),
+        ("Outcomes open data year ending March 2015", "2014/15"),
+    ]
+
+    @pytest.mark.parametrize("title,expected", REAL_TITLES)
+    def test_year_ending_march_maps_to_a_financial_year(self, title, expected):
+        from fetch import financial_years_covered
+
+        assert financial_years_covered(title) == (expected,)
+
+    def test_the_pre_2014_archive_is_read_as_a_range(self):
+        from fetch import financial_years_covered
+
+        covered = financial_years_covered(
+            "Outcomes open data year ending March 2006 to year ending March 2014"
+        )
+        assert covered[0] == "2005/06"
+        assert covered[-1] == "2013/14"
+        assert len(covered) == 9
+
+    def test_the_pre_2014_archive_is_not_selected(self):
+        # It is published as ODS, which the transform does not read, and it is
+        # wholly before the period this dashboard covers.
+        page = (
+            '<a href="/x/prc-outcomes-2006-2014.ods">Outcomes open data year '
+            "ending March 2006 to year ending March 2014</a>"
+        )
+        assert select_assets(discover_assets(page), from_year=2014) == []
+
+    def test_a_file_that_ends_inside_the_period_is_kept(self):
+        page = (
+            '<a href="/x/prc-outcomes.xlsx">Outcomes open data year ending '
+            "March 2006 to year ending March 2016</a>"
+        )
+        assert len(select_assets(discover_assets(page), from_year=2014)) == 1
+
+    def test_force_area_tables_are_classified_without_the_word_crime(self):
+        page = (
+            '<a href="/x/prc-pfa-mar2026.csv">Police force area data tables, '
+            "year ending March 2026</a>"
+        )
+        assert discover_assets(page)[0].kind == KIND_FORCE_AREA_CRIME

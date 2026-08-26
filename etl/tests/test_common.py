@@ -12,6 +12,7 @@ from common import (  # noqa: E402
     CHARGE_TYPES,
     OOCD_TYPES,
     POSITIVE_TYPES,
+    OUTCOME_LABELS,
     HeaderMappingError,
     build_header_map,
     canonical_force,
@@ -205,3 +206,54 @@ class TestCountCells:
     @pytest.mark.parametrize("raw,expected", [("Yes", True), ("No", False), (None, False), ("", False)])
     def test_expired_flag(self, raw, expected):
         assert truthy_flag(raw) is expected
+
+
+class TestPublishedFileQuirks:
+    """Behaviour confirmed against the year ending March 2026 file.
+
+    Each of these was a defect found by running the ETL against the real
+    published workbook rather than against an assumption about it.
+    """
+
+    def test_outcome_type_zero_is_not_an_outcome(self):
+        from common import NOT_ASSIGNED_TYPE, OOCD_TYPES, POSITIVE_TYPES
+
+        assert NOT_ASSIGNED_TYPE == 0
+        assert 0 not in OOCD_TYPES
+        assert 0 not in POSITIVE_TYPES
+        assert classify_outcome(0) == "other"
+
+    def test_outcome_type_zero_has_a_label(self):
+        assert OUTCOME_LABELS[0] == "Not yet assigned an outcome"
+
+    def test_expired_code_marker_in_a_count_cell_reads_as_zero(self):
+        # The recorded column carries this exact string against retired offence
+        # codes. Before this was handled the transform crashed on it.
+        assert to_int("N/A - Offence code expired") == 0
+
+    def test_bare_not_applicable_reads_as_zero(self):
+        # The closed column carries this against outcome type 0.
+        assert to_int("N/A") == 0
+        assert to_int("n/a") == 0
+
+    def test_an_unreadable_count_raises_rather_than_becoming_zero(self):
+        with pytest.raises(ValueError, match="Cannot read"):
+            to_int("some new marker")
+
+    def test_expired_flag_is_a_lower_case_x(self):
+        # The published flag is 'x', not 'Yes'. Reading it as false meant every
+        # retired code looked current.
+        assert truthy_flag("x") is True
+        assert truthy_flag("X") is True
+        assert truthy_flag(None) is False
+
+    def test_city_of_london_is_published_reversed(self):
+        assert canonical_force("London, City of") == "City of London"
+
+    def test_essential_types_are_the_ones_classification_needs(self):
+        from common import CHARGE_TYPES, ESSENTIAL_TYPES, OOCD_TYPES
+
+        assert set(ESSENTIAL_TYPES) == set(CHARGE_TYPES) | set(OOCD_TYPES)
+        # Type 19 is absent from the year ending March 2026 file, so it must not
+        # be treated as essential or the build could never pass.
+        assert 19 not in ESSENTIAL_TYPES

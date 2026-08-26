@@ -19,13 +19,15 @@ const source = readFileSync(join(process.cwd(), "..", "docs", "METHODOLOGY.md"),
 const outcomeTypeTable = [
   "| Outcome type | Description | Treated as |",
   "| --- | --- | --- |",
-  ...[1, 2, 3, 4, 6, 7, 8, 22].map((type) => {
+  ...[0, 1, 2, 3, 4, 6, 7, 8, 22].map((type) => {
     const role =
-      type === 1
-        ? "Charge comparator, and part of positive outcomes"
-        : (OOCD_TYPES as readonly number[]).includes(type)
-          ? "Out of court disposal, and part of positive outcomes"
-          : "Excluded from out of court disposals and from positive outcomes";
+      type === 0
+        ? "Not an outcome. Excluded from every total, including all assigned outcomes"
+        : type === 1
+          ? "Charge comparator, and part of positive outcomes"
+          : (OOCD_TYPES as readonly number[]).includes(type)
+            ? "Out of court disposal, and part of positive outcomes"
+            : "Excluded from out of court disposals and from positive outcomes";
     return `| ${type} | ${OUTCOME_SHORT_LABELS[type] ?? ""} | ${role} |`;
   }),
 ].join("\n");
@@ -63,11 +65,16 @@ const annotationBlocks = annotations
         : annotation.source_url_verified === false
           ? "**The source URL did not resolve when it was last checked.**"
           : "**The source URL has not yet been checked.** Run `python etl/validate.py --check-urls` from somewhere with network access to the sources.";
+    const review = annotation.needs_review
+      ? "\n> **This note is under review.** It makes a claim that has not been " +
+        "reconciled with the published data or with a named source, and it may " +
+        "change.\n"
+      : "";
     return [
       `<h3 id="annotation-${annotation.id}">${number}. ${annotation.label}</h3>`,
       "",
       `*${scope}, ${years}.*`,
-      "",
+      review,
       annotation.text,
       "",
       `${annotation.source_citation} Available at: ${annotation.source_url}`,

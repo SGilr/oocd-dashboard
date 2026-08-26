@@ -23,3 +23,6 @@ data/fixture/
 # Staged copies of the derived tables, written by site/scripts/stage-data.mjs
 # before every build. The originals live in data/processed/.
 site/public/data/
+
+# Ad hoc extracts built from files supplied by hand, for header validation.
+data/real/

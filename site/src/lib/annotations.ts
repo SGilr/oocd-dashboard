@@ -19,6 +19,8 @@ export interface Annotation {
   source_url: string;
   source_citation: string;
   source_url_verified: boolean | null;
+  /** Set when the note makes a claim not yet reconciled with the data. */
+  needs_review?: boolean;
 }
 
 interface AnnotationFile {
