@@ -34,7 +34,22 @@ jobs:
       # this, so the dump is printed here as well as uploaded.
       - name: Print the sheet dump
         if: always()
-        run: cat data/_sheet-dump.json
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          dump = json.loads(pathlib.Path("data/_sheet-dump.json").read_text())
+          print(dump["source_title"])
+          print(dump["source_url"])
+          for sheet in dump["sheets"]:
+              if not sheet["rows"]:
+                  continue
+              print(f'\n--- sheet {sheet["name"]!r}, {len(sheet["rows"])} non-empty rows ---')
+              for i, row in enumerate(sheet["rows"]):
+                  cells = " | ".join(
+                      (c[:70] + "...") if len(c) > 70 else c for c in row
+                  )
+                  print(f"{i:>3}  {cells}")
+          PY
 
       - name: Upload the sheet dump
         if: always()
