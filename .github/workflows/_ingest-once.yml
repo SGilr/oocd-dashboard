@@ -1,0 +1,44 @@
+name: First ingest, temporary
+
+# TEMPORARY. Deleted in the commit after the figures land.
+#
+# The weekly figures have to be written by the ingest itself rather than
+# transcribed by hand from a dry run, and workflow_dispatch does not work on a
+# workflow that is not yet on the default branch. This runs the real ingest once
+# on push and commits what it produces.
+
+on:
+  push:
+    branches: [claude/prison-capacity-tracker-ed4v76]
+    paths: [".github/workflows/_ingest-once.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - name: Run the unit tests
+        run: pytest etl/tests/test_prison_capacity.py -q
+      - name: Read the bulletin and write the figures
+        run: python etl/prison_capacity.py
+      - name: Show what was written
+        run: cat data/processed/prison-capacity.json
+      - name: Commit the figures
+        run: |
+          if [ -z "$(git status --porcelain data/processed/prison-capacity.json)" ]; then
+            echo "Nothing to commit."
+            exit 1
+          fi
+          git config user.name "prison figures ingest"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/processed/prison-capacity.json
+          git commit -m "Add the prison estate figures from the weekly bulletin"
+          git push
