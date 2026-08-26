@@ -170,3 +170,53 @@ class TestPublishedLinkTitles:
             "year ending March 2026</a>"
         )
         assert discover_assets(page)[0].kind == KIND_FORCE_AREA_CRIME
+
+
+class TestForceAreaTableTitles:
+    """The exact titles of the police force area tables on the landing page.
+
+    They are titled three different ways, none of which matches the outcomes
+    series, and all four files are ODS.
+    """
+
+    def test_the_current_file_is_open_ended(self):
+        from fetch import OPEN_ENDED, financial_years_covered
+
+        covered = financial_years_covered(
+            "Police recorded crime open data Police Force Area tables, year "
+            "ending March 2013 onwards"
+        )
+        assert covered[0] == "2012/13"
+        assert OPEN_ENDED in covered
+
+    def test_a_title_without_the_word_ending_still_reads(self):
+        from fetch import financial_years_covered
+
+        covered = financial_years_covered(
+            "Police recorded crime open data Police Force Area tables from "
+            "March 2008 to March 2012"
+        )
+        assert covered[0] == "2007/08"
+        assert covered[-1] == "2011/12"
+
+    def test_only_the_current_force_area_file_is_selected(self):
+        page = "".join(
+            f'<a href="/x/{name}">{title}</a>'
+            for name, title in [
+                ("pfa-current.ods", "Police recorded crime open data Police Force Area tables, year ending March 2013 onwards"),
+                ("pfa-2008.ods", "Police recorded crime open data Police Force Area tables from March 2008 to March 2012"),
+                ("pfa-2003.ods", "Police recorded crime open data Police Force Area tables from year ending March 2003 to year ending March 2007"),
+            ]
+        )
+        selected = select_assets(discover_assets(page), from_year=2014)
+        assert [asset.filename for asset in selected] == ["pfa-current.ods"]
+
+    def test_the_vawg_subcode_file_is_not_taken(self):
+        # It is neither the outcomes series nor a force area crime table, and
+        # nothing on the site uses it.
+        page = (
+            '<a href="/x/vawg.ods">Police recorded crime subcodes for selected '
+            "VAWG offences, from year ending March 2021 to year ending March "
+            "2026</a>"
+        )
+        assert select_assets(discover_assets(page), from_year=2014) == []

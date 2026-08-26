@@ -103,13 +103,97 @@ def read_xlsx_rows(path: Path) -> Iterator[list[object]]:
 
 def _pick_sheet(workbook):
     """Choose the data sheet, skipping cover, notes and contents sheets."""
-    skip_tokens = ("cover", "note", "contents", "metadata", "definitions", "guide")
     for sheet in workbook.worksheets:
-        name = sheet.title.strip().lower()
-        if any(token in name for token in skip_tokens):
+        if _skippable_sheet(sheet.title):
             continue
         return sheet
     return workbook.worksheets[0]
+
+
+# OpenDocument namespaces, needed to read the police force area crime tables,
+# which are published as ODS rather than as xlsx.
+ODS_TABLE = "{urn:oasis:names:tc:opendocument:xmlns:table:1.0}"
+ODS_OFFICE = "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}"
+ODS_TEXT = "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
+
+# A repeat count above this is the spreadsheet padding out to its full grid
+# rather than real data. Expanding those would produce millions of empty cells.
+ODS_PADDING_REPEAT = 512
+
+
+def _ods_cell_value(cell) -> object:
+    """Read one ODS cell, preferring the typed value over the displayed text."""
+    value_type = cell.get(f"{ODS_OFFICE}value-type")
+    if value_type in {"float", "percentage", "currency"}:
+        raw = cell.get(f"{ODS_OFFICE}value")
+        if raw is not None:
+            number = float(raw)
+            return int(number) if number.is_integer() else number
+    if value_type == "boolean":
+        return cell.get(f"{ODS_OFFICE}boolean-value")
+    if value_type == "date":
+        return cell.get(f"{ODS_OFFICE}date-value")
+    text = "".join(node.text or "" for node in cell.iter(f"{ODS_TEXT}p"))
+    return text or None
+
+
+def read_ods_sheets(path: Path) -> Iterator[tuple[str, Iterator[list[object]]]]:
+    """Yield (sheet name, rows) for every sheet in an ODS file.
+
+    Streamed with iterparse straight out of the zip, because these files are
+    tens of megabytes compressed and expand to far more as XML. Nothing is held
+    beyond the row being built.
+    """
+    import zipfile
+    from xml.etree.ElementTree import iterparse
+
+    with zipfile.ZipFile(path) as archive:
+        with archive.open("content.xml") as content:
+            sheet_name = ""
+            rows: list[list[object]] = []
+            for event, element in iterparse(content, events=("start", "end")):
+                if event == "start" and element.tag == f"{ODS_TABLE}table":
+                    sheet_name = element.get(f"{ODS_TABLE}name", "")
+                    rows = []
+                elif event == "end" and element.tag == f"{ODS_TABLE}table-row":
+                    cells: list[object] = []
+                    for cell in element.findall(f"{ODS_TABLE}table-cell"):
+                        value = _ods_cell_value(cell)
+                        repeat = int(cell.get(f"{ODS_TABLE}number-columns-repeated", 1))
+                        if value is None and repeat > ODS_PADDING_REPEAT:
+                            repeat = 1
+                        cells.extend([value] * repeat)
+                    while cells and cells[-1] is None:
+                        cells.pop()
+                    row_repeat = int(
+                        element.get(f"{ODS_TABLE}number-rows-repeated", 1)
+                    )
+                    if not cells and row_repeat > ODS_PADDING_REPEAT:
+                        row_repeat = 1
+                    for _ in range(row_repeat):
+                        rows.append(list(cells))
+                    element.clear()
+                elif event == "end" and element.tag == f"{ODS_TABLE}table":
+                    yield sheet_name, iter(rows)
+                    rows = []
+                    element.clear()
+
+
+def read_ods_rows(path: Path) -> Iterator[list[object]]:
+    """Rows of the first ODS sheet that is not a cover or notes sheet."""
+    for sheet_name, rows in read_ods_sheets(path):
+        if _skippable_sheet(sheet_name):
+            continue
+        yield from rows
+        return
+
+
+SKIP_SHEET_TOKENS = ("cover", "note", "contents", "metadata", "definitions", "guide")
+
+
+def _skippable_sheet(name: str) -> bool:
+    lowered = str(name).strip().lower()
+    return any(token in lowered for token in SKIP_SHEET_TOKENS)
 
 
 def read_rows(path: Path) -> Iterator[list[object]]:
@@ -118,6 +202,8 @@ def read_rows(path: Path) -> Iterator[list[object]]:
         return read_csv_rows(path)
     if suffix in {".xlsx", ".xlsm", ".xls"}:
         return read_xlsx_rows(path)
+    if suffix == ".ods":
+        return read_ods_rows(path)
     raise ValueError(f"Cannot read {path.name}: unsupported file type {suffix}")
 
 
@@ -367,6 +453,29 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
 # ---------------------------------------------------------------------------
 
 
+def _sheets_of(path: Path) -> Iterator[tuple[str, Iterator[list[object]]]]:
+    """Every sheet in a file, as (name, rows).
+
+    The police force area crime tables are published as ODS and may split the
+    series across sheets, so each sheet gets its own header detection rather
+    than the first sheet's headers being assumed to hold for the rest.
+    """
+    if path.suffix.lower() == ".ods":
+        yield from read_ods_sheets(path)
+        return
+    if path.suffix.lower() == ".csv":
+        yield path.stem, read_csv_rows(path)
+        return
+    from openpyxl import load_workbook
+
+    workbook = load_workbook(path, read_only=True, data_only=True)
+    try:
+        for sheet in workbook.worksheets:
+            yield sheet.title, (list(row) for row in sheet.iter_rows(values_only=True))
+    finally:
+        workbook.close()
+
+
 def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
     """Read recorded crime totals per force per financial year.
 
@@ -376,42 +485,65 @@ def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
     estimated. See docs/METHODOLOGY.md.
     """
     totals: dict[tuple[str, str], int] = defaultdict(int)
+    sheets_read = 0
+    sheets_skipped = 0
+
     for path in paths:
         log.append(f"Reading {path.name} for the recorded crime denominator")
-        rows = read_rows(path)
-        try:
-            header_map, header_row = find_header_row(
-                rows,
-                required=("financial_year", "force_name", "recorded_crime_count"),
-            )
-        except HeaderMappingError as error:
-            log.append(f"  SKIPPED, header not recognised: {error}")
-            continue
+        for sheet_name, rows in _sheets_of(path):
+            if _skippable_sheet(sheet_name):
+                log.append(f"  sheet {sheet_name!r}: skipped, not a data sheet")
+                sheets_skipped += 1
+                continue
+            try:
+                header_map, header_row = find_header_row(
+                    rows,
+                    required=("financial_year", "force_name", "recorded_crime_count"),
+                )
+            except HeaderMappingError as error:
+                log.append(f"  sheet {sheet_name!r}: skipped, no header found. {error}")
+                sheets_skipped += 1
+                continue
 
-        index = {
-            field: header_row.index(column)
-            for field, column in header_map.by_field.items()
-        }
-        def cell(row: list[object], field: str) -> object:
-            position = index.get(field)
-            if position is None or position >= len(row):
-                return None
-            return row[position]
+            index = {
+                field: header_row.index(column)
+                for field, column in header_map.by_field.items()
+            }
 
-        for row in rows:
-            if row is None or not any(value not in (None, "") for value in row):
-                continue
-            financial_year = normalise_financial_year(cell(row, "financial_year"))
-            force = canonical_force(cell(row, "force_name"))
-            if financial_year is None or force is None:
-                continue
-            if force in CENTRAL_FRAUD_BODIES:
-                continue
-            totals[(force, financial_year)] += to_int(cell(row, "recorded_crime_count"))
+            def cell(row: list[object], field: str) -> object:
+                position = index.get(field)
+                if position is None or position >= len(row):
+                    return None
+                return row[position]
+
+            used = 0
+            for row in rows:
+                if row is None or not any(value not in (None, "") for value in row):
+                    continue
+                financial_year = normalise_financial_year(cell(row, "financial_year"))
+                force = canonical_force(cell(row, "force_name"))
+                if financial_year is None or force is None:
+                    continue
+                if force in CENTRAL_FRAUD_BODIES:
+                    continue
+                totals[(force, financial_year)] += to_int(
+                    cell(row, "recorded_crime_count")
+                )
+                used += 1
+            log.append(f"  sheet {sheet_name!r}: {used} rows used")
+            sheets_read += 1
+
+    if paths and not totals:
+        log.append(
+            "  WARNING: no recorded crime totals were read. The rate per 1,000 "
+            "recorded crimes measure will have no denominator."
+        )
 
     return {
         "meta": {
             "recorded_crime_source": "Home Office police force area crime tables",
+            "sheets_read": sheets_read,
+            "sheets_skipped": sheets_skipped,
             "population_source": None,
             "population_omitted_because": (
                 "No mid year population estimate per police force area could be "

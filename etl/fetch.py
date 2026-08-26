@@ -167,6 +167,15 @@ COMPACT_YEAR_RE = re.compile(r"(?<!\d)(20\d{2})[ _-]?(\d{2})(?!\d)")
 # 2014" is 2005/06 to 2013/14.
 YEAR_ENDING_RE = re.compile(r"years?\s+ending\s+March\s+(20\d{2})", re.IGNORECASE)
 
+# The force area tables are titled differently again: "from March 2008 to March
+# 2012" with no "ending", and "year ending March 2013 onwards" for the current
+# file, which has no end year at all.
+BARE_MARCH_RE = re.compile(r"March\s+(20\d{2})", re.IGNORECASE)
+OPEN_ENDED_RE = re.compile(r"\bonwards?\b", re.IGNORECASE)
+
+# Stands for "covers every year from its first to the latest published".
+OPEN_ENDED = "onwards"
+
 
 def _financial_year_ending(calendar_year: int) -> str:
     """'year ending March 2026' is financial year 2025/26."""
@@ -180,10 +189,15 @@ def financial_years_covered(text: str) -> tuple[str, ...]:
     Handles the three forms the landing page uses: an explicit financial year,
     a year ending March, and a range of years ending March.
     """
+    open_ended = bool(OPEN_ENDED_RE.search(text))
+
     ending = [int(match.group(1)) for match in YEAR_ENDING_RE.finditer(text)]
+    if not ending:
+        ending = [int(match.group(1)) for match in BARE_MARCH_RE.finditer(text)]
     if ending:
         first, last = min(ending), max(ending)
-        return tuple(_financial_year_ending(year) for year in range(first, last + 1))
+        years = tuple(_financial_year_ending(year) for year in range(first, last + 1))
+        return years + (OPEN_ENDED,) if open_ended else years
 
     explicit = normalise_financial_year(text)
     if explicit:
@@ -209,17 +223,25 @@ def select_assets(assets: list[Asset], from_year: int) -> list[Asset]:
     for asset in assets:
         if asset.kind == KIND_OTHER:
             continue
-        if asset.kind == KIND_OUTCOMES:
+        if asset.kind in (KIND_OUTCOMES, KIND_FORCE_AREA_CRIME):
             if not asset.financial_years:
-                # An outcomes file we cannot date is kept and reported, never
-                # guessed at. transform.py takes the year from the rows.
+                # A file we cannot date is kept and reported, never guessed at.
+                # transform.py takes the year from the rows.
                 selected.append(asset)
                 continue
-            latest = max(int(year.split("/")[0]) for year in asset.financial_years)
+            if OPEN_ENDED in asset.financial_years:
+                # Runs to the latest published year, so it always qualifies.
+                selected.append(asset)
+                continue
+            latest = max(
+                int(year.split("/")[0])
+                for year in asset.financial_years
+                if year != OPEN_ENDED
+            )
             if latest < from_year:
-                # Wholly before the period we cover. The pre 2014/15 archive is
-                # one such file, and it is published as ODS, which the transform
-                # does not read.
+                # Wholly before the period covered here. The pre 2014 outcomes
+                # archive and the two older force area archives are all in this
+                # case.
                 continue
         selected.append(asset)
     return selected
@@ -337,10 +359,13 @@ def main() -> int:
         for asset in sorted(
             group, key=lambda a: (a.financial_years[0] if a.financial_years else "", a.filename)
         ):
-            if len(asset.financial_years) > 1:
-                span = f"{asset.financial_years[0]} to {asset.financial_years[-1]}"
+            years = [y for y in asset.financial_years if y != OPEN_ENDED]
+            if OPEN_ENDED in asset.financial_years and years:
+                span = f"{years[0]} onwards"
+            elif len(years) > 1:
+                span = f"{years[0]} to {years[-1]}"
             else:
-                span = asset.financial_year or "no year"
+                span = asset.financial_year or (years[0] if years else "no year")
             print(f"  [{span}] {asset.title}")
             print(f"      {asset.url}")
 

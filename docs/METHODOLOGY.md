@@ -36,12 +36,28 @@ The data is Crown copyright, reused under the Open Government Licence v3.0. The
 required attribution statement is in `DATA-LICENCE.md` and in the footer of every
 page.
 
-Two series are used. The outcomes open data tables, one file per financial year
-from 2014/15, give the outcome counts. They are titled by the year the financial
-year ends in, so "Outcomes open data, year ending March 2026" is financial year
-2025/26. The archive covering the years ending March 2006 to March 2014 is
-published as an ODS file and falls wholly before the period covered here, so it
-is not downloaded. The police force area crime tables give
+Two series are used.
+
+The outcomes open data tables, one xlsx file per financial year from 2014/15,
+give the outcome counts. They are titled by the year the financial year ends in,
+so "Outcomes open data, year ending March 2026" is financial year 2025/26. The
+archive covering the years ending March 2006 to March 2014 falls wholly before
+the period covered here, so it is not downloaded.
+
+The police recorded crime open data police force area tables give recorded
+crime, which is the denominator for the rate measure. They are published as ODS,
+and the current file covers the year ending March 2013 onwards in one file
+rather than one file per year. Two older archives, covering March 2003 to March
+2007 and March 2008 to March 2012, fall before the period covered here and are
+not downloaded. A file of police recorded crime subcodes for selected violence
+against women and girls offences is also published on the same page. Nothing on
+this dashboard uses it, so it is not downloaded.
+
+ODS files are read by streaming the XML out of the zip rather than loading the
+document, because the force area file is 14.2 MB compressed and expands to far
+more. Each sheet gets its own header detection, so a file that splits its series
+across sheets does not have the first sheet's column order assumed for the
+rest. The police force area crime tables give
 recorded crime, which is the denominator for the rate measure.
 
 <!-- INJECT:MANIFEST -->

@@ -16,7 +16,8 @@
 #   source_url_verified   true, false or null. null means not yet checked.
 #   needs_review          set when the note makes a claim that has not been
 #                         reconciled with the data, or with a named source.
-#                         validate.py flags it and the site marks it.
+#                         validate.py flags it and the site marks it. No note
+#                         currently carries it.
 #
 # Run `python etl/validate.py --check-urls` to resolve every source_url and
 # write the result back into the validation report. Nothing is published as
@@ -30,7 +31,7 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 4
+version: 5
 last_reviewed: 2026-08-26
 
 annotations:
@@ -54,30 +55,6 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
-    source_url_verified: true
-
-  - id: west-yorkshire-restricted-disposals
-    scope:
-      - West Yorkshire
-    financial_years: all
-    measures: all
-    needs_review: true
-    label: West Yorkshire issues almost no penalty notices or cannabis warnings
-    text: >-
-      West Yorkshire Police adopted a two tier model of out of court disposal,
-      built around conditional cautions and community resolutions. In the year
-      ending March 2026 the force recorded 4 penalty notices for disorder and 2
-      cannabis or khat warnings, which is effectively none, so it should not be
-      compared with other forces on those two types. It recorded 2,451 cautions
-      in the same year, so any statement that the force does not issue cautions
-      is not supported by the published data. See the note on caution types,
-      which explains why a force that has withdrawn simple cautions still
-      appears in the caution counts.
-    source_url: https://www.westyorkshire-pcc.gov.uk/our-business/out-court-disposals.html
-    source_citation: >-
-      Office of the Police and Crime Commissioner for West Yorkshire (2024)
-      Out of court disposals. Wakefield: West Yorkshire Police and Crime
-      Commissioner.
     source_url_verified: true
 
   - id: centrally-recorded-fraud
