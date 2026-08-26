@@ -173,6 +173,7 @@ class Aggregator:
         self.not_assigned_counts = {BASIS_CLOSED: 0, BASIS_RECORDED: 0}
         self.negative_counts_excluded = 0
         self.negative_examples: list[str] = []
+        self.subset_type_rows: dict[str, int] = defaultdict(int)
 
     @staticmethod
     def _empty_cell() -> dict:
@@ -278,9 +279,17 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             aggregator.central_fraud_rows += 1
             continue
 
+        raw_outcome_type = str(cell(row, "outcome_type") or "").strip()
         try:
-            outcome_type = int(str(cell(row, "outcome_type")).strip())
+            outcome_type = int(raw_outcome_type)
         except (TypeError, ValueError):
+            # Outcome types 1a, 2a and 3a are "of which" rows: the subset of
+            # outcomes 1, 2 and 3 that relate to an alternative offence to the
+            # one recorded. They are already inside their parent type, so adding
+            # them would double count. They are dropped, and counted here so the
+            # drop is visible in coverage.json rather than silent.
+            if raw_outcome_type:
+                aggregator.subset_type_rows[raw_outcome_type] += 1
             continue
 
         counts = {
@@ -626,6 +635,7 @@ def main() -> int:
         "negative_count_rows": aggregator.negative_counts,
         "negative_count_rows_excluded": aggregator.negative_counts_excluded,
         "negative_count_examples": aggregator.negative_examples,
+        "subset_outcome_type_rows_dropped": dict(sorted(aggregator.subset_type_rows.items())),
         "duplicate_source_keys": aggregator.duplicate_source_keys,
         "duplicate_source_key_examples": aggregator.duplicate_examples,
         "not_yet_assigned_rows_excluded": aggregator.not_assigned_rows,

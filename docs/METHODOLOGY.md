@@ -70,9 +70,21 @@ about 8 per cent. It carries no counts on the closed basis, which is a further
 reason to prefer that basis.
 
 Outcome type 19, National Fraud Intelligence Bureau fraud case, does not appear
-in the year ending March 2026 file at all. A type can be legitimately absent
-from a year, so a missing one is reported for review rather than failing the
-build, except for the seven types the classification depends on.
+in the year ending March 2026 file at all. The bulletin explains why: it applies
+only to fraud recorded by that bureau, which is reported separately, and the
+fraud chapter was dropped from the year ending March 2026 publication because
+Report Fraud replaced the bureau and legacy Action Fraud on 4 December 2025. A
+type can be legitimately absent from a year, so a missing one is reported for
+review rather than failing the build, except for the seven types the
+classification depends on.
+
+Outcome types 1a, 2a and 3a appear in the published grouping but not in the year
+ending March 2026 file. They are "of which" rows: the subset of outcomes 1, 2
+and 3 where the outcome relates to an offence other than the one recorded. They
+sit inside their parent type, so adding them would double count. The extract
+drops them and records the number dropped in `coverage.json`. They are not a
+split between simple and conditional cautions, which the published tables do not
+support at all.
 
 Outcome type 4, taken into consideration, is not an out of court disposal. It
 records an offence the person admitted and asked the court to take into account
@@ -83,9 +95,9 @@ out of court figure on the site.
 ### The Home Office's own grouping
 
 The published tables carry an outcome group column, which is the Home Office's
-own classification rather than ours. For the year ending March 2026 it groups
-the outcome types like this, and the grouping matches the classification used
-here exactly:
+own classification rather than ours, and the bulletin sets the same grouping out
+in its Table 1.1. For the year ending March 2026 it groups the outcome types
+like this, and the grouping matches the classification used here exactly:
 
 | Outcome group | Outcome types | Recorded basis |
 | --- | --- | --- |
@@ -98,6 +110,22 @@ here exactly:
 Taken into consideration is a group of its own, separate from both out of court
 groups, which is independent confirmation that excluding outcome type 4 from the
 out of court set is the right reading and not a judgement of ours.
+
+Note that the Home Office reports outcome 22 separately from both out of court
+groups, whereas this dashboard counts it as the sixth out of court disposal
+type. That is a deliberate difference, and it is why a published out of court
+figure will be smaller than the figure here unless outcome 22 is added to it.
+The reconciliation targets name the outcome types they cover so the two can be
+compared without confusion.
+
+### Coverage differs between published tables
+
+Figures here cover all 44 forces in every year, because the open data tables
+carry all 44. The bulletin is not consistent on this: different tables in it
+cover 44 forces, 43 including British Transport Police, or 43 excluding it, and
+several exclude Humberside or Greater Manchester where record level data was not
+supplied in time. A figure quoted from the bulletin will therefore not always
+match the same figure here, and the reason is coverage rather than arithmetic.
 
 ### Positive outcomes
 

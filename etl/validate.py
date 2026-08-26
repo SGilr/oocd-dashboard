@@ -489,6 +489,7 @@ def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
     national = {row["fy"]: row for row in tables["national_year"]["rows"]}
     measure_keys = {
         "oocd_total": "oocd",
+        "outcome_types": None,
         "charge_total": "t1",
         "assigned_total": "assigned",
         "positive_total": "positive",
@@ -504,12 +505,20 @@ def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
                 f"{financial_year}",
             )
             continue
-        column = (
-            f"{target.get('basis', 'closed')}_"
-            f"{target.get('fraud_variant', 'all')}_"
-            f"{measure_keys[target['measure']]}"
-        )
-        derived = row[column]
+        basis = target.get("basis", "closed")
+        variant = target.get("fraud_variant", "all")
+        outcome_types = target.get("outcome_types")
+        if outcome_types:
+            # A target can name the outcome types it covers, so a published
+            # figure that groups them differently from this dashboard can still
+            # be compared. Table 3.1 of the bulletin, for instance, counts out
+            # of court as types 2, 3, 6, 7 and 8, with outcome 22 reported
+            # separately.
+            column = f"{basis}_{variant}_types_{'_'.join(str(t) for t in outcome_types)}"
+            derived = sum(row[f"{basis}_{variant}_t{t}"] for t in outcome_types)
+        else:
+            column = f"{basis}_{variant}_{measure_keys[target['measure']]}"
+            derived = row[column]
         published = target["value"]
         # 'published' here is the target value, whatever its kind.
         tolerance = target.get("tolerance_pct", 0.5)

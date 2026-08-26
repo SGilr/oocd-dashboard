@@ -22,7 +22,7 @@
 # write the result back into the validation report. Nothing is published as
 # verified until that has run somewhere with network access to the sources.
 
-version: 2
+version: 3
 last_reviewed: 2026-08-26
 
 annotations:
@@ -87,11 +87,19 @@ annotations:
       exclude fraud control is kept so that this can be seen rather than assumed.
       Fraud does affect the police force area crime tables, which supply the
       denominator for the rate per 1,000 recorded crimes, so it matters for that
-      measure and not for the share measures.
-    source_url: https://www.gov.uk/government/statistics/police-recorded-crime-open-data-tables/police-recorded-crime-and-outcomes-open-data-tables-user-guide
+      measure and not for the share measures. Outcome type 19, the National
+      Fraud Intelligence Bureau fraud case outcome, is absent from the year
+      ending March 2026 file for the same reason: it applies only to fraud
+      recorded by that bureau, which is reported separately. The bulletin for
+      that year drops its fraud chapter altogether, because Report Fraud
+      replaced the bureau and legacy Action Fraud on 4 December 2025 and the
+      Home Office agreed City of London Police could suspend the supply of
+      fraud and computer misuse data as official statistics during the change.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
     source_citation: >-
-      Home Office (2026) Police recorded crime and outcomes open data tables
-      user guide. London: Home Office.
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
+      London: Home Office. Section 1.1 and Table 1.1,
+      note 1.
     source_url_verified: null
 
   - id: btp-no-resident-population
@@ -168,4 +176,47 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
+    source_url_verified: null
+
+  - id: out-of-court-framework-reform
+    scope: national
+    financial_years: all
+    measures: all
+    label: The disposal framework is due to change
+    text: >-
+      The Police, Crime, Sentencing and Courts Act 2023 provides for a two tier
+      framework of out of court resolutions for people aged 18 and over: a
+      Diversionary Caution as the upper tier and a Community Caution as the
+      lower tier, replacing the present mix. If those provisions come into
+      force, penalty notices for disorder and cannabis or khat warnings may be
+      discontinued, and the outcomes framework will have to change with them.
+      The Act made no provision for community resolutions. Series shown here end
+      before that change, so they describe the framework as it has been rather
+      than as it will be.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
+    source_citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
+      London: Home Office. Section 1.6, future changes to
+      the outcomes framework.
+    source_url_verified: null
+
+  - id: bulletin-force-coverage-varies
+    scope: national
+    financial_years: all
+    measures: all
+    label: Published tables do not all cover the same forces
+    text: >-
+      Figures here cover all 44 forces in every year, because the open data
+      tables carry all 44. The Home Office bulletin does not: different tables
+      in it cover 44 forces, 43 including British Transport Police, or 43
+      excluding it, and several exclude Humberside or Greater Manchester where
+      record level data was not supplied in time. A figure quoted from the
+      bulletin will therefore not always match the same figure here, and the
+      reason is coverage rather than arithmetic. The reconciliation targets in
+      etl/reconciliation.yml name the table they come from and its stated
+      coverage for this reason.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
+    source_citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026.
+      London: Home Office. Notes to tables 1.2, 3.1 and 3.2.
     source_url_verified: null

@@ -60,5 +60,39 @@ targets:
       an independent confirmation of the classification.
     source_url: https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables
 
-# Still needed: at least one kind: published target, read from a Home Office
-# bulletin. Until one is here, a build on live data fails.
+  - id: charge-total-2025-26-published
+    kind: published
+    financial_year: 2025/26
+    measure: charge_total
+    basis: recorded
+    fraud_variant: all
+    value: 447514
+    tolerance_pct: 0.01
+    citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026,
+      Table 3.1, number of outcomes assigned by offence type and outcome group,
+      year ending March 2026. London: Home Office. The charged or summonsed
+      column, total victim offences 319,984 plus total state offences 127,530.
+      The table states that it counts crimes recorded in the year, which is the
+      recorded basis, that it covers all 44 forces including British Transport
+      Police, and that it excludes fraud and Computer Misuse Act offences.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
+
+  - id: out-of-court-formal-informal-2025-26-published
+    kind: published
+    financial_year: 2025/26
+    measure: outcome_types
+    outcome_types: [2, 3, 6, 7, 8]
+    basis: recorded
+    fraud_variant: all
+    value: 217209
+    tolerance_pct: 0.01
+    citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026,
+      Table 3.1, as above. The out-of-court formal and informal column, total
+      victim offences 111,286 plus total state offences 105,923. That column
+      covers outcome types 2, 3, 6, 7 and 8. Outcome 22 is grouped separately by
+      the Home Office and so is excluded from this target, which is why the
+      target names its outcome types rather than using the dashboard's own out
+      of court total.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
