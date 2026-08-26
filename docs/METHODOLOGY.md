@@ -78,6 +78,12 @@ recorded crime, which is the denominator for the rate measure.
 
 <!-- INJECT:MANIFEST -->
 
+The same derived tables are committed to the public repository, at the same
+paths and with the same bytes the site serves. Anyone fetching them from a
+script should take them from there: the site sits behind a content delivery
+network that can refuse a request from a program while allowing one from a
+browser, and reproduction that only works from a browser is not reproduction.
+
 Every derived figure is traceable to a file in `data/manifest.json`, which
 records the resolved URL, the retrieval timestamp in Coordinated Universal Time,
 the file size and the SHA256 checksum of the file as downloaded. The raw files

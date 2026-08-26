@@ -29,6 +29,18 @@ const DESCRIPTIONS: Record<string, string> = {
   "build-info.json": "Provenance, build timestamp and the checksums shown on this page.",
 };
 
+/**
+ * The repository is the machine readable mirror.
+ *
+ * This site sits behind a firewall that can refuse a request from a script
+ * while allowing one from a browser, which would quietly break the one thing
+ * the data page is for. The same files are committed to the public repository,
+ * so anyone with a script can take them from there without depending on how a
+ * content delivery network feels about their user agent.
+ */
+const REPO = "https://github.com/SGilr/oocd-dashboard";
+const RAW = "https://raw.githubusercontent.com/SGilr/oocd-dashboard/main";
+
 function bytes(size: number): string {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(0)} kB`;
@@ -109,6 +121,26 @@ try {
       </tbody>
     </table>
   </div>
+
+  <h2>Taking these files with a script</h2>
+  <p>
+    Every file above is also committed to the public repository this site is
+    built from, at the same path and with the same bytes. If you are fetching
+    them from a program rather than a browser, take them from there. Nothing
+    sits in front of those URLs, so a script is never refused, and the file you
+    get is the file this site was built from rather than a copy of it.
+  </p>
+  <pre><code>{`# one file
+curl -O ${RAW}/data/processed/force_year.csv
+
+# or the lot, with the code that produced them
+git clone ${REPO}.git`}</code></pre>
+  <p class="small">
+    The derived tables are under <code>data/processed/</code>, the source
+    manifest is <code>data/manifest.json</code> and the validation report is
+    <code>data/validation-report.json</code>. Browse them at
+    {" "}<a href={`${REPO}/tree/main/data`}>{REPO.replace("https://", "")}</a>.
+  </p>
 
   <h2>Source manifest</h2>
   <p>
@@ -210,6 +242,12 @@ try {
     The code that produced them is MIT licensed. The Home Office has not reviewed,
     approved or endorsed this dashboard or any measure on it. Errors in the derived
     tables are the responsibility of Oxon Advisory.
+  </p>
+  <p>
+    The code that produced these tables, and the tables themselves, are at
+    {" "}<a href={REPO}>{REPO.replace("https://", "")}</a>. Anyone who disagrees
+    with a figure can take the same files, run the same extract and see where
+    the difference arises.
   </p>
   <p>To cite the dashboard itself:</p>
   <blockquote>
