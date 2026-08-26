@@ -472,7 +472,8 @@ def _resolve_annotation_urls(document: dict, report: Report) -> None:
             status = response.status_code
         except Exception as error:  # noqa: BLE001
             unreachable += 1
-            annotation["source_url_verified"] = None
+            if annotation.get("source_url_verified") is not True:
+                annotation["source_url_verified"] = None
             report.flag(
                 "annotation_urls",
                 f"{annotation['id']}: could not reach {url}. This is a network "
@@ -497,12 +498,22 @@ def _resolve_annotation_urls(document: dict, report: Report) -> None:
             )
         else:
             unreachable += 1
-            annotation["source_url_verified"] = None
+            # An inconclusive answer never overwrites a confirmation somebody
+            # already made. British Transport Police answers 403 to a script
+            # and 200 to a browser, and a person has checked it.
+            already = annotation.get("source_url_verified") is True
+            if not already:
+                annotation["source_url_verified"] = None
             report.flag(
                 "annotation_urls",
                 f"{annotation['id']}: the source URL returned {status}, which is "
                 "a refusal or a server fault rather than proof the page has "
-                f"gone. Open it in a browser and confirm it loads. {url}",
+                + (
+                    "gone. It stays verified, because a person has already "
+                    f"confirmed it in a browser. {url}"
+                    if already
+                    else f"gone. Open it in a browser and confirm it loads. {url}"
+                ),
             )
 
     _write_back_verification(document)
