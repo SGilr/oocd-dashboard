@@ -79,11 +79,33 @@ const MEASURED = {
   oocr: 226300,
   /** Immediate custodial sentences, year to December 2025. */
   custodySentences: 88100,
-  /** Prison population, 30 June 2026. */
-  population: 85858,
+  /**
+   * Prison population at 30 June 2026, from the quarterly offender management
+   * statistics. This is the cascade's basis, and the cascade depends on it: the
+   * 70,003 sentenced and the offence group shares are shares of this figure and
+   * of no other. It is also the fallback for the calculator when the weekly
+   * bulletin has not been read.
+   */
+  cascadePopulation: 85858,
+  cascadePopulationDate: "2026-06-30",
   /** Determinate places added on the central projection path to 2029. */
   projectedRise: 8200,
 };
+
+/**
+ * Which prison population the calculator divides by.
+ *
+ * The capacity panel shows the weekly bulletin figure and the cascade shows the
+ * quarterly one. Both are right on their own basis, but two prison populations
+ * on one page invite the reader to think one of them is wrong, so the
+ * calculator follows the panel when a weekly figure is available and says which
+ * date it used. The cascade keeps the quarterly figure, because its own rows are
+ * shares of that and nothing else.
+ */
+const population = initial.population ?? MEASURED.cascadePopulation;
+const populationDate = initial.population
+  ? initial.as_at
+  : MEASURED.cascadePopulationDate;
 
 const DEFAULTS = { target: 1000, c: 2, t: 2, dr: 5, c2: 10, t2: 2 };
 
@@ -94,7 +116,7 @@ const DEFAULTS = { target: 1000, c: 2, t: 2, dr: 5, c2: 10, t2: 2 };
  * All quantities are place-years per year. A target of 1,000 means 1,000 fewer
  * occupied places at any given moment, sustained.
  */
-function solve(p: typeof DEFAULTS) {
+function solve(p: typeof DEFAULTS, prisonPopulation: number) {
   const immediate = (p.c / 100) * (p.t / 12);
   const downstream = (p.dr / 100) * (p.c2 / 100) * (p.t2 / 12);
   const perCase = immediate + downstream;
@@ -105,13 +127,13 @@ function solve(p: typeof DEFAULTS) {
     uplift: (n / MEASURED.oocr) * 100,
     custodyCases: n * (p.c / 100),
     custodyShare: ((n * (p.c / 100)) / MEASURED.custodySentences) * 100,
-    populationShare: (p.target / MEASURED.population) * 100,
+    populationShare: (p.target / prisonPopulation) * 100,
     immediateShare: (immediate / perCase) * 100,
     currentPlaces: MEASURED.oocr * perCase,
   };
 }
 
-const start = solve(DEFAULTS);
+const start = solve(DEFAULTS, population);
 const n0 = (value: number, dp = 0) =>
   value.toLocaleString("en-GB", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 const seedDate = (iso: string | null) =>
@@ -593,7 +615,8 @@ const description =
               <p class="check__text">
                 The target represents
                 <b class="modelled" id="k-poppct">{n0(start.populationShare, 1)}%</b> of the
-                prison population, against a projected central path that adds roughly
+                prison population <span id="k-popdate">at {seedDate(populationDate)}</span>,
+                against a projected central path that adds roughly
                 <b>{n0(MEASURED.projectedRise)}</b> determinate places by 2029.
               </p>
             </div>
@@ -622,9 +645,10 @@ const description =
                 December 2025 account for
                 <b class="modelled" id="k-current">{n0(start.currentPlaces)}</b> places, or
                 <b class="modelled" id="k-currentpct">
-                  {n0((start.currentPlaces / MEASURED.population) * 100, 1)}%
-                </b> of the prison population. Section 05 sets out why that is not
-                turned into a money figure.
+                  {n0((start.currentPlaces / population) * 100, 1)}%
+                </b> of the prison population
+                <span id="k-currentdate">at {seedDate(populationDate)}</span>. Section 05
+                sets out why that is not turned into a money figure.
               </p>
             </div>
           </div>
@@ -871,7 +895,16 @@ const description =
         if (!response.ok) throw new Error(String(response.status));
         return response.json();
       })
-      .then((record: CapacityRecord) => renderCapacity(record))
+      .then((record: CapacityRecord) => {
+        renderCapacity(record);
+        // The panel and the calculator have to agree on which population they
+        // are talking about, so a newer figure moves both or neither.
+        if (record.population !== null && record.population !== undefined) {
+          population = record.population;
+          populationDate = record.as_at ?? null;
+          compute();
+        }
+      })
       .catch(() => {});
 
     /* ---------- the reverse-solve calculator ---------- */
@@ -879,8 +912,32 @@ const description =
     const MEASURED = {
       oocr: 226300,
       custodySentences: 88100,
-      population: 85858,
+      /** The cascade's basis, at 30 June 2026, and the fallback here. */
+      cascadePopulation: 85858,
+      cascadePopulationDate: "2026-06-30",
     };
+
+    /**
+     * The population the calculator divides by, and the date it belongs to.
+     *
+     * Seeded from whatever the page was built with and replaced when the weekly
+     * fetch returns a newer figure, so the checks below and the panel above
+     * never quote two different prison populations without saying which is
+     * which. The cascade is untouched: its rows are shares of the quarterly
+     * figure and of nothing else.
+     */
+    let population = MEASURED.cascadePopulation;
+    let populationDate = MEASURED.cascadePopulationDate;
+
+    const longDate = (iso: string | null) =>
+      iso
+        ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "UTC",
+          })
+        : "a date not stated";
     const DEFAULTS: Record<string, number> = {
       target: 1000,
       c: 2,
@@ -959,7 +1016,7 @@ const description =
       const uplift = (n / MEASURED.oocr) * 100;
       const custodyCases = n * c;
       const custodyShare = (custodyCases / MEASURED.custodySentences) * 100;
-      const populationShare = (target / MEASURED.population) * 100;
+      const populationShare = (target / population) * 100;
       const immediateShare = (immediate / perCase) * 100;
       const currentPlaces = MEASURED.oocr * perCase;
 
@@ -974,7 +1031,9 @@ const description =
       setText("k-poppct", `${fmt(populationShare, 1)}%`);
       setText("k-split", `${fmt(immediateShare)}%`);
       setText("k-current", fmt(currentPlaces));
-      setText("k-currentpct", `${fmt((currentPlaces / MEASURED.population) * 100, 1)}%`);
+      setText("k-currentpct", `${fmt((currentPlaces / population) * 100, 1)}%`);
+      setText("k-popdate", `at ${longDate(populationDate)}`);
+      setText("k-currentdate", `at ${longDate(populationDate)}`);
 
       byId("chk1")?.classList.toggle("check--impossible", uplift > 100);
       byId("chk2")?.classList.toggle("check--impossible", custodyShare > 100);
