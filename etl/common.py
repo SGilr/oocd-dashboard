@@ -498,6 +498,15 @@ def build_header_map(
 # ---------------------------------------------------------------------------
 
 
+NOT_APPLICABLE_MARKERS = frozenset(
+    {"", ":", "-", "--", "..", "...", "*", "na", "n/a", "n.a.", "nil", "none"}
+)
+
+# Catches the marker followed by an explanation, such as
+# "N/A - Offence code expired".
+NOT_APPLICABLE_RE = re.compile(r"^(n/?\.?a\.?|not\s+(applicable|available))\b")
+
+
 def to_int(value: object) -> int:
     """Read a count cell as an integer. Blank and ':' mean zero, not missing."""
     if value is None:
@@ -511,22 +520,25 @@ def to_int(value: object) -> int:
             raise ValueError(f"Count is not a whole number: {value!r}")
         return int(value)
     text = str(value).strip().replace(",", "")
-    if text in {"", ":", "-", "..", "*"}:
+
+    # The published files mark "does not apply" several ways, and the form
+    # varies by year: a bare "NA" in the year ending March 2015, "N/A" against
+    # outcome type 0 in 2026, and "N/A - Offence code expired" in the recorded
+    # column against retired codes. All mean the count does not apply, which is
+    # zero here. Anything else that is not a number is an error and must not be
+    # quietly read as zero.
+    lowered = text.lower()
+    if lowered in NOT_APPLICABLE_MARKERS:
         return 0
-    # The published tables use several not applicable forms, including
-    # "N/A - Offence code expired" in the recorded column for retired codes and
-    # a bare "N/A" in the closed column against outcome type 0. All of them mean
-    # the count does not apply, which is zero for our purposes. Anything else
-    # that is not a number is an error and must not be quietly read as zero.
-    if text.lower().startswith(("n/a", "na -", "not applicable")):
+    if NOT_APPLICABLE_RE.match(lowered):
         return 0
     try:
         return int(float(text))
     except ValueError as error:
         raise ValueError(
             f"Cannot read {text!r} as a count. If this is a new not applicable "
-            "marker, add it to to_int in etl/common.py rather than letting it "
-            "become a zero."
+            "marker, add it to NOT_APPLICABLE_MARKERS in etl/common.py rather "
+            "than letting it become a zero."
         ) from error
 
 

@@ -46,6 +46,7 @@ from common import (  # noqa: E402
     read_json,
     resolve_data_root,
     text_of,
+    truthy_flag,
     to_int,
     truthy_flag,
     write_json_compact,
@@ -728,8 +729,136 @@ def write_table(out_dir: Path, name: str, rows: list[dict], meta: dict) -> None:
         writer.writerows(rows)
 
 
+def survey(paths, log: list[str]) -> dict:
+    """Report every surprise in the raw files without building anything.
+
+    Twelve years of published files do not use one convention. Running the full
+    transform and fixing each crash in turn costs a ten minute run per fix, so
+    this reads everything once and reports every distinct value the ETL would
+    have to interpret: the not applicable markers, the expired flags, the
+    outcome type values, the force names that do not match, and the sheets in
+    each workbook. One pass, then fix everything at once.
+    """
+    from collections import Counter, defaultdict
+
+    findings = {
+        "sheets": defaultdict(list),
+        "non_numeric_counts": Counter(),
+        "expired_flags": Counter(),
+        "outcome_types": Counter(),
+        "unmatched_forces": Counter(),
+        "financial_years": Counter(),
+        "quarters": Counter(),
+        "headers": defaultdict(list),
+    }
+
+    for path in sorted(paths):
+        print(f"Surveying {path.name}", flush=True)
+        for sheet_name, rows in _sheets_of(path):
+            if _skippable_sheet(sheet_name):
+                findings["sheets"][path.name].append(f"{sheet_name} (skipped)")
+                continue
+            try:
+                header_map, header_row = find_header_row(rows, REQUIRED_OUTCOME_FIELDS)
+            except HeaderMappingError:
+                findings["sheets"][path.name].append(f"{sheet_name} (no header)")
+                continue
+            findings["sheets"][path.name].append(f"{sheet_name} (data)")
+            findings["headers"][path.name] = [str(h) for h in header_row if h is not None]
+
+            index = {
+                field: header_row.index(column)
+                for field, column in header_map.by_field.items()
+            }
+
+            def cell(row, field):
+                position = index.get(field)
+                if position is None or position >= len(row):
+                    return None
+                return row[position]
+
+            for row in rows:
+                if row is None or not any(v not in (None, "") for v in row):
+                    continue
+                for field in ("count_recorded", "count_closed"):
+                    value = cell(row, field)
+                    if value is None or isinstance(value, (int, float)):
+                        continue
+                    findings["non_numeric_counts"][str(value)] += 1
+                findings["expired_flags"][str(cell(row, "offence_code_expired"))] += 1
+                findings["outcome_types"][str(cell(row, "outcome_type"))] += 1
+                findings["financial_years"][str(cell(row, "financial_year"))] += 1
+                findings["quarters"][str(cell(row, "financial_quarter"))] += 1
+                name = cell(row, "force_name")
+                if canonical_force(name) is None:
+                    findings["unmatched_forces"][text_of(name)] += 1
+
+    print("\n" + "=" * 70)
+    print("SURVEY")
+    print("=" * 70)
+
+    print("\nSheets per file:")
+    for name, sheets in sorted(findings["sheets"].items()):
+        print(f"  {name}")
+        for sheet in sheets:
+            print(f"      {sheet}")
+
+    print("\nNon-numeric values in the two count columns:")
+    if not findings["non_numeric_counts"]:
+        print("  none")
+    for value, count in findings["non_numeric_counts"].most_common():
+        try:
+            reading = to_int(value)
+            verdict = f"reads as {reading}"
+        except ValueError:
+            verdict = "NOT HANDLED, would stop the build"
+        print(f"  {value!r:40} {count:>9,}  {verdict}")
+
+    print("\nOffence code expired flag values:")
+    for value, count in findings["expired_flags"].most_common():
+        print(f"  {value!r:40} {count:>9,}  {'expired' if truthy_flag(value) else 'current'}")
+
+    print("\nOutcome type values:")
+    unreadable = []
+    for value, count in sorted(findings["outcome_types"].items()):
+        try:
+            int(value)
+            note = ""
+        except ValueError:
+            note = "  NOT AN INTEGER, dropped as a subset row"
+            unreadable.append(value)
+        print(f"  {value!r:12} {count:>9,}{note}")
+
+    print("\nForce names that do not match the canonical list:")
+    if not findings["unmatched_forces"]:
+        print("  none")
+    for value, count in findings["unmatched_forces"].most_common(30):
+        print(f"  {value!r:40} {count:>9,}")
+
+    print("\nFinancial years:", ", ".join(sorted(findings["financial_years"])))
+    print("Quarters:", ", ".join(sorted(findings["quarters"])))
+
+    print("\nHeaders, where they differ between files:")
+    seen = {}
+    for name, headers in sorted(findings["headers"].items()):
+        key = tuple(headers)
+        seen.setdefault(key, []).append(name)
+    for key, names in seen.items():
+        print(f"  {len(names)} file(s), for example {names[0]}:")
+        for header in key:
+            print(f"      {header}")
+    return findings
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--survey",
+        action="store_true",
+        help="report every distinct value the ETL has to interpret, across all "
+        "files, and build nothing. Use this to find every surprise in one pass "
+        "rather than one crash at a time.",
+    )
     parser.add_argument(
         "--data-root",
         default=None,
@@ -776,6 +905,11 @@ def main() -> int:
         return 2
 
     log: list[str] = []
+
+    if args.survey:
+        survey(outcomes_files, log)
+        return 0
+
     aggregator = Aggregator()
     for path in sorted(outcomes_files):
         process_outcomes_file(path, aggregator, log)
