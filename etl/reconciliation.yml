@@ -1,39 +1,64 @@
-# Published headline figures, used to reconcile the derived tables.
+# Figures the derived tables are checked against.
 #
-# Each target is a figure taken from a Home Office bulletin, with the citation
-# and the page or table it came from, so the derived tables can be checked
-# against something a reader can look up. validate.py fails the build when a
-# derived figure differs from its target by more than the stated tolerance.
+# validate.py fails the build when a derived figure differs from its target by
+# more than the stated tolerance. There are two kinds of target and they are not
+# equally strong.
 #
-# A target must be typed in by a person who has read the bulletin. Nothing here
-# is derived from the open data tables, otherwise the check would compare the
-# extract with itself and always pass.
+#   kind: published
+#     A figure the Home Office states in a bulletin. This is the only kind that
+#     can catch a misreading of what the data means, because it comes from
+#     outside the open data tables. At least one is required before a build on
+#     live data will pass.
+#
+#   kind: recomputation
+#     The same source computed by a different route, for example a pivot table
+#     built by hand in Excel. This catches implementation error, which is most
+#     of what goes wrong, but it cannot catch a misunderstanding shared by both
+#     routes. Useful, and not a substitute for the above.
 #
 # Fields
 #   id             stable identifier
+#   kind           published or recomputation
 #   financial_year the financial year the figure covers
-#   measure        one of: oocd_total, charge_total, assigned_total
+#   measure        one of: oocd_total, charge_total, positive_total,
+#                  assigned_total
 #   basis          closed or recorded
 #   fraud_variant  all or ex_fraud
-#   value          the published figure
-#   tolerance_pct  permitted difference, as a percentage of the published figure
-#   citation       Harvard reference
-#   source_url     where the figure was read
+#   value          the figure
+#   tolerance_pct  permitted difference, as a percentage of the figure
+#   citation       Harvard reference, or how the recomputation was produced
+#   source_url     where the figure can be checked
 
-targets: []
+targets:
+  - id: charge-total-2025-26-recomputed
+    kind: recomputation
+    financial_year: 2025/26
+    measure: charge_total
+    basis: recorded
+    fraud_variant: all
+    value: 447514
+    tolerance_pct: 0.01
+    citation: >-
+      Pivot table of the outcomes open data file for the year ending March 2026,
+      built independently in Excel, summing the recorded quarter column by
+      outcome group. Charged/Summonsed row.
+    source_url: https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables
 
-# Example of the shape a target takes, kept commented out so it is never
-# mistaken for a checked figure:
-#
-# targets:
-#   - id: oocd-total-2024-25
-#     financial_year: 2024/25
-#     measure: oocd_total
-#     basis: closed
-#     fraud_variant: all
-#     value: 0
-#     tolerance_pct: 0.5
-#     citation: >-
-#       Home Office (2025) Crime outcomes in England and Wales 2024 to 2025.
-#       London: Home Office.
-#     source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2024-to-2025
+  - id: oocd-total-2025-26-recomputed
+    kind: recomputation
+    financial_year: 2025/26
+    measure: oocd_total
+    basis: recorded
+    fraud_variant: all
+    value: 240486
+    tolerance_pct: 0.01
+    citation: >-
+      Pivot table as above, summing the three out of court rows the Home Office
+      groups separately: Out-of-court (formal) 42,474, Out-of-court (informal)
+      174,735, and diversionary, educational or intervention activity 23,277.
+      Their sum is exactly the six outcome types this dashboard counts, which is
+      an independent confirmation of the classification.
+    source_url: https://www.gov.uk/government/statistical-data-sets/police-recorded-crime-and-outcomes-open-data-tables
+
+# Still needed: at least one kind: published target, read from a Home Office
+# bulletin. Until one is here, a build on live data fails.

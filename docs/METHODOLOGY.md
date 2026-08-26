@@ -80,6 +80,25 @@ alongside the offences being prosecuted, so it accompanies a prosecution rather
 than replacing one. It is excluded throughout. Sweeping it in would inflate every
 out of court figure on the site.
 
+### The Home Office's own grouping
+
+The published tables carry an outcome group column, which is the Home Office's
+own classification rather than ours. For the year ending March 2026 it groups
+the outcome types like this, and the grouping matches the classification used
+here exactly:
+
+| Outcome group | Outcome types | Recorded basis |
+| --- | --- | --- |
+| Out-of-court (formal) | 2, 3, 6 | 42,474 |
+| Out-of-court (informal) | 7, 8 | 174,735 |
+| Diversionary, educational or intervention activity | 22 | 23,277 |
+| **The six types counted here** | **2, 3, 6, 7, 8, 22** | **240,486** |
+| Taken into consideration | 4 | 3,410 |
+
+Taken into consideration is a group of its own, separate from both out of court
+groups, which is independent confirmation that excluding outcome type 4 from the
+out of court set is the right reading and not a judgement of ours.
+
 ### Positive outcomes
 
 A positive outcome is one where somebody was held to account: outcome type 1,
@@ -251,11 +270,15 @@ checks are:
 - A movement of more than 40 per cent in a force series between consecutive years
   is flagged for a person to look at. It does not fail the build, because outcome
   22 becoming compulsory moved some forces by more than that, correctly.
-- At least one national headline figure reconciles with the figure published in
-  the corresponding Home Office bulletin, within a stated tolerance. The targets
-  are held in `etl/reconciliation.yml`, typed in by a person who has read the
-  bulletin, so the check compares the extract with something external rather than
-  with itself.
+- At least one national headline figure reconciles with a figure published in a
+  Home Office bulletin, within a stated tolerance. The targets are held in
+  `etl/reconciliation.yml` and come in two kinds. A target of kind `published`
+  is read from a bulletin by a person, and is the only kind that can catch a
+  misreading of what the data means, because it comes from outside the open data
+  tables. A target of kind `recomputation` is the same source computed by a
+  different route, such as a pivot table built by hand, which catches
+  implementation error but shares any misunderstanding with the extract. A build
+  on live data fails without at least one target of the first kind.
 
 <!-- INJECT:VALIDATION -->
 

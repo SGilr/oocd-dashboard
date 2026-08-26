@@ -458,16 +458,32 @@ def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
         document = yaml.safe_load(handle) or {}
     targets = document.get("targets") or []
 
-    if not targets:
+    published = [t for t in targets if t.get("kind", "published") == "published"]
+    if not published:
         message = (
-            "etl/reconciliation.yml records no published headline figure to "
-            "check the derived tables against. Add at least one figure read "
-            "from a Home Office bulletin before publishing."
+            "etl/reconciliation.yml records no target of kind 'published'. Only "
+            "a figure read from a Home Office bulletin can catch a misreading "
+            "of what the data means, because a recomputation from the same "
+            "source shares any misunderstanding with the extract. Add one "
+            "before publishing."
         )
         if manifest.get("provenance") == "home_office_open_data":
             report.fail("reconciliation", message)
         else:
             report.flag("reconciliation", message + " Provenance is not live data.")
+
+    if not targets:
+        return
+
+    if manifest.get("provenance") != "home_office_open_data":
+        # The targets describe the published figures. Comparing them with
+        # invented numbers would fail every fixture build for no useful reason.
+        report.note(
+            "reconciliation",
+            f"{len(targets)} reconciliation targets not compared: this build "
+            f"carries provenance {manifest.get('provenance')!r} rather than the "
+            "published files.",
+        )
         return
 
     national = {row["fy"]: row for row in tables["national_year"]["rows"]}
@@ -495,12 +511,14 @@ def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
         )
         derived = row[column]
         published = target["value"]
+        # 'published' here is the target value, whatever its kind.
         tolerance = target.get("tolerance_pct", 0.5)
         difference_pct = (
             abs(derived - published) / published * 100 if published else 100.0
         )
         entry = {
             "id": target["id"],
+            "kind": target.get("kind", "published"),
             "financial_year": financial_year,
             "measure": target["measure"],
             "column": column,
@@ -522,8 +540,8 @@ def check_reconciliation(tables: dict, manifest: dict, report: Report) -> None:
         else:
             report.note(
                 "reconciliation",
-                f"{target['id']}: derived {derived} against published "
-                f"{published}, {difference_pct:.2f} per cent apart",
+                f"{target['id']} ({entry['kind']}): derived {derived:,} against "
+                f"{published:,}, {difference_pct:.2f} per cent apart",
                 **entry,
             )
 
