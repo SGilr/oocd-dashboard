@@ -493,10 +493,17 @@ def main() -> int:
         },
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         "parser_status": "ok",
+        # The note has to follow headroom_derived. The bulletin publishes
+        # headroom, so on the weekly path all three figures are published and
+        # saying otherwise understates the provenance of one of them.
         "note": (
             "Read automatically from the Ministry of Justice weekly prison "
-            "estate bulletin. Headroom is capacity less population, computed "
-            "here rather than published."
+            "estate bulletin. Population, useable operational capacity and "
+            "headroom are all published in it."
+            if published_headroom is not None
+            else "Read automatically from the Ministry of Justice weekly "
+            "prison estate bulletin. Headroom is capacity less population, "
+            "computed here rather than published."
         ),
     }
 

@@ -1,6 +1,7 @@
 name: First ingest, temporary
 
 # TEMPORARY. Deleted in the commit after the figures land.
+# Re-run to pick up the corrected provenance note.
 #
 # The weekly figures have to be written by the ingest itself rather than
 # transcribed by hand from a dry run, and workflow_dispatch does not work on a
