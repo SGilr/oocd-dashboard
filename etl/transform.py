@@ -324,19 +324,55 @@ def _note_negative(aggregator, path, force, financial_year, quarter, offence_cod
 
 
 def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) -> None:
-    """Stream one outcomes file into the aggregator."""
-    log.append(f"Reading {path.name}")
-    rows = read_rows(path)
-    header_map, header_row = find_header_row(rows, REQUIRED_OUTCOME_FIELDS)
-    log.append(f"  headers mapped: {sorted(header_map.by_field)}")
+    """Stream one outcomes file into the aggregator.
 
-    # Duplicate detection is per file, because the published series is one file
-    # per financial year and a key cannot legitimately repeat inside one. The
-    # key is packed into an integer so a multi million row file stays in memory.
-    seen_keys: set[int] = set()
-    force_index: dict[str, int] = {}
-    offence_index: dict[str, int] = {}
+    The workbook is searched for its data sheet rather than the first sheet
+    being assumed. The earlier years carry summary and chart sheets alongside
+    the data, and a summary sheet's first rows are figures, not headers, so
+    picking by position fails. A sheet counts as data when its header row maps
+    every field the ETL needs, which no summary sheet does.
+    """
 
+    def emit(message: str) -> None:
+        log.append(message)
+        print(message, flush=True)
+
+    emit(f"Reading {path.name}")
+
+    tried: list[str] = []
+    data_sheets = 0
+
+    for sheet_name, rows in _sheets_of(path):
+        if _skippable_sheet(sheet_name):
+            emit(f"  sheet {sheet_name!r}: skipped, not a data sheet")
+            continue
+        try:
+            header_map, header_row = find_header_row(rows, REQUIRED_OUTCOME_FIELDS)
+        except HeaderMappingError as error:
+            tried.append(f"{sheet_name}: {error}")
+            emit(f"  sheet {sheet_name!r}: no usable header, skipped")
+            continue
+
+        data_sheets += 1
+        emit(f"  sheet {sheet_name!r}: headers mapped, reading")
+        _read_outcome_rows(path, sheet_name, rows, header_row, header_map, aggregator)
+
+    if data_sheets == 0:
+        raise HeaderMappingError(
+            f"{path.name} has no sheet whose headers map to the fields the ETL "
+            "needs. Sheets tried:\n  " + "\n  ".join(tried)
+        )
+
+
+def _read_outcome_rows(
+    path: Path,
+    sheet_name: str,
+    rows: Iterator[list[object]],
+    header_row: list[object],
+    header_map,
+    aggregator: Aggregator,
+) -> None:
+    """Read the rows of one data sheet, the header having already been found."""
     index = {
         field: header_row.index(column) for field, column in header_map.by_field.items()
     }
@@ -346,6 +382,13 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
         if position is None or position >= len(row):
             return None
         return row[position]
+
+    # Duplicate detection is per sheet, because a key cannot legitimately repeat
+    # inside one. The key is packed into an integer so a multi million row sheet
+    # stays in memory.
+    seen_keys: set[int] = set()
+    force_index: dict[str, int] = {}
+    offence_index: dict[str, int] = {}
 
     for row in rows:
         if row is None or not any(value not in (None, "") for value in row):
@@ -360,7 +403,7 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
         raw_force = cell(row, "force_name")
         force = canonical_force(raw_force)
         if force is None:
-            aggregator.unknown_forces[str(raw_force).strip()] += 1
+            aggregator.unknown_forces[text_of(raw_force)] += 1
             continue
         if force in CENTRAL_FRAUD_BODIES:
             aggregator.central_fraud_rows += 1
@@ -383,6 +426,7 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             BASIS_RECORDED: to_int(cell(row, "count_recorded")),
             BASIS_CLOSED: to_int(cell(row, "count_closed")),
         }
+
         if truthy_flag(cell(row, "offence_code_expired")):
             aggregator.expired_code_rows += 1
 
@@ -398,8 +442,8 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             aggregator.duplicate_source_keys += 1
             if len(aggregator.duplicate_examples) < 10:
                 aggregator.duplicate_examples.append(
-                    f"{path.name}: {force}, {financial_year} Q{quarter}, "
-                    f"offence {offence_code}, outcome {outcome_type}"
+                    f"{path.name} [{sheet_name}]: {force}, {financial_year} "
+                    f"Q{quarter}, offence {offence_code}, outcome {outcome_type}"
                 )
         else:
             seen_keys.add(packed)
@@ -420,10 +464,6 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             for basis in COUNT_BASES:
                 aggregator.not_assigned_counts[basis] += counts[basis]
             if any(value < 0 for value in counts.values()):
-                # A small negative appears here when a force reclassifies more
-                # offences in a quarter than it recorded. It sits in outcome
-                # type 0, which never enters a derived total, so it is recorded
-                # for transparency rather than failing the build.
                 aggregator.negative_counts_excluded += 1
                 _note_negative(aggregator, path, force, financial_year, quarter,
                                offence_code, outcome_type, counts)
@@ -431,8 +471,6 @@ def process_outcomes_file(path: Path, aggregator: Aggregator, log: list[str]) ->
             continue
 
         if any(value < 0 for value in counts.values()):
-            # A negative in a row that does enter a total is a different matter,
-            # and stops the build.
             aggregator.negative_counts += 1
             _note_negative(aggregator, path, force, financial_year, quarter,
                            offence_code, outcome_type, counts)
@@ -472,9 +510,19 @@ def _sheets_of(path: Path) -> Iterator[tuple[str, Iterator[list[object]]]]:
     workbook = load_workbook(path, read_only=True, data_only=True)
     try:
         for sheet in workbook.worksheets:
-            yield sheet.title, (list(row) for row in sheet.iter_rows(values_only=True))
+            yield sheet.title, _rows_of_sheet(sheet)
     finally:
         workbook.close()
+
+
+def _rows_of_sheet(sheet) -> Iterator[list[object]]:
+    """Rows of one worksheet, with the sheet bound as an argument.
+
+    Binding matters: a generator expression closing over the loop variable would
+    read whichever sheet the loop had reached by the time it was first iterated.
+    """
+    for row in sheet.iter_rows(values_only=True):
+        yield list(row)
 
 
 def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
@@ -489,11 +537,15 @@ def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
     sheets_read = 0
     sheets_skipped = 0
 
+    def emit(message: str) -> None:
+        log.append(message)
+        print(message, flush=True)
+
     for path in paths:
-        log.append(f"Reading {path.name} for the recorded crime denominator")
+        emit(f"Reading {path.name} for the recorded crime denominator")
         for sheet_name, rows in _sheets_of(path):
             if _skippable_sheet(sheet_name):
-                log.append(f"  sheet {sheet_name!r}: skipped, not a data sheet")
+                emit(f"  sheet {sheet_name!r}: skipped, not a data sheet")
                 sheets_skipped += 1
                 continue
             try:
@@ -502,7 +554,7 @@ def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
                     required=("financial_year", "force_name", "recorded_crime_count"),
                 )
             except HeaderMappingError as error:
-                log.append(f"  sheet {sheet_name!r}: skipped, no header found. {error}")
+                emit(f"  sheet {sheet_name!r}: skipped, no header found")
                 sheets_skipped += 1
                 continue
 
@@ -531,11 +583,11 @@ def process_force_area_crime(paths: list[Path], log: list[str]) -> dict:
                     cell(row, "recorded_crime_count")
                 )
                 used += 1
-            log.append(f"  sheet {sheet_name!r}: {used} rows used")
+            emit(f"  sheet {sheet_name!r}: {used} rows used")
             sheets_read += 1
 
     if paths and not totals:
-        log.append(
+        emit(
             "  WARNING: no recorded crime totals were read. The rate per 1,000 "
             "recorded crimes measure will have no denominator."
         )
@@ -729,9 +781,13 @@ def main() -> int:
         process_outcomes_file(path, aggregator, log)
 
     if aggregator.unknown_forces:
-        log.append("Force names that did not match the canonical list:")
+        line = "Force names that did not match the canonical list:"
+        log.append(line)
+        print(line, flush=True)
         for name, count in sorted(aggregator.unknown_forces.items()):
-            log.append(f"  {name!r}: {count} rows")
+            line = f"  {name!r}: {count} rows"
+            log.append(line)
+            print(line, flush=True)
 
     tables = build_tables(aggregator)
     denominators = process_force_area_crime(sorted(crime_files), log)
@@ -787,7 +843,6 @@ def main() -> int:
     }
     write_json_compact(args.out_dir / "coverage.json", coverage)
 
-    print("\n".join(log))
     print("\nDerived tables written to", args.out_dir)
     for name, rows in tables.items():
         print(f"  {name}: {len(rows)} rows")
