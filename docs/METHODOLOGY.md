@@ -109,11 +109,18 @@ umbrella terms sitting above that.
 That framework is not in force, and the tense matters here. Chapter 1 of Part 6
 was prospective at Royal Assent, see section 208(1), and sections 98 to 115 and
 117 to 121 remain so. Section 118, which would abolish the simple caution, the
-conditional caution and the penalty notice for disorder, is among them. Section
+conditional caution under Part 3 of the Criminal Justice Act 2003 and the
+penalty notice for disorder, is among them. Section
 116 alone has been commenced, on 24 May 2023 by SI 2023/573, and it does no more
 than create the duty to prepare a code of practice. The draft Diversionary and
 Community Cautions Code of Practice was consulted on in 2023, drew no government
 response, and has never been brought into force.
+
+Forces therefore continue to work with the menu they have had for a decade: the
+simple caution, the conditional caution under Part 3 of the Criminal Justice Act
+2003, the penalty notice for disorder, the community resolution, the cannabis or
+khat warning, and locally designed deferred prosecution schemes recorded under
+Outcome 22.
 
 So the change of word needed no change in law, and no change to what is counted.
 
