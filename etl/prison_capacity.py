@@ -14,10 +14,14 @@ The route is:
 2. Download the newest attachment. An .ods file is a zip archive whose
    content.xml holds the sheets, so the standard library reads it and no
    spreadsheet dependency is added to the ETL for two numbers.
-3. Find the two figures by matching row labels rather than cell coordinates,
-   so a layout change cannot silently produce a wrong number.
-4. Write the record only when both figures were found and both pass a sanity
-   check on the plausible size of the prison estate.
+3. Find the figures by matching row labels rather than cell coordinates, so a
+   layout change cannot silently produce a wrong number. Only the current
+   week's block of the sheet is searched, because the bulletin repeats the
+   same labels for last week, for twelve months ago and again under its
+   definitions.
+4. Write the record only when the population and the capacity were both found,
+   both sit inside a plausible range for the national estate, and the
+   published headroom equals the one less the other.
 
 On a failed match the previous record is kept, its parser_status is set to
 "needs_review" and the script exits non zero. A page showing last week's
@@ -27,6 +31,9 @@ confidently is not.
 Every run writes data/_sheet-dump.json, the flattened sheets with their names,
 so a label that has moved can be corrected from the dump rather than guessed
 at. The dump is gitignored and the workflow uploads it as an artifact.
+
+The labels were confirmed against the live file for Monday 24 August 2026 on
+26 August 2026. See LABELS for the layout that run revealed.
 
 Usage:
     python etl/prison_capacity.py --dry-run   read and report, write only the dump
@@ -67,11 +74,31 @@ REQUEST_TIMEOUT_SECONDS = 120
 OUT_PATH = PROCESSED_DIR / "prison-capacity.json"
 DUMP_PATH = DATA_DIR / "_sheet-dump.json"
 
-# Candidate row labels, tried in order, first match wins. These were written
-# without sight of the bulletin, because gov.uk was unreachable from all three
-# environments that worked on this. Correct them from the dump.
+# Row labels, tried in order, first match wins.
+#
+# Confirmed against the live bulletin on 26 August 2026, the file for Monday
+# 24 August. The sheet is called "Data" and its rows read:
+#
+#     0  Population and Capacity Briefing for Monday 24 August 2026
+#     1                              Total       Adult Male  Female  YCS
+#     2  Population                  86843       83170       3388    285
+#     3  Useable Operational Capac.  88937       84835       3718    384
+#     4  Headroom                     2094        1665         330     99
+#     5  Home Detention Curfew        4096
+#     6  Population and Capacity on previous Mondays
+#     7  Last Week: 17 August 2026   Total       Adult Male  Female  YCS
+#     8  Population                  86722       ...
+#    ...
+#    17  Definitions
+#    18  Useable Operational Capac.  <definition prose>
+#
+# The exact labels come first. That matters: on the first live run the
+# population matched on the broad fallback below, and rows 0 and 6 both
+# contain the word "population". They were passed over only because neither
+# has a number to the right of it, which is luck rather than design.
 LABELS: dict[str, list[str]] = {
     "population": [
+        r"^population$",
         r"^total\s+prison\s+population",
         r"^prison\s+population",
         r"^population\b.*\btotal",
@@ -79,12 +106,35 @@ LABELS: dict[str, list[str]] = {
         r"\bpopulation\b",
     ],
     "capacity": [
+        r"^useable\s+operational\s+capacity$",
+        r"^usable\s+operational\s+capacity$",
         r"useable\s+operational\s+capacity",
         r"usable\s+operational\s+capacity",
         r"operational\s+capacity",
         r"\bcapacity\b",
     ],
+    # Published in the bulletin rather than derived, so the page can say which
+    # it is showing. Read and cross-checked, never used to fill a gap.
+    "headroom": [
+        r"^headroom$",
+    ],
 }
+
+# Everything below the first of these belongs to another week or to the notes.
+#
+# The bulletin repeats the same three labels for last week and for twelve
+# months ago, and again under "Definitions". Searching the whole sheet means
+# that in a week where the current block reads "Historic data not available",
+# as the twelve month block did on 24 August 2026, the search falls through to
+# last week's figures and publishes them under this week's date. That is a
+# confident wrong answer, so the search stops at this boundary instead and the
+# run fails loudly.
+CURRENT_BLOCK_END = [
+    r"previous\s+mondays",
+    r"^definitions$",
+    r"^last\s+week\b",
+    r"months?\s+ago\b",
+]
 
 # A national prison estate figure for England and Wales, not a percentage, a
 # year or a single establishment.
@@ -238,17 +288,31 @@ def to_number(raw: str) -> int | None:
     return int(round(value))
 
 
+def current_block(rows: list[list[str]]) -> list[list[str]]:
+    """The rows above the first heading that starts another week or the notes."""
+    boundaries = [re.compile(pattern, re.I) for pattern in CURRENT_BLOCK_END]
+    for index, row in enumerate(rows):
+        for cell in row:
+            text = (cell or "").strip()
+            if text and any(boundary.search(text) for boundary in boundaries):
+                return rows[:index]
+    return rows
+
+
 def find_figure(
     sheets: list[tuple[str, list[list[str]]]], patterns: list[str]
 ) -> tuple[int | None, str | None, str | None]:
     """The first figure to the right of a cell matching one of the patterns.
 
-    Returns the value, the label it matched on and the sheet it was found in,
-    so a wrong match can be recognised in the output rather than trusted.
+    Only the current week's block of each sheet is searched, see
+    CURRENT_BLOCK_END. Returns the value, the label it matched on and the
+    sheet it was found in, so a wrong match can be recognised in the output
+    rather than trusted.
     """
+    scoped = [(name, current_block(rows)) for name, rows in sheets]
     for pattern in patterns:
         expression = re.compile(pattern, re.I)
-        for sheet_name, rows in sheets:
+        for sheet_name, rows in scoped:
             for row in rows:
                 for index, cell in enumerate(row):
                     if not cell or not cell.strip():
@@ -259,6 +323,34 @@ def find_figure(
                         number = to_number(candidate)
                         if number is not None:
                             return number, cell.strip(), sheet_name
+    return None, None, None
+
+
+def find_headroom(
+    sheets: list[tuple[str, list[list[str]]]]
+) -> tuple[int | None, str | None, str | None]:
+    """The published headroom, which is far smaller than a national total.
+
+    to_number's band is written for a population or a capacity and would
+    reject a four figure headroom, so this reads the cell directly. It is only
+    ever used as a cross-check, never to fill a gap.
+    """
+    scoped = [(name, current_block(rows)) for name, rows in sheets]
+    expression = re.compile(LABELS["headroom"][0], re.I)
+    for sheet_name, rows in scoped:
+        for row in rows:
+            for index, cell in enumerate(row):
+                text = (cell or "").strip()
+                if not text or not expression.search(text):
+                    continue
+                for candidate in row[index + 1:]:
+                    cleaned = re.sub(r"[^0-9.\-]", "", str(candidate))
+                    if cleaned in ("", "-", ".", "-."):
+                        continue
+                    try:
+                        return int(round(float(cleaned))), text, sheet_name
+                    except ValueError:
+                        continue
     return None, None, None
 
 
@@ -321,15 +413,39 @@ def main() -> int:
         sheets, LABELS["population"]
     )
     capacity, capacity_label, capacity_sheet = find_figure(sheets, LABELS["capacity"])
+    # The bulletin publishes headroom as well, which makes it a check rather
+    # than a third thing to trust: it is capacity less population by
+    # definition, so if the published figure disagrees the three labels did
+    # not come from the same block of the sheet.
+    published_headroom, headroom_label, _ = find_headroom(sheets)
 
     print("\nMatched:")
     print(f"  population : {population} on {population_label!r} in {population_sheet!r}")
     print(f"  capacity   : {capacity} on {capacity_label!r} in {capacity_sheet!r}")
+    print(f"  headroom   : {published_headroom} on {headroom_label!r}")
+
+    derived_headroom = (
+        capacity - population if population is not None and capacity is not None else None
+    )
+    headroom_disagrees = (
+        published_headroom is not None
+        and derived_headroom is not None
+        and published_headroom != derived_headroom
+    )
+    if headroom_disagrees:
+        print(
+            f"  the published headroom {published_headroom} is not the "
+            f"published capacity less the published population "
+            f"({capacity} - {population} = {derived_headroom}), so the three "
+            f"labels did not come from one block",
+            file=sys.stderr,
+        )
 
     incomplete = (
         population is None
         or capacity is None
         or capacity < population * MIN_CAPACITY_RATIO
+        or headroom_disagrees
     )
     if incomplete:
         previous = load_existing()
@@ -364,8 +480,11 @@ def main() -> int:
         "published": payload.get("public_updated_at"),
         "population": population,
         "useable_operational_capacity": capacity,
-        "headroom": capacity - population,
-        "headroom_derived": True,
+        "headroom": published_headroom if published_headroom is not None else derived_headroom,
+        # False when the bulletin published the figure itself, which it does
+        # weekly. The seed record derives it from two figures of different
+        # dates, and the page says which it is showing.
+        "headroom_derived": published_headroom is None,
         "source_title": attachment.get("title"),
         "source_url": attachment.get("url"),
         "matched_on": {

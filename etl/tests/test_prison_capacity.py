@@ -1,11 +1,23 @@
 """Tests for the weekly prison estate bulletin reader.
 
-The bulletin itself could not be opened from any environment that worked on
-this page, so the label patterns are candidates until a live run confirms
-them. What these tests pin is everything around the labels: that all sheets
-are read and not only the first, that a figure is taken from the right of its
-label, that an implausible number is refused, and that a partial match is
-reported as incomplete rather than written out.
+The labels were confirmed against the live file for Monday 24 August 2026, and
+TestTheRealBulletin reproduces that sheet verbatim so a change to the published
+layout shows up here rather than on the page.
+
+The rest pins the behaviour around the labels: that every sheet is read and not
+only the first, that a figure is taken from the right of its label, that an
+implausible number is refused, and that the two failure modes the live file
+revealed cannot recur. Those two are worth naming, because each would have put
+a confident wrong number on the page rather than an obvious one:
+
+TestTheBankHolidayFailure. The bulletin's twelve month block read "Historic
+data not available due to Bank Holiday" instead of figures. If that happens to
+the current week, a whole-sheet search silently reports last week's figures
+under this week's date.
+
+TestImplausibleFiguresAreRefused. A range that starts at 1,000, as the kit's
+reference implementation had it, admits a bare year, so a date beside a row
+label reads as the population.
 """
 
 import sys
@@ -20,10 +32,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from prison_capacity import (  # noqa: E402
     LABELS,
     MIN_CAPACITY_RATIO,
+    attachment_date,
+    current_block,
     find_figure,
+    find_headroom,
     flatten_ods,
     newest_attachment,
-    attachment_date,
     to_number,
 )
 
@@ -254,3 +268,127 @@ class TestRepeatCountsDoNotExplode:
         blob = ods([sheet("One", [row([cell("x"), cell("y", repeat=16384)])])])
         _, rows = flatten_ods(blob)[0]
         assert len(rows[0]) <= 65
+
+
+# The real bulletin, as read from the live file for Monday 24 August 2026.
+# Every row label below is verbatim from that sheet.
+REAL = ods(
+    [
+        sheet(
+            "Data",
+            [
+                row([cell(), cell("Population and Capacity Briefing for Monday 24 August 2026")]),
+                row([cell(), cell(), cell(), cell("Total"), cell(), cell("Adult Male"), cell("Female"), cell("YCS")]),
+                row([cell(), cell("Population"), cell(), cell("86843", numeric=True), cell(), cell("83170", numeric=True), cell("3388", numeric=True), cell("285", numeric=True)]),
+                row([cell(), cell("Useable Operational Capacity"), cell(), cell("88937", numeric=True), cell(), cell("84835", numeric=True), cell("3718", numeric=True), cell("384", numeric=True)]),
+                row([cell(), cell("Headroom"), cell(), cell("2094", numeric=True), cell(), cell("1665", numeric=True), cell("330", numeric=True), cell("99", numeric=True)]),
+                row([cell(), cell("Home Detention Curfew caseload"), cell(), cell("4096", numeric=True)]),
+                row([cell(), cell("Population and Capacity on previous Mondays")]),
+                row([cell(), cell("Last Week: 17 August 2026"), cell(), cell("Total")]),
+                row([cell(), cell("Population"), cell(), cell("86722", numeric=True)]),
+                row([cell(), cell("Useable Operational Capacity"), cell(), cell("88921", numeric=True)]),
+                row([cell(), cell("Headroom"), cell(), cell("2199", numeric=True)]),
+                row([cell(), cell("12 Months Ago: 25 August 2025"), cell(), cell("Total")]),
+                row([cell(), cell("Population"), cell(), cell("Historic"), cell(), cell("data"), cell("not"), cell("available")]),
+                row([cell(), cell("Definitions")]),
+                row([cell(), cell("Useable Operational Capacity"), cell("Useable Operational Capacity of the estate is the sum of all establishments...")]),
+            ],
+        ),
+        # The bulletin carries thirteen of these, external references to a
+        # SharePoint workbook, all empty. The first table in the file is the
+        # real one here, but nothing guarantees that stays true.
+        sheet("'https://justiceuk.sharepoint.com/x.xlsm'#OpCapData", []),
+    ]
+)
+
+
+class TestTheRealBulletin:
+    def test_the_current_week_population_is_read(self):
+        value, label, found_in = find_figure(flatten_ods(REAL), LABELS["population"])
+        assert (value, label, found_in) == (86843, "Population", "Data")
+
+    def test_the_current_week_capacity_is_read(self):
+        value, label, _ = find_figure(flatten_ods(REAL), LABELS["capacity"])
+        assert (value, label) == (88937, "Useable Operational Capacity")
+
+    def test_the_published_headroom_is_read_and_agrees(self):
+        value, label, _ = find_headroom(flatten_ods(REAL))
+        assert (value, label) == (2094, "Headroom")
+        assert value == 88937 - 86843
+
+    def test_last_weeks_block_is_out_of_scope(self):
+        """The figures must not come from the previous Mondays section."""
+        rows = current_block(flatten_ods(REAL)[0][1])
+        flat = [cell for row in rows for cell in row]
+        assert "86722" not in flat
+        assert "Population and Capacity on previous Mondays" not in flat
+
+    def test_the_definitions_block_is_out_of_scope(self):
+        rows = current_block(flatten_ods(REAL)[0][1])
+        assert not any("Definitions" in cell for row in rows for cell in row)
+
+
+class TestTheBankHolidayFailure:
+    """The failure the live dump exposed.
+
+    The twelve month block on 24 August 2026 read "Historic data not available
+    due to Bank Holiday" instead of figures. If that ever happens to the
+    current week, a whole-sheet search falls through to last week's numbers and
+    publishes them under this week's date. The run has to fail instead.
+    """
+
+    BANK_HOLIDAY = ods(
+        [
+            sheet(
+                "Data",
+                [
+                    row([cell(), cell("Population and Capacity Briefing for Monday 31 August 2026")]),
+                    row([cell(), cell("Population"), cell(), cell("Historic"), cell(), cell("data"), cell("not"), cell("available")]),
+                    row([cell(), cell("Useable Operational Capacity"), cell(), cell("due"), cell(), cell("to"), cell("Bank"), cell("Holiday")]),
+                    row([cell(), cell("Population and Capacity on previous Mondays")]),
+                    row([cell(), cell("Last Week: 24 August 2026"), cell(), cell("Total")]),
+                    row([cell(), cell("Population"), cell(), cell("86843", numeric=True)]),
+                    row([cell(), cell("Useable Operational Capacity"), cell(), cell("88937", numeric=True)]),
+                ],
+            )
+        ]
+    )
+
+    def test_last_weeks_population_is_not_published_as_this_weeks(self):
+        value, _, _ = find_figure(flatten_ods(self.BANK_HOLIDAY), LABELS["population"])
+        assert value is None, "last week's figure leaked into the current week"
+
+    def test_last_weeks_capacity_is_not_published_as_this_weeks(self):
+        value, _, _ = find_figure(flatten_ods(self.BANK_HOLIDAY), LABELS["capacity"])
+        assert value is None
+
+
+class TestTheHeadroomCrossCheck:
+    """Headroom is capacity less population by definition, so a disagreement
+    means the labels matched different blocks even though each looked sane."""
+
+    MISMATCH = ods(
+        [
+            sheet(
+                "Data",
+                [
+                    row([cell(), cell("Population"), cell(), cell("86843", numeric=True)]),
+                    row([cell(), cell("Useable Operational Capacity"), cell(), cell("88937", numeric=True)]),
+                    row([cell(), cell("Headroom"), cell(), cell("9999", numeric=True)]),
+                ],
+            )
+        ]
+    )
+
+    def test_a_disagreeing_headroom_is_visible_to_the_caller(self):
+        sheets = flatten_ods(self.MISMATCH)
+        population, _, _ = find_figure(sheets, LABELS["population"])
+        capacity, _, _ = find_figure(sheets, LABELS["capacity"])
+        headroom, _, _ = find_headroom(sheets)
+        assert headroom != capacity - population
+
+    def test_a_four_figure_headroom_is_readable_despite_the_population_band(self):
+        """to_number would reject 2,094. find_headroom must not use it."""
+        assert to_number("2094") is None
+        value, _, _ = find_headroom(flatten_ods(REAL))
+        assert value == 2094
