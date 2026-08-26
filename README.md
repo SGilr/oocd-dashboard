@@ -168,6 +168,14 @@ Until it is its own repository, the workflows in `.github/workflows/` will not
 run, because GitHub only reads that path at the repository root, and Cloudflare
 Pages needs the root directory setting adjusted to match.
 
+## Handover
+
+`HANDOVER.md` is the document to read before changing anything. It covers the
+four decisions that shape every figure, the ten things the published data does
+to a naive reader, what has to stay true, and what to ask about rather than
+decide alone. Every item in it was found by running this code against the real
+published files.
+
 ## Credits
 
 Produced by Oxon Advisory. Built for a symposium convened with De Montfort
