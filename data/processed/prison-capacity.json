@@ -1,13 +1,13 @@
 {
  "as_at": "2026-08-24",
- "fetched_at": "2026-08-26T18:47:13.401963+00:00",
+ "fetched_at": "2026-08-26T18:48:25.821296+00:00",
  "headroom": 2094,
  "headroom_derived": false,
  "matched_on": {
   "capacity": "Useable Operational Capacity",
   "population": "Population"
  },
- "note": "Read automatically from the Ministry of Justice weekly prison estate bulletin. Headroom is capacity less population, computed here rather than published.",
+ "note": "Read automatically from the Ministry of Justice weekly prison estate bulletin. Population, useable operational capacity and headroom are all published in it.",
  "parser_status": "ok",
  "population": 86843,
  "published": "2026-08-24T13:07:39+01:00",
