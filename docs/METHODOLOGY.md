@@ -195,6 +195,58 @@ figure will be smaller than the figure here unless outcome 22 is added to it.
 The reconciliation targets name the outcome types they cover so the two can be
 compared without confusion.
 
+### Age, and the one age measure this data supports
+
+Age is not a field in this collection. The outcomes tables count offences rather
+than people, and they carry no date of birth, no age and no age band. Nothing in
+them can be filtered to adults or to children.
+
+The only age information anywhere in the tables is built into two of the outcome
+types. Outcome type 2 is a caution of a youth and outcome type 3 is a caution of
+an adult. The other four out of court types carry nothing: a penalty notice for
+disorder, a cannabis or khat warning, a community resolution and an Outcome 22
+are recorded identically whoever received them.
+
+That has one useful consequence and one serious limitation, and they are easy to
+confuse.
+
+The useful consequence is that types 2 and 3 are a complete age split of the
+caution route. Every caution is one or the other, so the youth share of cautions
+is a real figure rather than an estimate, and it is published on the overview
+page. Read it as what it is: a statement about cautions.
+
+The limitation is that it cannot be extended to out of court resolutions as a
+whole, and the gap is both large and growing. The four types with no age marker
+were 58 per cent of the volume counted here in 2014/15 and 82 per cent in
+2025/26. Four fifths of the current total therefore has no age attached, and the
+part that does is the part that has been shrinking.
+
+This matters more than a simple coverage gap would, because the missing age
+information is not missing at random. The types that carry age are the formal
+ones, and those are exactly the ones that have declined while the informal types
+have grown. A line showing cautions of youths falling from about 6 per cent of
+all out of court resolutions in 2014/15 to about 2 per cent in 2025/26 is partly
+a fall in the cautioning of children and partly a change in which type the same
+decision is now recorded under. The published tables cannot separate those two,
+and no amount of arithmetic on them will.
+
+For the same reason, excluding outcome type 2 does not produce a series about
+adults. It removes the children who happen to be visible and leaves in every
+child dealt with by the four anonymous types.
+
+Youth out of court resolutions are published separately, in the Ministry of
+Justice and Youth Justice Board youth justice statistics. Those figures cannot
+be used to fill this gap. They count disposals given to children supervised by a
+Youth Justice Service, drawn from the Youth Justice Application Framework rather
+than from police recorded crime, and their own notes state that they are not a
+count of children because one child may receive more than one. Their geography
+is not the police force either: the police and crime commissioner column in the
+local level open data tables mixes force areas with regions, and the
+Metropolitan Police and the City of London appear as a single London throughout,
+so they cannot be aligned with the 44 forces used here. They are a different
+measurement of a related thing, and combining them with these figures would
+produce a series that means nothing.
+
 ### Coverage differs between published tables
 
 Figures here cover all 44 forces in every year, because the open data tables
@@ -310,6 +362,14 @@ and in full here. The numbering is stable across the site.
 ## What this dashboard cannot tell you
 
 This section is the point of the dashboard as much as the charts are.
+
+**Almost nothing about age.** The tables carry no age field. Cautions split into
+youths and adults, because that distinction is built into outcome types 2 and 3,
+and nothing else does. In 2025/26 the four types with no age marker were 82 per
+cent of the out of court volume counted here, up from 58 per cent in 2014/15, so
+no figure on this site apart from the youth share of cautions can be read as
+being about adults or about children. The section on age above sets out why the
+youth justice statistics cannot be used to fill the gap.
 
 **Nothing about conditions.** There is no national record of what condition was
 attached to a resolution. A conditional caution with a rehabilitative requirement

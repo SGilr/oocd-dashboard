@@ -186,6 +186,96 @@ const mixTableRows = financialYears.map((fy) => {
   record.total = oocdSum(row, basis, variant).toLocaleString("en-GB");
   return record;
 });
+
+// --- The youth share of cautions -------------------------------------------
+// Outcome types 2 and 3 are the only age information in this collection, and
+// together they are a complete age split of the caution route. That makes this
+// the one age measure the published tables actually support.
+//
+// It is a share of cautions and never a share of out of court resolutions. The
+// other four types carry no age at all, and in the latest year they are the
+// large majority of the volume, so a youth share of resolutions would be a
+// number put on something the data does not hold.
+//
+// National only, deliberately. The force figures are too small to carry a
+// share: in 2025/26 the City of London issued 56 cautions, one of them to a
+// youth, and North Wales 333 with 140 to youths, so a force level line would
+// swing on single cases and read as a difference in policy.
+const cautionAge = financialYears.map((fy) => {
+  const row = nationalYear.rows.find((entry) => entry.fy === fy)!;
+  const youth = value(row, basis, variant, "t2");
+  const adult = value(row, basis, variant, "t3");
+  const cautions = youth + adult;
+  return {
+    fy,
+    year: Number(fy.slice(0, 4)),
+    youth,
+    adult,
+    cautions,
+    share: cautions > 0 ? (youth / cautions) * 100 : 0,
+  };
+});
+
+const firstCautions = cautionAge[0];
+const latestCautions = cautionAge[cautionAge.length - 1];
+const fall = (from: number, to: number): number | null =>
+  from > 0 ? ((from - to) / from) * 100 : null;
+const youthFall = fall(firstCautions.youth, latestCautions.youth);
+const cautionFall = fall(firstCautions.cautions, latestCautions.cautions);
+
+// Drawn from zero. A share this flat would look like a collapse on a truncated
+// axis, and the collapse in this series is in the counts, not in the share.
+const cautionAgeCeiling =
+  Math.ceil((Math.max(...cautionAge.map((point) => point.share)) + 1) / 5) * 5;
+
+const cautionAgePlot = renderPlot(
+  {
+    ...PLOT_BASE,
+    width: 1120,
+    height: 320,
+    x: {
+      label: null,
+      tickFormat: (d: number) => `${d}/${(d + 1) % 100}`,
+      ticks: financialYears.length,
+    },
+    y: {
+      label: null,
+      grid: true,
+      domain: [0, cautionAgeCeiling],
+      tickFormat: (d: number) => `${d}%`,
+    },
+    marks: [
+      Plot.ruleY([0], { stroke: "var(--rule-strong)" }),
+      Plot.line(cautionAge, {
+        x: "year",
+        y: "share",
+        stroke: "var(--series-national)",
+        strokeWidth: 2.5,
+        curve: "monotone-x",
+      }),
+      Plot.dot(cautionAge, {
+        x: "year",
+        y: "share",
+        r: 3.5,
+        fill: "var(--series-national)",
+        stroke: "var(--surface-1)",
+        strokeWidth: 2,
+      }),
+    ],
+  },
+  {
+    title: "The youth share of cautions, nationally, by financial year",
+    description:
+      `The share of all cautions that were cautions of youths, from ` +
+      `${firstCautions.share.toFixed(1)} per cent in ${firstYear} to ` +
+      `${latestCautions.share.toFixed(1)} per cent in ${latestYear}. The line is ` +
+      `drawn from zero.` +
+      (cautionFall === null
+        ? ""
+        : ` Over the same period the number of cautions of every kind fell by ` +
+          `about ${cautionFall.toFixed(0)} per cent.`),
+  }
+);
 ---
 
 <Layout
@@ -284,6 +374,65 @@ const mixTableRows = financialYears.map((fy) => {
         { key: "total", label: "All six types", numeric: true },
       ],
       rows: mixTableRows,
+    }}
+  />
+
+  <h2>Age</h2>
+  <p>
+    Age is not a field in this collection. The outcomes tables count offences rather
+    than people, and they carry no date of birth and no age band. The only age
+    information anywhere in them is built into two of the outcome types: a caution of
+    a youth is outcome type 2 and a caution of an adult is outcome type 3. Penalty
+    notices, cannabis or khat warnings, community resolutions and Outcome 22 are
+    recorded the same way whoever received them.
+  </p>
+  <p>
+    So there is one age measure this data supports, and it is narrow. Types 2 and 3
+    are a complete split of the caution route, which makes the youth share of cautions
+    a real figure. It is not a youth share of out of court resolutions, and it cannot
+    be read as one. In {latestYear} the four types that carry no age were
+    {((1 - latestCautions.cautions / latestVolume) * 100).toFixed(0)} per cent of all
+    out of court resolutions.
+  </p>
+
+  <Figure
+    title="The youth share of cautions"
+    subtitle={`National, ${firstYear} to ${latestYear}, by financial year. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
+    plot={cautionAgePlot}
+    description="Cautions of youths as a share of all cautions, which is outcome type 2 as a share of types 2 and 3 together. These two types are the only place age appears in this data."
+    notes={[
+      `The share is close to flat while the base under it falls away. Cautions of ` +
+        `all kinds fell from ${firstCautions.cautions.toLocaleString("en-GB")} in ` +
+        `${firstYear} to ${latestCautions.cautions.toLocaleString("en-GB")} in ` +
+        `${latestYear}, and cautions of youths fell from ` +
+        `${firstCautions.youth.toLocaleString("en-GB")} to ` +
+        `${latestCautions.youth.toLocaleString("en-GB")}` +
+        (youthFall === null ? "" : `, about ${youthFall.toFixed(0)} per cent`) +
+        `. A steady share here does not mean a steady number of children.`,
+      "This is a share of cautions, not of out of court resolutions. It says nothing " +
+        "about the age of anyone given a community resolution, a penalty notice, a " +
+        "cannabis or khat warning or an Outcome 22, because those types carry no age.",
+      "Shown nationally and not by force. The smallest forces issue a few hundred " +
+        "cautions a year and a handful to youths, so a force level share would move " +
+        "on single cases.",
+    ]}
+    annotationIds={["adults-and-children-counted-together"]}
+    table={{
+      caption: `National cautions by age group and financial year, ${firstYear} to ${latestYear}`,
+      columns: [
+        { key: "fy", label: "Financial year" },
+        { key: "youth", label: "Caution, youths", numeric: true },
+        { key: "adult", label: "Caution, adults", numeric: true },
+        { key: "cautions", label: "All cautions", numeric: true },
+        { key: "share", label: "Youth share", numeric: true },
+      ],
+      rows: cautionAge.map((point) => ({
+        fy: point.fy,
+        youth: point.youth.toLocaleString("en-GB"),
+        adult: point.adult.toLocaleString("en-GB"),
+        cautions: point.cautions.toLocaleString("en-GB"),
+        share: `${point.share.toFixed(1)}%`,
+      })),
     }}
   />
 
