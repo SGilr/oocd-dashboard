@@ -163,6 +163,39 @@ annotations:
       London: Home Office.
     source_url_verified: true
 
+  - id: adults-and-children-counted-together
+    scope: national
+    financial_years: all
+    measures: all
+    chart_marker: true
+    label: Adults and children are counted together
+    text: >-
+      Outcome types 2 and 3 separate cautions of youths from cautions of
+      adults, and no other type carries an age marker. Community resolutions,
+      penalty notices for disorder, cannabis or khat warnings and Outcome 22
+      are issued to adults and to children alike, and the published tables hold
+      nothing that would separate them. Those four types were 58 per cent of
+      the volume shown here in 2014/15 and 82 per cent in 2025/26, and slightly
+      more on the other count basis, so no year on this dashboard can be read
+      as a series about adults alone, and the share that cannot be split has
+      risen throughout the period. Youth cautions fall from about 6 per cent of
+      the total in 2014/15 to about 2 per cent in 2025/26, and read on its own
+      that line suggests fewer children are being diverted. It is partly
+      composition, because the types children are increasingly resolved under
+      are the ones with no age marker. Excluding outcome type 2 removes the
+      children who are
+      visible and leaves the rest, so it does not produce a series about adults.
+      Age is not in this collection at all: the outcomes tables count offences
+      rather than people. Youth out of court resolutions are published
+      separately in the youth justice statistics, on a different counting unit,
+      and those figures do not reconcile with these.
+    source_url: https://www.gov.uk/government/statistics/crime-outcomes-in-england-and-wales-2025-to-2026/crime-outcomes-in-england-and-wales-2025-to-2026
+    source_citation: >-
+      Home Office (2026) Crime outcomes in England and Wales 2025 to 2026,
+      Table 1.1, grouping the outcomes framework from April 2013 onwards.
+      London: Home Office.
+    source_url_verified: true
+
   - id: not-yet-assigned-excluded
     scope: national
     financial_years: all

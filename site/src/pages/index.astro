@@ -242,7 +242,7 @@ const mixTableRows = financialYears.map((fy) => {
     notes={[
       "The shaded period runs before outcome 22 recording became compulsory in 2021/22, so part of the rise after that point is forces recording an outcome they were already using.",
     ]}
-    annotationIds={["outcome-22-recording-change"]}
+    annotationIds={["outcome-22-recording-change", "adults-and-children-counted-together"]}
     table={{
       caption: `National out of court share of positive outcomes by quarter, ${firstYear} to ${latestYear}`,
       columns: [
@@ -267,7 +267,11 @@ const mixTableRows = financialYears.map((fy) => {
     description="Each band is one resolution type. Bands are filled with both a colour and a texture, so the six stay distinguishable in greyscale and in print."
     legend={DISPOSAL_SERIES.map((series) => ({ type: series.type, label: series.short }))}
     legendTitle="Resolution type"
-    annotationIds={["outcome-22-recording-change", "published-corrections-are-negative"]}
+    annotationIds={[
+      "outcome-22-recording-change",
+      "published-corrections-are-negative",
+      "adults-and-children-counted-together",
+    ]}
     table={{
       caption: `National out of court resolutions by type and financial year, ${firstYear} to ${latestYear}`,
       columns: [
