@@ -19,10 +19,25 @@ name: Weekly prison figures
 
 on:
   schedule:
-    # 07:15 UTC on Tuesdays. The bulletin publishes on Mondays, so this allows
-    # a day for a late publication. The day of the week is the requirement,
-    # not the hour.
-    - cron: "15 7 * * 2"
+    # Nominally 01:55 UTC on Tuesdays, intended to run at about 07:15.
+    #
+    # GitHub queues scheduled workflows on a best effort basis and has delayed
+    # this one every week it has run: 5h19m, 4h53m, 5h25m and 5h21m on the four
+    # Tuesdays from 1 September 2026, a mean of about 5h15m. A nominal 07:15
+    # therefore ran at around half past twelve each week. Setting the nominal
+    # time 5h15m earlier puts the expected run back at about 07:10, with the
+    # observed spread putting it between roughly 06:48 and 07:20.
+    #
+    # 01:55 rather than 02:00 because the top of the hour is the most contested
+    # slot and tends to be delayed hardest.
+    #
+    # Running early costs nothing if GitHub ever clears its queue. The bulletin
+    # publishes on Mondays, so any time on Tuesday is after publication, and the
+    # requirement was always the day rather than the hour. A week where the
+    # bulletin is late enough to miss is not a failure either: the reader finds
+    # the previous file, it matches what is committed, and the run reports no
+    # change rather than going red.
+    - cron: "55 1 * * 2"
   workflow_dispatch:
     inputs:
       dry_run:

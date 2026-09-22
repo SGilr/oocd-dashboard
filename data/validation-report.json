@@ -433,7 +433,7 @@
   }
  ],
  "forces": 44,
- "generated_at": "2026-08-26T14:38:31+00:00",
+ "generated_at": "2026-09-22T15:35:30+00:00",
  "notes": [
   {
    "check": "provenance",
@@ -496,7 +496,7 @@
   },
   {
    "check": "annotations",
-   "detail": "10 annotations checked"
+   "detail": "12 annotations checked"
   },
   {
    "check": "reconciliation",
