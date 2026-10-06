@@ -1,7 +1,7 @@
 {
- "as_at": "2026-09-28",
- "fetched_at": "2026-09-29T07:33:07.275094+00:00",
- "headroom": 1556,
+ "as_at": "2026-10-05",
+ "fetched_at": "2026-10-06T08:10:40.865262+00:00",
+ "headroom": 2233,
  "headroom_derived": false,
  "matched_on": {
   "capacity": "Useable Operational Capacity",
@@ -9,9 +9,9 @@
  },
  "note": "Read automatically from the Ministry of Justice weekly prison estate bulletin. Population, useable operational capacity and headroom are all published in it.",
  "parser_status": "ok",
- "population": 87499,
- "published": "2026-09-28T09:57:08+01:00",
- "source_title": "Population bulletin: weekly 28 September 2026",
- "source_url": "https://assets.publishing.service.gov.uk/media/6aba2acafceb6fb3a6501267/PSWEBREPORT_28_9_26.ods",
- "useable_operational_capacity": 89055
+ "population": 86779,
+ "published": "2026-10-05T12:01:39+01:00",
+ "source_title": "Population bulletin: weekly 5 October 2026",
+ "source_url": "https://assets.publishing.service.gov.uk/media/6ac381ea11ed58342ad8e476/prison-pop-5-oct-2026.ods",
+ "useable_operational_capacity": 89012
 }
