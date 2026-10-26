@@ -102,7 +102,10 @@ share of positive outcomes, share of all assigned outcomes, and rate per 1,000
 recorded crimes. All three are offered. The default is share of positive
 outcomes, which comes closest to the decision under examination.
 
-**The outcome types.** Out of court resolutions are types 2, 3, 6, 7, 8 and 22.
+**The outcome types.** Out of court resolutions are types 2, 3, 6, 7, 8, 22, 23
+and 24. Outcomes 23 and 24, child and adult deferred prosecution, were added to
+the counting rules from April 2026 and take over deferred prosecutions that
+were recorded under 22 until then; see "Outcomes 23 and 24" in the methodology.
 Outcome 4, taken into consideration, is excluded: it accompanies a prosecution
 rather than replacing one. The Home Office's own outcome group column agrees,
 grouping type 4 separately from both out of court groups. That agreement is
@@ -233,6 +236,20 @@ pull requests. Without both it does the work and fails at the last step.
 
 You can run it by hand from the Actions tab. It was tested that way on
 26 August 2026 and correctly opened nothing, the tables being unchanged.
+
+
+**When the first 2026/27 data arrives.** It will be the first to carry outcomes
+23 and 24. In the same change that brings it in:
+
+1. Set `chart_marker: true` on `deferred-prosecution-outcomes` in
+   `etl/annotations.yml`, so the break carries a numbered marker on the charts.
+2. Check that the Outcome 22 series label has switched to "Outcomes 22 to 24".
+   It does this by itself when any count under 23 or 24 appears.
+3. Add a published reconciliation target that includes 23 and 24 once a Home
+   Office table reports them.
+4. Read the year on year flags for outcome 22 with the code change in mind:
+   a fall in 22 matched by counts in 23 and 24 is the change of code, not a
+   change of practice.
 
 ## Outstanding
 

@@ -29,6 +29,7 @@ from common import (  # noqa: E402
     ESSENTIAL_TYPES,
     NOT_ASSIGNED_TYPE,
     OOCD_TYPES,
+    OUTCOME_FIRST_YEAR,
     OUTCOME_LABELS,
     POSITIVE_TYPES,
     REPO_ROOT,
@@ -113,11 +114,32 @@ def check_forces(coverage: dict, report: Report) -> None:
 
 def check_outcome_type_coverage(coverage: dict, report: Report) -> None:
     seen = coverage.get("outcome_type_years", {})
+    years_present = sorted({year for years in seen.values() for year in years})
+    latest_year = years_present[-1] if years_present else None
+
+    # A type introduced after the latest year in the data cannot be present, so
+    # its absence is expected rather than worth flagging.
+    def not_yet_introduced(outcome_type: int) -> bool:
+        first = OUTCOME_FIRST_YEAR.get(outcome_type)
+        return bool(first and latest_year and latest_year < first)
+
     missing = [
         outcome_type
         for outcome_type in sorted(OUTCOME_LABELS)
-        if not seen.get(str(outcome_type))
+        if not seen.get(str(outcome_type)) and not not_yet_introduced(outcome_type)
     ]
+
+    # A count under a type in a year before the type existed means a column has
+    # been misread, so the build stops.
+    for outcome_type, first in sorted(OUTCOME_FIRST_YEAR.items()):
+        early = [year for year in seen.get(str(outcome_type), []) if year < first]
+        if early:
+            report.fail(
+                "outcome_type_coverage",
+                f"Outcome {outcome_type}, {OUTCOME_LABELS[outcome_type]}, carries "
+                f"counts before {first}, the first year it existed",
+                years=early,
+            )
 
     # A missing type the classification depends on means a column was misread,
     # and the build must stop. A missing type it does not depend on can be

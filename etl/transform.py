@@ -54,7 +54,7 @@ from common import (  # noqa: E402
 )
 
 # The outcome types stored individually in the derived tables: the charge
-# comparator and the six out of court types. Everything else is carried only
+# comparator and the out of court types. Everything else is carried only
 # inside the assigned total, which is what the denominators need.
 STORED_TYPES: tuple[int, ...] = POSITIVE_TYPES
 COUNT_COLUMNS: tuple[str, ...] = tuple(f"t{t}" for t in STORED_TYPES) + (
@@ -266,6 +266,7 @@ class Aggregator:
         self.negative_counts_excluded = 0
         self.negative_examples: list[str] = []
         self.subset_type_rows: dict[str, int] = defaultdict(int)
+        self.unknown_outcome_types: dict[int, int] = defaultdict(int)
 
     @staticmethod
     def _empty_cell() -> dict:
@@ -436,6 +437,16 @@ def _read_outcome_rows(
             # drop is visible in coverage.json rather than silent.
             if raw_outcome_type:
                 aggregator.subset_type_rows[raw_outcome_type] += 1
+            continue
+
+        if outcome_type not in OUTCOME_LABELS:
+            # An outcome type the classification has never seen. The counting
+            # rules gain types from time to time (23 and 24 arrived in April
+            # 2026), and an unknown one would otherwise fall silently into
+            # "other" and out of every out of court figure. It is counted here
+            # and stops the build in main(), so a person decides how to
+            # classify it.
+            aggregator.unknown_outcome_types[outcome_type] += 1
             continue
 
         raw_recorded = cell(row, "count_recorded")
@@ -951,6 +962,20 @@ def main() -> int:
             line = f"  {name!r}: {count} rows"
             log.append(line)
             print(line, flush=True)
+
+    if aggregator.unknown_outcome_types:
+        line = (
+            "Outcome types not in the classification. Add each to OUTCOME_LABELS "
+            "in etl/common.py, decide whether it is an out of court resolution, "
+            "and record the decision in docs/METHODOLOGY.md before rerunning:"
+        )
+        log.append(line)
+        print(line, flush=True)
+        for outcome_type, count in sorted(aggregator.unknown_outcome_types.items()):
+            line = f"  outcome type {outcome_type}: {count} rows"
+            log.append(line)
+            print(line, flush=True)
+        return 1
 
     tables = build_tables(aggregator)
     denominators = process_force_area_crime(sorted(crime_files), log)

@@ -27,8 +27,19 @@ from common import (  # noqa: E402
 
 
 class TestOutcomeClassification:
-    def test_six_out_of_court_types(self):
-        assert OOCD_TYPES == (2, 3, 6, 7, 8, 22)
+    def test_out_of_court_types(self):
+        assert OOCD_TYPES == (2, 3, 6, 7, 8, 22, 23, 24)
+
+    def test_deferred_prosecution_outcomes_are_out_of_court(self):
+        # Outcomes 23 and 24 took over deferred prosecutions from outcome 22 in
+        # April 2026. Classifying them as "other" would make every force that
+        # runs a deferred prosecution scheme appear to cut its out of court
+        # resolutions in that month.
+        from common import OUTCOME_FIRST_YEAR
+
+        for outcome_type in (23, 24):
+            assert classify_outcome(outcome_type) == "oocd"
+            assert OUTCOME_FIRST_YEAR[outcome_type] == "2026/27"
 
     def test_taken_into_consideration_is_not_a_disposal(self):
         # Outcome 4 is an admission recorded alongside a prosecution. Sweeping
@@ -37,8 +48,8 @@ class TestOutcomeClassification:
         assert 4 not in POSITIVE_TYPES
         assert classify_outcome(4) == "other"
 
-    def test_positive_is_charge_plus_the_six(self):
-        assert POSITIVE_TYPES == (1, 2, 3, 6, 7, 8, 22)
+    def test_positive_is_charge_plus_out_of_court(self):
+        assert POSITIVE_TYPES == (1, 2, 3, 6, 7, 8, 22, 23, 24)
         assert set(POSITIVE_TYPES) == set(CHARGE_TYPES) | set(OOCD_TYPES)
 
     @pytest.mark.parametrize("outcome_type", OOCD_TYPES)
@@ -251,9 +262,11 @@ class TestPublishedFileQuirks:
         assert canonical_force("London, City of") == "City of London"
 
     def test_essential_types_are_the_ones_classification_needs(self):
-        from common import CHARGE_TYPES, ESSENTIAL_TYPES, OOCD_TYPES
+        from common import CHARGE_TYPES, ESSENTIAL_TYPES, OOCD_TYPES, OUTCOME_FIRST_YEAR
 
-        assert set(ESSENTIAL_TYPES) == set(CHARGE_TYPES) | set(OOCD_TYPES)
+        # Types introduced part way through the series cannot be essential,
+        # because no earlier year contains them.
+        assert set(ESSENTIAL_TYPES) == (set(CHARGE_TYPES) | set(OOCD_TYPES)) - set(OUTCOME_FIRST_YEAR)
         # Type 19 is absent from the year ending March 2026 file, so it must not
         # be treated as essential or the build could never pass.
         assert 19 not in ESSENTIAL_TYPES

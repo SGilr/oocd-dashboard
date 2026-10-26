@@ -92,6 +92,19 @@ OUTCOME_LABELS: dict[int, str] = {
     20: "Responsibility for further investigation transferred to another body",
     21: "Further investigation to support formal action not in the public interest, police decision",
     22: "Diversionary, educational or intervention activity",
+    23: "Child deferred prosecution",
+    24: "Adult deferred prosecution",
+}
+
+# Outcome types added to the counting rules part way through the series, with
+# the first financial year in which they can carry a count. Outcomes 23 and 24
+# were introduced with effect from April 2026 (Home Office, Official crime
+# recording rules for front line officers and staff 2026/27, April update,
+# p. 25). Deferred prosecutions recorded before then sit inside outcome 22, so a
+# count under 23 or 24 in an earlier year means a column has been misread.
+OUTCOME_FIRST_YEAR: dict[int, str] = {
+    23: "2026/27",
+    24: "2026/27",
 }
 
 # Outcome type 0 is not an outcome. It counts offences that have not yet been
@@ -103,13 +116,18 @@ NOT_ASSIGNED_TYPE = 0
 
 # Types that must appear in the data, because the classification depends on
 # them. A type outside this set can legitimately be absent from a year: the
-# year ending March 2026 file carries no type 19, for instance.
+# year ending March 2026 file carries no type 19, for instance. Outcomes 23 and
+# 24 are not essential, because no year before 2026/27 can contain them.
 ESSENTIAL_TYPES: tuple[int, ...] = (1, 2, 3, 6, 7, 8, 22)
 
-# The six out of court resolution types. Outcome 4, taken into consideration, is
+# The out of court resolution types. Outcome 4, taken into consideration, is
 # deliberately absent: it is an admission recorded alongside a prosecution, not
-# a resolution made instead of one.
-OOCD_TYPES: tuple[int, ...] = (2, 3, 6, 7, 8, 22)
+# a resolution made instead of one. Outcomes 23 and 24, child and adult
+# deferred prosecution, are included because they take over deferred
+# prosecutions that were recorded under outcome 22 until March 2026. Leaving
+# them out would make every force that runs a deferred prosecution scheme
+# appear to cut its out of court resolutions in April 2026.
+OOCD_TYPES: tuple[int, ...] = (2, 3, 6, 7, 8, 22, 23, 24)
 
 # The comparator: the case went to court.
 CHARGE_TYPES: tuple[int, ...] = (1,)
@@ -126,6 +144,8 @@ OOCD_SHORT_LABELS: dict[int, str] = {
     7: "Cannabis warning",
     8: "Community resolution",
     22: "Outcome 22",
+    23: "Outcome 23",
+    24: "Outcome 24",
 }
 
 

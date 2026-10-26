@@ -30,6 +30,10 @@
 # write the result back into the validation report. Nothing is published as
 # verified until that has run somewhere with network access to the sources.
 
+# Source verification, 26 October 2026: the crime recording rules for 2026/27,
+# cited by deferred-prosecution-outcomes, opened and read; page 25 lists
+# outcomes 23 and 24 with effect from April 2026.
+#
 # Source verification, 26 August 2026. All nine sources confirmed to resolve.
 # The Home Office user guide and the West Yorkshire Police and Crime
 # Commissioner page were checked with curl and returned 200. The crime outcomes
@@ -38,8 +42,8 @@
 # script rather than a missing page, so `validate.py --urls-only` will report it
 # as unknown and ask for a person to look. That is expected, not a regression.
 
-version: 10
-last_reviewed: 2026-08-26
+version: 11
+last_reviewed: 2026-10-26
 
 annotations:
   - id: outcome-22-recording-change
@@ -329,4 +333,35 @@ annotations:
     source_citation: >-
       Home Office (2026) Police recorded crime and outcomes open data tables
       user guide. London: Home Office.
+    source_url_verified: true
+
+  # chart_marker is false until the first 2026/27 data is published. The note
+  # describes a break that no chart yet shows, and a marker on every chart for
+  # a year not on the axis would tell a reader nothing. Set it to true in the
+  # same change that brings in the first 2026/27 quarter.
+  - id: deferred-prosecution-outcomes
+    scope: national
+    financial_years:
+      - 2026/27
+    measures: all
+    chart_marker: false
+    label: Deferred prosecutions moved from outcome 22 to outcomes 23 and 24 in April 2026
+    text: >-
+      From April 2026 the counting rules record a child deferred prosecution as
+      outcome 23 and an adult deferred prosecution as outcome 24. Until then
+      both were recorded under outcome 22, diversionary, educational or
+      intervention activity. This dashboard counts outcomes 23 and 24 as out of
+      court resolutions, so the out of court total runs on across the change,
+      and charts draw outcomes 22, 23 and 24 together as one series. Outcome 22
+      figures on their own from 2026/27 are not comparable with earlier years,
+      because part of what it used to contain now sits under the new types.
+      Forces may adopt the new codes at different points in the year as their
+      recording systems are updated. The Home Office's own treatment of these
+      outcomes as positive outcomes is narrower than this dashboard's: the
+      Centre for Justice Innovation reports that outcome 23 counts as positive
+      only in child knife crime cases.
+    source_url: https://assets.publishing.service.gov.uk/media/6a0f28cb9819be865f421c4b/crime-recording-rules-for-frontline-officers-and-staff-2026_27-April-update-v2.pdf
+    source_citation: >-
+      Home Office (2026) Official crime recording rules for front line officers
+      and staff 2026/27, April update. London: Home Office, p. 25.
     source_url_verified: true

@@ -22,7 +22,7 @@ const basis = defaultBasis;
 const variant = "all" as const;
 const measure = DEFAULT_MEASURE;
 
-const COLUMNS = ["t1", "t2", "t3", "t6", "t7", "t8", "t22", "positive", "assigned"] as const;
+const COLUMNS = ["t1", "t2", "t3", "t6", "t7", "t8", "t22", "t23", "t24", "positive", "assigned"] as const;
 const BASES = ["closed", "recorded"] as const;
 const VARIANTS = ["all", "ex_fraud"] as const;
 
@@ -188,7 +188,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
         <div class="checks">
           {DISPOSAL_SERIES.map((series) => (
             <label>
-              <input type="checkbox" name="type" value={series.type} checked />
+              <input type="checkbox" name="type" value={series.members.join(",")} checked />
               <svg class="legend__swatch" viewBox="0 0 20 14" aria-hidden="true" focusable="false" style="width:1rem;height:0.75rem">
                 <rect width="20" height="14" fill={`url(#tex-${series.type})`} />
               </svg>
@@ -203,7 +203,7 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
   <p class="no-js-note" id="controls-note">
     With JavaScript turned off the controls do nothing and the table below shows the
     default view: {measureMeta.label.toLowerCase()}, {latestYear},
-    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all six resolution types. The
+    {BASIS_LABELS[basis].toLowerCase()}, fraud included, all resolution types. The
     <a href="/data">data page</a> has the same figures as CSV.
   </p>
 
@@ -349,8 +349,10 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
         payload.data[f][y][b][v][colIndex.get(name) as number];
 
       function selectedTypes(): number[] {
-        return Array.from(form!.querySelectorAll<HTMLInputElement>('input[name="type"]:checked')).map(
-          (input) => Number(input.value)
+        // A checkbox can stand for several outcome types: the outcome 22 box
+        // also counts 23 and 24, deferred prosecution, from April 2026.
+        return Array.from(form!.querySelectorAll<HTMLInputElement>('input[name="type"]:checked')).flatMap(
+          (input) => input.value.split(",").map(Number)
         );
       }
 
@@ -483,10 +485,12 @@ const measureMeta = MEASURES.find((entry) => entry.id === measure)!;
           const excluded = meta.needsDenominator
             ? " British Transport Police is excluded from this measure, because it has no resident population and a distinct offence profile."
             : "";
+          const boxes = form!.querySelectorAll('input[name="type"]').length;
+          const ticked = form!.querySelectorAll('input[name="type"]:checked').length;
           const subset =
-            types.length === 6
+            ticked === boxes
               ? ""
-              : ` Counting ${types.length} of the six resolution types.`;
+              : ` Counting ${ticked} of the ${boxes} resolution types.`;
           summary.textContent = `${meta.label}, ${year}. ${meta.question}${subset}${excluded}`;
         }
 

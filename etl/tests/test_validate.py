@@ -109,13 +109,37 @@ class TestForceCoverage:
 
 
 class TestOutcomeTypeCoverage:
-    def test_all_twenty_two_pass(self):
+    @staticmethod
+    def _all_types(year_for_new: str = "2026/27") -> dict:
+        from common import OUTCOME_FIRST_YEAR
+
+        return {
+            str(t): [year_for_new if t in OUTCOME_FIRST_YEAR else "2020/21"]
+            for t in OUTCOME_LABELS
+        }
+
+    def test_all_types_pass(self):
         report = Report()
-        check_outcome_type_coverage(
-            {"outcome_type_years": {str(t): ["2020/21"] for t in OUTCOME_LABELS}},
-            report,
-        )
+        check_outcome_type_coverage({"outcome_type_years": self._all_types()}, report)
         assert report.failures == []
+
+    def test_deferred_prosecution_types_are_not_flagged_before_they_exist(self):
+        # Data ending in 2025/26 cannot contain outcomes 23 or 24, so their
+        # absence is expected and must not raise a flag on every refresh.
+        years = {str(t): ["2025/26"] for t in OUTCOME_LABELS if t not in (23, 24)}
+        report = Report()
+        check_outcome_type_coverage({"outcome_type_years": years}, report)
+        assert report.failures == []
+        flagged = [f for f in report.flags if f["check"] == "outcome_type_coverage"]
+        assert not any("23" in str(f.get("missing")) for f in flagged)
+
+    def test_deferred_prosecution_counts_before_april_2026_fail(self):
+        # A count under 23 or 24 before the types existed means a column has
+        # been misread.
+        years = self._all_types(year_for_new="2025/26")
+        report = Report()
+        check_outcome_type_coverage({"outcome_type_years": years}, report)
+        assert any("before 2026/27" in f["detail"] for f in report.failures)
 
     def test_a_missing_outcome_type_fails(self):
         years = {str(t): ["2020/21"] for t in OUTCOME_LABELS if t != 7}

@@ -14,8 +14,17 @@
  * as a hue. Printed in greyscale, or read by anyone who cannot separate the
  * hues, the pattern is what tells the series apart.
  */
+import { DEFERRED_OUTCOMES_PRESENT } from "./data";
+
 export interface SeriesStyle {
   type: number;
+  /**
+   * The outcome types summed into this series. One type for most series. The
+   * outcome 22 series also carries 23 and 24, child and adult deferred
+   * prosecution, which took over part of what outcome 22 recorded from April
+   * 2026, so the series runs on across the change.
+   */
+  members: readonly number[];
   label: string;
   short: string;
   light: string;
@@ -27,6 +36,7 @@ export interface SeriesStyle {
 export const DISPOSAL_SERIES: SeriesStyle[] = [
   {
     type: 8,
+    members: [8],
     label: "Community resolution",
     short: "Community resolution",
     light: "#2a78d6",
@@ -35,14 +45,18 @@ export const DISPOSAL_SERIES: SeriesStyle[] = [
   },
   {
     type: 22,
-    label: "Outcome 22, diversionary, educational or intervention activity",
-    short: "Outcome 22",
+    members: [22, 23, 24],
+    label: DEFERRED_OUTCOMES_PRESENT
+      ? "Outcomes 22 to 24, diversionary activity and deferred prosecution"
+      : "Outcome 22, diversionary, educational or intervention activity",
+    short: DEFERRED_OUTCOMES_PRESENT ? "Outcomes 22 to 24" : "Outcome 22",
     light: "#eb6834",
     dark: "#d95926",
     texture: "diagonal-right",
   },
   {
     type: 3,
+    members: [3],
     label: "Caution, adults",
     short: "Caution, adults",
     light: "#19a673",
@@ -51,6 +65,7 @@ export const DISPOSAL_SERIES: SeriesStyle[] = [
   },
   {
     type: 2,
+    members: [2],
     label: "Caution, youths",
     short: "Caution, youths",
     light: "#c58500",
@@ -59,6 +74,7 @@ export const DISPOSAL_SERIES: SeriesStyle[] = [
   },
   {
     type: 6,
+    members: [6],
     label: "Penalty notice for disorder",
     short: "Penalty notice",
     light: "#d77298",
@@ -67,6 +83,7 @@ export const DISPOSAL_SERIES: SeriesStyle[] = [
   },
   {
     type: 7,
+    members: [7],
     label: "Cannabis or khat warning",
     short: "Cannabis warning",
     light: "#008300",
