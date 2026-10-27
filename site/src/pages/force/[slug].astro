@@ -21,6 +21,7 @@ import {
   forces,
   latestYear,
   oocdSum,
+  seriesValue,
   quarterDate,
   value,
 } from "../../lib/data";
@@ -164,7 +165,7 @@ const mix = quarterRows.flatMap((row) =>
   DISPOSAL_SERIES.map((series) => ({
     date: quarterDate(row.fy, row.q as number),
     type: series.type,
-    count: value(row, basis, variant, `t${series.type}`),
+    count: seriesValue(row, basis, variant, series.members),
   }))
 );
 const mixTotal = mix.reduce((total, point) => total + point.count, 0);
@@ -364,7 +365,7 @@ const noDenominator = NO_DENOMINATOR_FORCES.has(force.name);
       rows: yearRows.map((row) => {
         const record: Record<string, string | number> = { fy: row.fy as string };
         for (const series of DISPOSAL_SERIES) {
-          record[`t${series.type}`] = value(row, basis, variant, `t${series.type}`).toLocaleString("en-GB");
+          record[`t${series.type}`] = seriesValue(row, basis, variant, series.members).toLocaleString("en-GB");
         }
         record.oocd = oocdSum(row, basis, variant).toLocaleString("en-GB");
         record.t1 = value(row, basis, variant, "t1").toLocaleString("en-GB");

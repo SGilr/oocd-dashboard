@@ -16,8 +16,14 @@ function load<T>(name: string): T {
 export type Basis = "closed" | "recorded";
 export type FraudVariant = "all" | "ex_fraud";
 
-/** The six out of court resolution types, in the order they are drawn. */
-export const OOCD_TYPES = [8, 22, 3, 2, 6, 7] as const;
+/**
+ * The out of court resolution types. Outcomes 23 and 24, child and adult
+ * deferred prosecution, exist from April 2026 and take over deferred
+ * prosecutions previously recorded under outcome 22. Charts draw 22, 23 and 24
+ * together as one series (see palette.ts) so the series runs on across the
+ * change; tables and downloads keep them separate.
+ */
+export const OOCD_TYPES = [8, 22, 23, 24, 3, 2, 6, 7] as const;
 export type OocdType = (typeof OOCD_TYPES)[number];
 
 export const OUTCOME_SHORT_LABELS: Record<number, string> = {
@@ -29,6 +35,8 @@ export const OUTCOME_SHORT_LABELS: Record<number, string> = {
   7: "Cannabis or khat warning",
   8: "Community resolution",
   22: "Outcome 22, diversionary activity",
+  23: "Outcome 23, child deferred prosecution",
+  24: "Outcome 24, adult deferred prosecution",
 };
 
 export const BASIS_LABELS: Record<Basis, string> = {
@@ -89,6 +97,17 @@ export const manifest = load<Record<string, any>>("manifest.json");
 export const forceYear = load<Table<CountRow>>("force_year.json");
 export const forceQuarter = load<Table<CountRow>>("force_quarter.json");
 export const nationalYear = load<Table<CountRow>>("national_year.json");
+
+/**
+ * True once the published data carries any count under outcome 23 or 24. Until
+ * then the combined series is labelled as outcome 22 alone, which is what it
+ * contains; afterwards the label names all three types.
+ */
+export const DEFERRED_OUTCOMES_PRESENT: boolean = nationalYear.rows.some((row) =>
+  Object.entries(row).some(
+    ([key, cell]) => /_t2[34]$/.test(key) && typeof cell === "number" && cell !== 0
+  )
+);
 export const nationalQuarter = load<Table<CountRow>>("national_quarter.json");
 export const forceOffenceYear = load<Table<OffenceRow>>("force_offence_year.json");
 export const denominators = load<Table<DenominatorRow>>("denominators.json");
@@ -111,6 +130,18 @@ export function column(basis: Basis, variant: FraudVariant, name: string): strin
 
 export function value(row: CountRow, basis: Basis, variant: FraudVariant, name: string): number {
   return (row[column(basis, variant, name)] as number) ?? 0;
+}
+
+/** Sum several outcome types, for a series that draws more than one. */
+export function seriesValue(
+  row: CountRow,
+  basis: Basis,
+  variant: FraudVariant,
+  members: readonly number[]
+): number {
+  let total = 0;
+  for (const type of members) total += value(row, basis, variant, `t${type}`);
+  return total;
 }
 
 /** Sum the selected resolution types, so the resolution subset control works. */

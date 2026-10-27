@@ -124,7 +124,7 @@ Outcome 22.
 
 So the change of word needed no change in law, and no change to what is counted.
 
-The outcome types below are the same six either way, and they are the law as it
+The outcome types below are the same either way, and they are the law as it
 stands rather than a legacy awaiting replacement. Anyone arriving here searching
 for out of court disposals is in the right place. Where a publication is cited
 by its title, the title is left as published: the Neyroud review and the West Yorkshire Police and
@@ -133,8 +133,11 @@ misquotation.
 
 ### Outcome types
 
-The published tables carry an outcome type code from 1 to 22. Six of them are
-out of court resolutions.
+The published tables carry an outcome type code from 1 to 22 for every year up
+to 2025/26. Six of them are out of court resolutions. From April 2026 the
+counting rules add two more, both out of court resolutions here: outcome 23,
+child deferred prosecution, and outcome 24, adult deferred prosecution. The
+section on outcomes 23 and 24 below explains how they are treated.
 
 <!-- INJECT:OUTCOME-TYPES -->
 
@@ -168,6 +171,40 @@ records an offence the person admitted and asked the court to take into account
 alongside the offences being prosecuted, so it accompanies a prosecution rather
 than replacing one. It is excluded throughout. Sweeping it in would inflate every
 out of court figure on the site.
+
+### Outcomes 23 and 24
+
+From April 2026 the Home Office counting rules record a child deferred
+prosecution as outcome 23 and an adult deferred prosecution as outcome 24
+(Home Office, 2026, Official crime recording rules for front line officers and
+staff 2026/27, April update, p. 25). Until then, deferred prosecutions were
+recorded under outcome 22.
+
+Both are counted here as out of court resolutions, and so as positive outcomes.
+They take over part of what outcome 22 used to record, so leaving them out
+would make every force that runs a deferred prosecution scheme appear to cut
+its out of court resolutions in April 2026, when all that changed was the code.
+
+Three consequences follow.
+
+The out of court total and the out of court share run on across the change.
+
+Outcome 22 on its own is not comparable across it. Charts draw outcomes 22, 23
+and 24 together as one series, labelled as outcome 22 alone until the published
+data carries any count under 23 or 24, and as outcomes 22 to 24 from then on.
+The derived tables, the compare page and the downloads keep the three separate.
+
+The positive outcome measure here is wider than the Home Office's. The Centre
+for Justice Innovation reports that outcome 23 counts as a positive outcome in
+Home Office terms only in child knife crime cases (Ely, 2026). This dashboard
+treats every out of court resolution as a positive outcome, as it always has,
+so its positive outcome figures will not match a Home Office figure that
+follows the narrower rule.
+
+The derived tables gain the columns `t23` and `t24` from the first build after
+this change. For every year to 2025/26 they are zero, because the types did not
+exist. A count under either type in a year before 2026/27 stops the build, and
+so does any outcome type the classification does not recognise.
 
 ### The Home Office's own grouping
 
@@ -259,7 +296,7 @@ match the same figure here, and the reason is coverage rather than arithmetic.
 ### Positive outcomes
 
 A positive outcome is one where somebody was held to account: outcome type 1,
-charge or summons, plus the six out of court types. Everything else, including
+charge or summons, plus the out of court types. Everything else, including
 cases closed with no suspect identified and cases closed because the victim did
 not support action, is not a positive outcome.
 
@@ -294,7 +331,7 @@ Three denominators are defensible and they answer different questions, so all
 three are offered.
 
 **Share of positive outcomes.** Out of court resolutions divided by charge or
-summons plus all six out of court types. Of the cases where somebody was held to
+summons plus all the out of court types. Of the cases where somebody was held to
 account, how many were dealt with outside court. This is the default, because it
 comes closest to the decision under examination.
 
@@ -307,9 +344,9 @@ suspect identified, which is largely a function of offence mix.
 crime in the force area, multiplied by a thousand. Volume normalised for force
 size.
 
-When a subset of the six resolution types is selected, the numerator narrows and
+When a subset of the resolution types is selected, the numerator narrows and
 the denominator does not. The share for each type therefore adds up to the share
-for all six together. Narrowing the denominator with the numerator would make
+for all of them together. Narrowing the denominator with the numerator would make
 every subset look larger than it is.
 
 ### Population and per capita measures
@@ -434,8 +471,8 @@ checks are:
 - No key of force, financial year, quarter, offence code and outcome type repeats
   in a source file, which would double count.
 - No derived table has more than one row for a key.
-- The derived out of court total equals the sum of its six components, the
-  positive total equals charge plus those six, positive outcomes do not exceed
+- The derived out of court total equals the sum of its components, the
+  positive total equals charge plus those components, positive outcomes do not exceed
   all assigned outcomes, and excluding fraud never produces a larger total than
   including it.
 - A movement of more than 40 per cent in a force series between consecutive years
@@ -489,11 +526,17 @@ banner saying the figures are invented. It must not be published.
 
 British Transport Police (2026) *About us*. London: British Transport Police.
 
+Ely, C. (2026) 'Beyond admission: could Outcome 22 & 23 become England and
+Wales' version of "no contest"?', *Centre for Justice Innovation*, 28 April.
+
 Home Office (2026) *Police recorded crime and outcomes open data tables*.
 London: Home Office.
 
 Home Office (2026) *Police recorded crime and outcomes open data tables user
 guide*. London: Home Office.
+
+Home Office (2026) *Official crime recording rules for front line officers and
+staff 2026/27*. April update. London: Home Office.
 
 Ministry of Justice (2026) *Proven reoffending statistics: definitions and
 measurement*. London: Ministry of Justice.

@@ -18,6 +18,7 @@ import {
   nationalQuarter,
   nationalYear,
   oocdSum,
+  seriesValue,
   quarterDate,
   value,
 } from "../lib/data";
@@ -140,7 +141,7 @@ const mix = nationalQuarter.rows.flatMap((row) =>
     q: row.q as number,
     type: series.type,
     label: series.short,
-    count: value(row, basis, variant, `t${series.type}`),
+    count: seriesValue(row, basis, variant, series.members),
   }))
 );
 
@@ -181,7 +182,7 @@ const mixTableRows = financialYears.map((fy) => {
   const row = nationalYear.rows.find((entry) => entry.fy === fy)!;
   const record: Record<string, string | number> = { fy };
   for (const series of DISPOSAL_SERIES) {
-    record[`t${series.type}`] = value(row, basis, variant, `t${series.type}`).toLocaleString("en-GB");
+    record[`t${series.type}`] = seriesValue(row, basis, variant, series.members).toLocaleString("en-GB");
   }
   record.total = oocdSum(row, basis, variant).toLocaleString("en-GB");
   return record;
@@ -320,7 +321,7 @@ const cautionAgePlot = renderPlot(
   <p class="small">
     Every figure on this page uses the count basis
     <strong>{BASIS_LABELS[basis].toLowerCase()}</strong>, includes fraud offences, and
-    counts all six out of court resolution types. The
+    counts every out of court resolution type. The
     <a href="/compare">compare page</a> lets you change each of those.
   </p>
 
@@ -328,7 +329,7 @@ const cautionAgePlot = renderPlot(
     title="The out of court share of positive outcomes"
     subtitle={`National, ${firstYear} to ${latestYear}, by quarter. Basis: ${BASIS_LABELS[basis].toLowerCase()}.`}
     plot={trendPlot}
-    description="Positive outcomes are charge or summons plus the six out of court resolution types. The share is the part of those that were dealt with outside court."
+    description="Positive outcomes are charge or summons plus the out of court resolution types. The share is the part of those that were dealt with outside court."
     notes={[
       "The shaded period runs before outcome 22 recording became compulsory in 2021/22, so part of the rise after that point is forces recording an outcome they were already using.",
     ]}
@@ -371,7 +372,7 @@ const cautionAgePlot = renderPlot(
           label: series.short,
           numeric: true,
         })),
-        { key: "total", label: "All six types", numeric: true },
+        { key: "total", label: "All types", numeric: true },
       ],
       rows: mixTableRows,
     }}
